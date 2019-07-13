@@ -1,10 +1,34 @@
 
+const async = require("async");
 const debug = require("debug");
 const should = require("should");
 const assert = require("assert");
+
 const mongoose = require("mongoose");
+mongoose.set("useFindAndModify", false);
+
 const treeify = require("treeify");
 const cp = require("child_process");
+
+const tcuChildName = + "NNT_TEST_TCU";
+const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
+const tcUtils = new ThreeceeUtilities(tcuChildName);
+
+const jsonPrint = tcUtils.jsonPrint;
+
+const test_nn = require("./mms2_20190712_140136_1.json");
+const test_inputsObj = require("./test_inputsObj.json");
+
+const test_user_tobi = require("./test_user_tobi.json");
+const test_user_hector = require("./test_user_hector.json");
+
+const testUsersArray = [];
+testUsersArray.push(test_user_tobi);
+testUsersArray.push(test_user_hector);
+
+
+const NeuralNetworkTools = require("../index.js");
+const nnTools = new NeuralNetworkTools("TEST");
 
 let dbOptions = { 
 	useNewUrlParser: true,
@@ -32,24 +56,16 @@ const DEFAULT_INPUT_TYPES = [
 	"words"
 ];
 
-const jsonPrint = function (obj){
-  if (obj) {
-    return treeify.asTree(obj, true, true);
-  }
-  else {
-    return "UNDEFINED";
-  }
-};
-
 mongoose.connect("mongodb://localhost/test", dbOptions);
 
 const db = mongoose.connection;
 
-global.dbConnection = db;
+global.globalDbConnection = db;
 
 const emojiModel = require("@threeceelabs/mongoose-twitter/models/emoji.server.model");
 const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
 const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
+const locationModel = require("@threeceelabs/mongoose-twitter/models/location.server.model");
 const neuralNetworkModel = require("@threeceelabs/mongoose-twitter/models/neuralNetwork.server.model");
 const networkInputsModel = require("@threeceelabs/mongoose-twitter/models/networkInputs.server.model");
 const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
@@ -58,28 +74,32 @@ const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model
 const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
 const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
 
-let NeuralNetwork;
-let Emoji;
-let Hashtag;
-let Media;
-let Place;
-let Tweet;
-let Url;
-let User;
-let Word;
+global.globalEmoji = global.globalDbConnection.model("Emoji", emojiModel.EmojiSchema);
+global.globalHashtag = global.globalDbConnection.model("Hashtag", hashtagModel.HashtagSchema);
+global.globalLocation = global.globalDbConnection.model("Location", locationModel.LocationSchema);
+global.globalMedia = global.globalDbConnection.model("Media", mediaModel.MediaSchema);
+global.globalNeuralNetwork = global.globalDbConnection.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
+global.globalPlace = global.globalDbConnection.model("Place", placeModel.PlaceSchema);
+global.globalTweet = global.globalDbConnection.model("Tweet", tweetModel.TweetSchema);
+global.globalUrl = global.globalDbConnection.model("Url", urlModel.UrlSchema);
+global.globalUser = global.globalDbConnection.model("User", userModel.UserSchema);
+global.globalWord = global.globalDbConnection.model("Word", wordModel.WordSchema);
 
-Emoji = mongoose.model("Emoji", emojiModel.EmojiSchema);
-Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
-Media = mongoose.model("Media", mediaModel.MediaSchema);
-NeuralNetwork = mongoose.model("NeuralNetwork", neuralNetworkModel.NeuralNetworkSchema);
-Place = mongoose.model("Place", placeModel.PlaceSchema);
-Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
-Url = mongoose.model("Url", urlModel.UrlSchema);
-User = mongoose.model("User", userModel.UserSchema);
-Word = mongoose.model("Word", wordModel.WordSchema);
+let NeuralNetwork = global.globalNeuralNetwork;
+let Emoji = global.globalEmoji;
+let Hashtag = global.globalHashtag;
+let Location = global.globalLocation;
+let Media = global.globalMedia;
+let Place = global.globalPlace;
+let Tweet = global.globalTweet;
+let Url = global.globalUrl;
+let User = global.globalUser;
+let Word = global.globalWord;
 
 const UserServerController = require("@threeceelabs/user-server-controller");
 const userServerController = new UserServerController("WAS_TEST_USC");
+
+const maxNormObj = require("./maxInputHashMap.json");
 
 describe("mongoose", function() {
 
@@ -95,11 +115,65 @@ describe("mongoose", function() {
 	  if (db !== undefined) { db.close(); }
   });
 
+  // describe('#getNormalization()', function() {
+  //   it('should get undefined normalization', function() {
+  //     assert.equal(nnTools.getNormalization(), undefined);
+  //   });
+  // });
+  
+  // describe('#setNormalization()', function() {
+  //   it('should get undefined network', function() {
+  //     assert.equal(nnTools.setNormalization(maxNormObj.normalization), undefined);
+  //   });
+  // });
+  
+  // describe('#getNormalization()', function() {
+  //   it('should get normalization', function() {
+  //     assert.deepEqual(nnTools.getNormalization(), maxNormObj.normalization);
+  //   });
+  // });
+
+  // describe('#getMaxInputHashMap()', function() {
+  //   it('should get undefined result', function() {
+  //     assert.equal(nnTools.getMaxInputHashMap(), undefined);
+  //   });
+  // });
+  
+  // describe('#setMaxInputHashMap()', function() {
+  //   it('should get undefined result', function() {
+  //     assert.equal(nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap), undefined);
+  //   });
+  // });
+  
+  // describe('#getMaxInputHashMap()', function() {
+  //   it('should get maxInputHashMap', function() {
+  //     assert.deepEqual(nnTools.getMaxInputHashMap(), maxNormObj.maxInputHashMap, "maxInputHashMap ERROR");
+  //   });
+  // });
+
+  // describe('#getPrimaryNeuralNetwork()', function() {
+  //   it('should get undefined network', function() {
+  //     assert.equal(nnTools.getPrimaryNeuralNetwork(), undefined);
+  //   });
+  // });
+  
+  // describe('#setPrimaryNeuralNetwork()', function() {
+  //   it('should set network, result is networkId', async function() {
+  //     assert.equal(await nnTools.setPrimaryNeuralNetwork(test_nn), test_nn.networkId);
+  //   });
+  // });
+
+  // describe('#getPrimaryNeuralNetwork()', function() {
+  //   it('should get test network', function() {
+  //     assert.equal(nnTools.getPrimaryNeuralNetwork().networkId, test_nn.networkId);
+  //   });
+  // });
+ 
   describe("users", function() {
 
     it("create and find 1 user", async function() {
 
-		  let tobi = new User({ nodeId: "1234", name: "tobi"});
+		  let tobi = new User(test_user_tobi);
 
 		  let savedUser0 = await tobi.save();
 
@@ -113,8 +187,8 @@ describe("mongoose", function() {
     
     it("create and find 2 users", async function() {
 
-		  let tobi = new User({ nodeId: "1234", name: "tobi"});
-		  let hector = new User({ nodeId: "54321", name: "hector"});
+		  let tobi = new User(test_user_tobi);
+		  let hector = new User(test_user_hector);
 
 		  let savedUser0 = await tobi.save();
 		  let savedUser1 = await hector.save();
@@ -125,144 +199,55 @@ describe("mongoose", function() {
       res[0].should.have.property("name", "tobi");
       res[1].should.have.property("name", "hector");
     });
-    
-    it("userServerController updateHistograms", async function() {
-
-		  let tobi = new User({ nodeId: "1234", name: "tobi"});
-		  let hector = new User({ nodeId: "54321", name: "hector"});
-
-		  let savedTobi = await tobi.save();
-		  let savedHector = await hector.save();
-
-		  const res = await User.find({});
-
-      res.should.have.length(2);
-      res[0].should.have.property("name", "tobi");
-      res[1].should.have.property("name", "hector");
-
-    	let userServerController = new UserServerController();
-
-    	let testInputHistogram = {};
-
-	  	DEFAULT_INPUT_TYPES.forEach(function(type){
-	  		if (testInputHistogram[type] === undefined) { testInputHistogram[type] = {}; }
-	  		switch (type) {
-	  			case "emoji":
-	  				testInputHistogram[type][":bug:"] = 21;
-	  				break;
-	  			case "hashtags":
-	  				testInputHistogram[type]["#tracy"] = 47;
-	  				break;
-	  			case "userMentions":
-	  				testInputHistogram[type]["@threecee"] = 333;
-	  				break;
-	  			case "mentions":
-	  				testInputHistogram[type]["@collins"] = 3;
-	  				break;
-	  			case "locations":
-	  				testInputHistogram[type]["East Butt Fuck"] = 1;
-	  				break;
-	  			case "places":
-	  				testInputHistogram[type]["df51dec6f4ee2b2c"] = 10;
-	  				break;
-	  			case "sentiment":
-	  				testInputHistogram[type].score = -0.534;
-	  				testInputHistogram[type].magnitude = 14.7;
-	  				break;
-	  			case "images":
-	  				testInputHistogram[type]["deez"] = 283;
-	  				break;
-	  			case "media":
-	  				testInputHistogram[type]["861627472244162561"] = 499;
-	  				break;
-	  			case "urls":
-	  				testInputHistogram[type]["HkTkwFq8UT"] = 86;
-	  				break;
-	  			case "words":
-	  				testInputHistogram[type]["love"] = 44;
-	  				break;
-	  			default:
-	  				console.log("??? UNDEFINED HISTOGRAM INPUT TYPE: " + type);
-	  				throw(new Error("UNDEFINED HISTOGRAM INPUT TYPE: " + type));
-	  		}
-	  	});
-
-			debug("testInputHistogram\n", testInputHistogram);
-
-			const updateHistogramsPromise = function (params) { 
-
-				return new Promise(function(resolve, reject){
-
-					// console.log("params\n", params);
-
-		    	userServerController.updateHistograms(params, function(err, updatedUser){
-		    		if (err) { return reject(err); }
-		    		resolve(updatedUser);
-		    	});
-
-				});
-			};
-
-			let updatedUser = await updateHistogramsPromise({user: savedTobi, histograms: testInputHistogram});
-
-			debug("updatedUser: " + updatedUser.name + "\n" + jsonPrint(updatedUser.histograms));
-      updatedUser.should.have.property("name", "tobi");
-      updatedUser.should.have.propertyByPath("histograms", "emoji", ":bug:").eql(21);
-
-			updatedUser = await updateHistogramsPromise({user: savedTobi, histograms: testInputHistogram});
-
-			debug("updatedUser: " + updatedUser.name + "\n" + jsonPrint(updatedUser.histograms));
-      updatedUser.should.have.property("name", "tobi");
-      updatedUser.should.have.propertyByPath("histograms", "emoji", ":bug:").eql(21);
-
-			let updatedUserAccumulated = await updateHistogramsPromise({user: updatedUser, histograms: testInputHistogram, accumulateFlag: true});
-
-			// accumalate => each value should be doubled
-			debug("updatedUserAccumulated: " + updatedUserAccumulated.name + "\n" + jsonPrint(updatedUserAccumulated.histograms));
-      updatedUserAccumulated.should.have.property("name", "tobi");
-      updatedUserAccumulated.should.have.propertyByPath("histograms", "emoji", ":bug:").eql(42);
-    });
-
-    it("fork TSS", async function(){
-
-    	this.timeout(20000);
-
-    	const quitDelayPromise = function(params){
-
-    		return new Promise(function(resolve, reject){
-
-	    		params = params || {};
-
-	    		const interval = params.interval || 10000;
-
-
-    			const quitTimeout = setTimeout(function(){
-    				tss.send({op: "QUIT"});
-    				resolve(true);
-    			}, params.interval);
-
-    		});
-
-    	};
-
-			let childEnv = {
-				"TWITTER_MAX_TRACKING_NUMBER": 47,
-			  "DROPBOX_DEFAULT_SEARCH_TERMS_DIR": "/config/utility/default",
-			  "DROPBOX_DEFAULT_SEARCH_TERMS_FILE": "defaultSearchTerms.txt",
-			  "TSS_PROCESS_NAME": "tssChild_test",
-			  "TSS_ENABLE_STDIN": true,
-			  "DROPBOX_WORD_ASSO_DEFAULT_TWITTER_CONFIG": "/config/twitter/twitterConfig_ninjathreeceeTwitterTest_00.json",
-			  "TSS_STATS_UPDATE_INTERVAL": 60000,
-			  "TSS_TWITTER_USERS": [ "altthreecee05" ],
-			  "TSS_KEEPALIVE_INTERVAL": 15000,
-			  "TSS_TWITTER_QUEUE_INTERVAL": 10
-			};
-
-	    const tss = await cp.fork(`./js/libs/tssChild.js`, childEnv);
-
-	    const result = await quitDelayPromise({interval: 5000});
-
-    });
-    
   });
+
+	describe("#activate()", async function() {
+
+		try{
+			await nnTools.loadNetwork(test_nn);
+			await nnTools.setPrimaryNeuralNetwork(test_nn.networkId);
+		}
+		catch(err){
+		  if (err) { console.log("NNT | *** TEST ACTIVATE setPrimaryNeuralNetwork ERROR: " + err); }
+		  assert.ifError(err);
+		}
+
+		nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
+		nnTools.setNormalization(maxNormObj.normalization);
+		
+		async.eachSeries(testUsersArray, async function(user){
+	    it('should get network activate results', async function() {
+	    	try{
+		      const results = await nnTools.activate({user: user, verbose: true});
+
+		      should.equal(results.user.screenName, user.screenName);
+		      should.exist(results.networkOutput[test_nn.networkId]);
+		      should.exist(results.networkOutput[test_nn.networkId].output);
+		      results.networkOutput[test_nn.networkId].output.should.have.length(3);
+		      should.exist(results.networkOutput[test_nn.networkId].left);
+		      should.exist(results.networkOutput[test_nn.networkId].right);
+		      should.exist(results.networkOutput[test_nn.networkId].negative);
+		      should.exist(results.networkOutput[test_nn.networkId].positive);
+		      should.exist(results.networkOutput[test_nn.networkId].neutral);
+
+		      console.log("NNT | NN ACTIVATE RESULTS"
+		      	+ " | " + results.networkOutput[test_nn.networkId].output
+		      	+ " | MATCH: " + results.networkOutput[test_nn.networkId].match
+		      	+ " | @" + results.user.screenName
+		      	+ " | CM: " + results.user.category + " CA: " + results.user.categoryAuto
+		      );
+		      return;
+	    	}
+	    	catch(err){
+	        if (err) { console.log("NNT | *** TEST ACTIVATE ERROR: " + err); }
+	        assert.ifError(err);
+	    	}
+	    });
+		}, function(err){
+	    if (err) { console.log("NNT | *** TEST ACTIVATE ERROR: " + err); }
+	    assert.ifError(err);
+		});
+
+	});
+
 });

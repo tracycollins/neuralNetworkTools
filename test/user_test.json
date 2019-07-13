@@ -1,0 +1,119 @@
+{
+  "userId": "18923736484",
+  "screenName": "master_test",
+  "nodeId": "18923736484",
+  "name": "hector",
+  "lang": null,
+  "statusesCount": 3682,
+  "followersCount": 7633,
+  "friendsCount": 48,
+  "friends": [
+    "296164029",
+    "45901207",
+    "627666157",
+    "334237587",
+    "634274088",
+    "210127211",
+    "394965042",
+    "62594204",
+    "217759544",
+    "1652541",
+    "271787365",
+    "225663702",
+    "230527949",
+    "209811713",
+    "225235528"
+  ],
+  "category": "right",
+  "categoryAuto": "neutral",
+  "profileHistograms": {
+    "words": {
+      "skank": 2,
+      "what": 3,
+      "whaterveer": 5,
+      "hackers": 3
+    },
+    "hashtags": {
+      "#blacklivesmatter": 1,
+      "#antizionism": 2,
+      "#hemoglobin": 2,
+      "#haberdasheries": 23
+    },
+    "userMentions": {
+      "@master_test": 0
+    },
+    "urls": {
+      "aHR0cHM6Ly9wYnMudHdpbWcuY29tL3Byb2ZpbGfYmFubmVycy80NzY3NjI0NDcvMTM1NDUyNTUzNw==": 2,
+      "aHR0cHM6Ly90d2l0dGVyLmNvbSvcF9pc3JhZWw=": 2,
+      "aHR0cHM6Ly9jR0p6TG5S2FXMW5MbU52YlE9PQ==": 4,
+      "aHR0cHM6Ly9kSGRwZEhSbGpNWpiMjA9": 2
+    },
+    "images": {
+      "dogs": 2,
+      "cats": 3,
+      "cars": 2,
+      "tools": 2,
+      "bag": 20,
+      "brand": 20239
+    },
+    "sentiment": {
+      "score": -0.3000001192092896,
+      "magnitude": 0.30000001192092896,
+      "comp": -99.000000715255752
+    },
+    "media": {}
+  },
+  "tweetHistograms": {
+    "media": {
+      "825680665454735360": 1,
+      "824580385627578369": 1
+    },
+    "urls": {
+      "aHR0cHM6Ly90d2l0dGVyLmNvbS9pL3dlYi9zdGF0dXMvODI1ODMxNTAwMDc1NjU1MTc2": 1,
+      "aHR0cDovL3d3dy5tYWFubmV3cy5jb20vY29udGVudC5hc3B4P2lkPTc3NTE2NA==": 1,
+      "aHR0cHM6Ly9kSGRwZEhSbGNpNWpiMjA9": 1,
+      "aHR0cHM6Ly9kM2QzTG0xaFlXNXVaWGR6TG1OdmJRPT0=": 1
+    },
+    "words": {
+      "fire": 1,
+      "farmland": 1,
+      "gaza": 1,
+      "hussein": 1,
+      "salem": 1,
+      "ghush": 1,
+      "night": 1,
+      "inhumanity": 1,
+      "member": 1,
+      "knesset": 1,
+      "aymen": 1,
+      "odeh": 1,
+      "shot": 1,
+      "point": 1,
+      "blank": 1,
+      "face": 1,
+      "sponge": 1,
+      "bullet": 1,
+      "israel": 1,
+      "murder": 1,
+      "cold": 1,
+      "blood": 1,
+      "time": 1,
+      "ethnically": 1,
+      "cleanse": 1,
+      "village": 1
+    },
+    "hashtags": {
+      "jeepers": 4774
+    },
+    "userMentions": {},
+    "images": {},
+    "sentiment": {
+      "score": -0.000001192092896,
+      "magnitude": 0.430000001192092896,
+      "comp": -9.00752
+    }
+  },
+  "ignored": false,
+  "following": true,
+  "threeceeFollowing": "altthreecee00"
+}

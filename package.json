@@ -1,10 +1,10 @@
 {
   "name": "@threeceelabs/neural-network-tools",
-  "version": "1.0.1",
+  "version": "1.0.5",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -15,5 +15,17 @@
   "bugs": {
     "url": "https://github.com/tracycollins/neuralNetworkTools/issues"
   },
-  "homepage": "https://github.com/tracycollins/neuralNetworkTools#readme"
+  "homepage": "https://github.com/tracycollins/neuralNetworkTools#readme",
+  "dependencies": {
+    "@liquid-carrot/carrot": "^0.2.27",
+    "@threeceelabs/mongoose-twitter": "^1.0.257",
+    "@threeceelabs/threecee-utilities": "^1.0.4",
+    "@threeceelabs/user-server-controller": "^1.0.461",
+    "async": "^3.1.0",
+    "carrot": "0.0.1",
+    "deep-copy": "^1.4.2",
+    "hashmap": "^2.3.0",
+    "mongoose": "^5.6.4",
+    "neataptic": "^1.4.7"
+  }
 }
