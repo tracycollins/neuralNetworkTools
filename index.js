@@ -22,9 +22,16 @@ function jsonPrint (obj){
 NetworkTools.prototype.activate = function(params){
 
   return new Promise(function(resolve, reject){
+
   	const results = {};
+  	
+  	results.user = {};
+  	results.user = params.user;
+
     resolve(results);
+
   });
 
 };
+
 module.exports = NetworkTools;

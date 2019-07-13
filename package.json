@@ -1,0 +1,19 @@
+{
+  "name": "@threeceelabs/neural-network-tools",
+  "version": "1.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tracycollins/neuralNetworkTools.git"
+  },
+  "author": "threecee",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tracycollins/neuralNetworkTools/issues"
+  },
+  "homepage": "https://github.com/tracycollins/neuralNetworkTools#readme"
+}
