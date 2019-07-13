@@ -96,7 +96,6 @@ NeuralNetworkTools.prototype.loadNetwork = function(nn){
     resolve(nnLoaded.networkId);
 
   });
-
 }
 
 NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = function(nnId){
@@ -124,7 +123,7 @@ NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = function(nnId){
 }
 
 NeuralNetworkTools.prototype.getPrimaryNeuralNetwork = function(){
-  return primaryNeuralNetwork;
+  return primaryNeuralNetworkId;
 }
 
 let previousPrintedNetworkObj = {};
@@ -392,7 +391,7 @@ NeuralNetworkTools.prototype.activate = function (params) {
 
         // console.log("ACTIVATE NN " + networkObj.networkId);
 
-        if (statsObj.loadedNetworks[nnId] === undefined)  {
+        if (statsObj.loadedNetworks[nnId] === undefined){
           statsObj.loadedNetworks[nnId] = {};
         }
 
