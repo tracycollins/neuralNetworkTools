@@ -1,8 +1,11 @@
 
+const fs = require("fs");
+const path = require("path");
 const async = require("async");
 const debug = require("debug");
 const should = require("should");
 const assert = require("assert");
+const randomItem = require("random-item");
 
 const mongoose = require("mongoose");
 mongoose.set("useFindAndModify", false);
@@ -16,7 +19,7 @@ const tcUtils = new ThreeceeUtilities(tcuChildName);
 
 const jsonPrint = tcUtils.jsonPrint;
 
-const test_nn = require("./mms2_20190712_140136_1.json");
+// const test_nn = require("./mms2_20190712_140136_1.json");
 const test_inputsObj = require("./test_inputsObj.json");
 
 const test_user_tobi = require("./test_user_tobi.json");
@@ -205,9 +208,39 @@ describe("mongoose", function() {
 
     it('should init networks', async function() {
 
+    	const networkIdArray = [];
+
 			try{
-        (nnTools.loadNetwork({networkObj: test_nn})).should.be.fulfilled();
-        (nnTools.setPrimaryNeuralNetwork(test_nn.networkId)).should.be.fulfilled();
+
+				const networksFolder = path.join(__dirname, "networks");
+
+				fs.readdirSync(networksFolder).forEach(file => {
+
+					if (file.endsWith(".json") && !file.includes("bestRuntimeNetwork")) {
+
+						const nnId = file.replace(".json", "");
+
+		      	console.log("NETWORK LOAD: " + file);
+
+						const nn = require("./networks/" + nnId + ".json");
+
+						networkIdArray.push(nnId);
+
+		        (nnTools.loadNetwork({networkObj: nn})).should.be.fulfilled();
+		      }
+		      else{
+		      	console.log("... SKIPPING NETWORK LOAD: " + file);
+		      }
+
+				});
+
+				console.log("FOUND " + nnTools.getNumberNetworks() + " NETWORKS");
+
+
+				const randomNnId = randomItem(networkIdArray);
+
+        (nnTools.setPrimaryNeuralNetwork(randomNnId)).should.be.fulfilled();
+
         (nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap)).should.be.fulfilled();
         (nnTools.setNormalization(maxNormObj.normalization)).should.be.fulfilled();
 			}
@@ -223,24 +256,60 @@ describe("mongoose", function() {
 	    	try{
 	    		// let results;
 	        // (results = await nnTools.activate({user: user, verbose: true})).should.be.fulfilled();
-		      const results = await nnTools.activate({user: user, verbose: false});
+		      const results = await nnTools.activate({user: user, updateStats: true, verbose: false});
 
 		      console.log("NNT | NN ACTIVATE RESULTS"
-		      	+ " | " + results.networkOutput[test_nn.networkId].output
-		      	+ " | MATCH: " + results.networkOutput[test_nn.networkId].match
+		      	// + " | NN: " + test_nn.networkId
+		      	// + " | " + results.networkOutput[test_nn.networkId].output
+		      	// + " | MATCH: " + results.networkOutput[test_nn.networkId].match
 		      	+ " | @" + results.user.screenName
 		      	+ " | CM: " + results.user.category + " CA: " + results.user.categoryAuto
+		      	// + "\n" + jsonPrint(results.networkOutput)
 		      );
 
 		      should.equal(results.user.screenName, user.screenName);
-		      should.exist(results.networkOutput[test_nn.networkId]);
-		      should.exist(results.networkOutput[test_nn.networkId].output);
-		      results.networkOutput[test_nn.networkId].output.should.have.length(3);
-		      should.exist(results.networkOutput[test_nn.networkId].left);
-		      should.exist(results.networkOutput[test_nn.networkId].right);
-		      should.exist(results.networkOutput[test_nn.networkId].negative);
-		      should.exist(results.networkOutput[test_nn.networkId].positive);
-		      should.exist(results.networkOutput[test_nn.networkId].neutral);
+		      // should.exist(results.networkOutput[test_nn.networkId].output);
+		      // results.networkOutput[test_nn.networkId].output.should.have.length(3);
+
+			    // const networkOutput = params.networkOutput; // array of networks
+			    // const expectedOutput = params.expectedOutput;
+
+		      const currentBestNetworkStats = await nnTools.updateNetworkStats({
+		      	networkOutput: results.networkOutput, 
+		      	expectedCategory: results.user.category
+		      });
+
+		      console.log("NNT | NN UPDATE STATS | BEST NETWORK"
+		      	+ " | " + currentBestNetworkStats.networkId
+		      	+ " | " + currentBestNetworkStats.inputsId
+		      	+ " | RANK: " + currentBestNetworkStats.rank
+		      	+ " | " + currentBestNetworkStats.match + "/" + currentBestNetworkStats.total
+		      	+ " | MR: " + currentBestNetworkStats.matchRate.toFixed(2) + "%"
+		      	+ " | MATCH FLAG: " + currentBestNetworkStats.matchFlag
+		      	// + "\n" + jsonPrint(currentBestNetworkStats)
+		      );
+
+	        // statsObj.loadedNetworks[nnId] = {};
+	        // statsObj.loadedNetworks[nnId].networkId = nnId;
+	        // statsObj.loadedNetworks[nnId].inputsId = nn.inputsId;
+	        // statsObj.loadedNetworks[nnId].numInputs = nn.numInputs;
+	        // statsObj.loadedNetworks[nnId].output = [];
+	        // statsObj.loadedNetworks[nnId].successRate = nn.successRate;
+	        // statsObj.loadedNetworks[nnId].matchRate = nn.matchRate;
+	        // statsObj.loadedNetworks[nnId].overallMatchRate = nn.overallMatchRate;
+	        // statsObj.loadedNetworks[nnId].rank = Infinity;
+	        // statsObj.loadedNetworks[nnId].total = 0;
+	        // statsObj.loadedNetworks[nnId].match = 0;
+	        // statsObj.loadedNetworks[nnId].mismatch = 0;
+	        // statsObj.loadedNetworks[nnId].matchFlag = false;
+	        // statsObj.loadedNetworks[nnId].left = 0;
+	        // statsObj.loadedNetworks[nnId].neutral = 0;
+	        // statsObj.loadedNetworks[nnId].right = 0;
+	        // statsObj.loadedNetworks[nnId].positive = 0;
+	        // statsObj.loadedNetworks[nnId].negative = 0;
+
+		      should.exist(currentBestNetworkStats);
+		      currentBestNetworkStats.matchRate.should.be.a.Number();
 
 		      cb();
 	    	}
