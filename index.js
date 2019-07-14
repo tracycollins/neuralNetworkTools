@@ -88,17 +88,22 @@ NeuralNetworkTools.prototype.loadNetwork = function(params){
       return reject(new Error("NNT | LOAD NETWORK UNDEFINED"));
     }
 
-    const nnObj = deepcopy(params.networkObj);
+    try{
+      const nnObj = deepcopy(params.networkObj);
+      const network = neataptic.Network.fromJSON(nnObj.network);
 
-    const network = neataptic.Network.fromJSON(nnObj.network);
+      nnObj.network = network;
 
-    nnObj.network = network;
+      networksHashMap.set(nnObj.networkId, nnObj);
 
-    networksHashMap.set(nnObj.networkId, nnObj);
+      console.log(chalkLog("NNT | --> LOAD NN: " + nnObj.networkId));
 
-    console.log(chalkAlert("NNT | --> LOAD NN: " + nnObj.networkId));
-
-    resolve(nnObj.networkId);
+      resolve(nnObj.networkId);
+    }
+    catch(err){
+      console.log(chalkError("NNT | *** LOAD NN ERROR: " + err));
+      reject(err);
+    }
 
   });
 }
@@ -124,7 +129,6 @@ NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = function(nnId){
     resolve(primaryNeuralNetworkId);
 
   });
-
 }
 
 NeuralNetworkTools.prototype.getPrimaryNeuralNetwork = function(){
@@ -394,6 +398,9 @@ NeuralNetworkTools.prototype.activate = function (params) {
 
         const networkObj = networksHashMap.get(nnId);
 
+        if (!networkObj || (networkObj === undefined)){
+          return reject(new Error("NNT | networkObj UNDEFINED | NN ID: " + nnId));
+        }
         // console.log("ACTIVATE NN " + networkObj.networkId);
 
         if (statsObj.loadedNetworks[nnId] === undefined){
