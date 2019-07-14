@@ -19,7 +19,6 @@ const tcUtils = new ThreeceeUtilities(tcuChildName);
 
 const jsonPrint = tcUtils.jsonPrint;
 
-// const test_nn = require("./mms2_20190712_140136_1.json");
 const test_inputsObj = require("./test_inputsObj.json");
 
 const test_user_tobi = require("./test_user_tobi.json");
@@ -28,7 +27,6 @@ const test_user_hector = require("./test_user_hector.json");
 const testUsersArray = [];
 testUsersArray.push(test_user_tobi);
 testUsersArray.push(test_user_hector);
-
 
 const NeuralNetworkTools = require("../index.js");
 const nnTools = new NeuralNetworkTools("TEST");
@@ -117,60 +115,6 @@ describe("mongoose", function() {
   after(async function() {
 	  if (db !== undefined) { db.close(); }
   });
-
-  // describe('#getNormalization()', function() {
-  //   it('should get undefined normalization', function() {
-  //     assert.equal(nnTools.getNormalization(), undefined);
-  //   });
-  // });
-  
-  // describe('#setNormalization()', function() {
-  //   it('should get undefined network', function() {
-  //     assert.equal(nnTools.setNormalization(maxNormObj.normalization), undefined);
-  //   });
-  // });
-  
-  // describe('#getNormalization()', function() {
-  //   it('should get normalization', function() {
-  //     assert.deepEqual(nnTools.getNormalization(), maxNormObj.normalization);
-  //   });
-  // });
-
-  // describe('#getMaxInputHashMap()', function() {
-  //   it('should get undefined result', function() {
-  //     assert.equal(nnTools.getMaxInputHashMap(), undefined);
-  //   });
-  // });
-  
-  // describe('#setMaxInputHashMap()', function() {
-  //   it('should get undefined result', function() {
-  //     assert.equal(nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap), undefined);
-  //   });
-  // });
-  
-  // describe('#getMaxInputHashMap()', function() {
-  //   it('should get maxInputHashMap', function() {
-  //     assert.deepEqual(nnTools.getMaxInputHashMap(), maxNormObj.maxInputHashMap, "maxInputHashMap ERROR");
-  //   });
-  // });
-
-  // describe('#getPrimaryNeuralNetwork()', function() {
-  //   it('should get undefined network', function() {
-  //     assert.equal(nnTools.getPrimaryNeuralNetwork(), undefined);
-  //   });
-  // });
-  
-  // describe('#setPrimaryNeuralNetwork()', function() {
-  //   it('should set network, result is networkId', async function() {
-  //     assert.equal(await nnTools.setPrimaryNeuralNetwork(test_nn), test_nn.networkId);
-  //   });
-  // });
-
-  // describe('#getPrimaryNeuralNetwork()', function() {
-  //   it('should get test network', function() {
-  //     assert.equal(nnTools.getPrimaryNeuralNetwork().networkId, test_nn.networkId);
-  //   });
-  // });
  
   describe("users", function() {
 
@@ -204,130 +148,148 @@ describe("mongoose", function() {
     });
   });
 
-	describe("#activate()", function() {
+  let currentBestNetworkStats = {};
 
-    it('should init networks', async function() {
+	describe("#activate()", async function() {
 
-    	const networkIdArray = [];
+  	const userArray = [];
+  	const networkIdArray = [];
+
+    // it('should init networks', async function() {
 
 			try{
 
+				const usersFolder = path.join(__dirname, "users");
 				const networksFolder = path.join(__dirname, "networks");
 
-				fs.readdirSync(networksFolder).forEach(file => {
+				fs.readdirSync(usersFolder).forEach(file => {
+
+					if (file.startsWith("user_") && file.endsWith(".json")) {
+						const userId = file.replace(".json", "");
+		      	console.log("USER LOAD: " + file);
+						const user = require("./users/" + userId + ".json");
+						userArray.push(user);
+		      }
+		      else{
+		      	console.log("... SKIPPING USER LOAD: " + file);
+		      }
+				});
+
+				console.log("FOUND " + userArray.length + " USERS IN " + usersFolder);
+
+				fs.readdirSync(networksFolder).forEach(async function(file){
 
 					if (file.endsWith(".json") && !file.includes("bestRuntimeNetwork")) {
 
 						const nnId = file.replace(".json", "");
 
-		      	console.log("NETWORK LOAD: " + file);
+		      	// console.log("NETWORK LOAD: " + file);
 
 						const nn = require("./networks/" + nnId + ".json");
 
 						networkIdArray.push(nnId);
 
-		        (nnTools.loadNetwork({networkObj: nn})).should.be.fulfilled();
+						await nnTools.loadNetwork({networkObj: nn});
+
+		        // (await nnTools.loadNetwork({networkObj: nn})).should.be.fulfilled();
 		      }
 		      else{
 		      	console.log("... SKIPPING NETWORK LOAD: " + file);
 		      }
-
 				});
 
-				console.log("FOUND " + nnTools.getNumberNetworks() + " NETWORKS");
-
+				console.log("FOUND " + nnTools.getNumberNetworks() + " NETWORKS IN " + networksFolder);
 
 				const randomNnId = randomItem(networkIdArray);
 
-        (nnTools.setPrimaryNeuralNetwork(randomNnId)).should.be.fulfilled();
+				await nnTools.setPrimaryNeuralNetwork(randomNnId);
+				await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
+				await nnTools.setNormalization(maxNormObj.normalization);
 
-        (nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap)).should.be.fulfilled();
-        (nnTools.setNormalization(maxNormObj.normalization)).should.be.fulfilled();
+		    // it('should init networks', async function() {
+
+	     //    (await nnTools.setPrimaryNeuralNetwork(randomNnId)).should.be.fulfilled();
+	     //    (await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap)).should.be.fulfilled();
+	     //    (await nnTools.setNormalization(maxNormObj.normalization)).should.be.fulfilled();
+	     //  });
+
+				async.eachSeries(userArray, async function(user){
+
+					console.log("user @" + user.screenName + " | " + user.category);
+
+		    	try{
+
+			      const resultsActivate = await nnTools.activate({user: user, updateStats: true, verbose: false});
+	          // resultsActivate.user,
+	          // resultsActivate.networkOutput
+
+			      console.log("NNT | NN ACTIVATE RESULTS"
+			      	+ " | @" + resultsActivate.user.screenName
+			      	+ " | CM: " + resultsActivate.user.category + " CA: " + resultsActivate.user.categoryAuto
+			      );
+
+			      // should.equal(resultsActivate.user.screenName, user.screenName);
+
+			      currentBestNetworkStats = await nnTools.updateNetworkStats(resultsActivate);
+
+			      console.log("NNT | NN UPDATE STATS | BEST NETWORK"
+			      	+ " | " + currentBestNetworkStats.networkId
+			      	+ " | " + currentBestNetworkStats.inputsId
+			      	+ " | RANK: " + currentBestNetworkStats.rank
+			      	+ " | " + currentBestNetworkStats.meta.match + "/" + currentBestNetworkStats.meta.total
+			      	+ " | MR: " + currentBestNetworkStats.matchRate.toFixed(2) + "%"
+			      	+ " | OUT: " + currentBestNetworkStats.meta.output
+			      	+ " | MATCH: " + currentBestNetworkStats.meta.matchFlag
+			      );
+
+			      // console.log(currentBestNetworkStats);
+
+			      return;
+		    	}
+		    	catch(err){
+		        console.log("NNT | *** TEST ACTIVATE EACH ERROR: " + err);
+		        should.not.exist(err);
+		        return err;
+		    	}
+
+				}, async function(err){
+
+			    if (err) { console.log("NNT | *** TEST ACTIVATE ERROR: " + err); }
+
+		      try{
+			      const title = "BEST NETWORK"
+			      	+ " | " + currentBestNetworkStats.networkId
+			      	+ " | " + currentBestNetworkStats.inputsId
+			      	+ " | RANK: " + currentBestNetworkStats.rank
+			      	+ " | " + currentBestNetworkStats.match + "/" + currentBestNetworkStats.total
+			      	+ " | MR: " + currentBestNetworkStats.matchRate.toFixed(2) + "%"
+			      	+ " | OUT: " + currentBestNetworkStats.output
+			      	+ " | MATCH: " + currentBestNetworkStats.matchFlag;
+
+						await nnTools.printNetworkResults();
+
+				    // it('should update network stats', async function() {
+				    //   should.exist(currentBestNetworkStats);
+				    //   currentBestNetworkStats.matchRate.should.be.a.Number();
+				    // });
+
+		      }
+		      catch(err){
+		        console.log("NNT | *** TEST ACTIVATE ERROR: " + err);
+		        should.not.exist(err);
+		        return cb(err);
+		      }
+
+		      console.log("NNT | TEST ACTIVATE END");
+				});
 			}
 			catch(err){
 			  if (err) { console.log("NNT | *** TEST ACTIVATE setPrimaryNeuralNetwork ERROR: " + err); }
 			  assert.ifError(err);
 			}
-		});
 
-		async.each(testUsersArray, function(user, cb){
-
-	    it('should get network activate results', async function() {
-	    	try{
-	    		// let results;
-	        // (results = await nnTools.activate({user: user, verbose: true})).should.be.fulfilled();
-		      const results = await nnTools.activate({user: user, updateStats: true, verbose: false});
-
-		      console.log("NNT | NN ACTIVATE RESULTS"
-		      	// + " | NN: " + test_nn.networkId
-		      	// + " | " + results.networkOutput[test_nn.networkId].output
-		      	// + " | MATCH: " + results.networkOutput[test_nn.networkId].match
-		      	+ " | @" + results.user.screenName
-		      	+ " | CM: " + results.user.category + " CA: " + results.user.categoryAuto
-		      	// + "\n" + jsonPrint(results.networkOutput)
-		      );
-
-		      should.equal(results.user.screenName, user.screenName);
-		      // should.exist(results.networkOutput[test_nn.networkId].output);
-		      // results.networkOutput[test_nn.networkId].output.should.have.length(3);
-
-			    // const networkOutput = params.networkOutput; // array of networks
-			    // const expectedOutput = params.expectedOutput;
-
-		      const currentBestNetworkStats = await nnTools.updateNetworkStats({
-		      	networkOutput: results.networkOutput, 
-		      	expectedCategory: results.user.category
-		      });
-
-		      console.log("NNT | NN UPDATE STATS | BEST NETWORK"
-		      	+ " | " + currentBestNetworkStats.networkId
-		      	+ " | " + currentBestNetworkStats.inputsId
-		      	+ " | RANK: " + currentBestNetworkStats.rank
-		      	+ " | " + currentBestNetworkStats.match + "/" + currentBestNetworkStats.total
-		      	+ " | MR: " + currentBestNetworkStats.matchRate.toFixed(2) + "%"
-		      	+ " | MATCH FLAG: " + currentBestNetworkStats.matchFlag
-		      	// + "\n" + jsonPrint(currentBestNetworkStats)
-		      );
-
-	        // statsObj.loadedNetworks[nnId] = {};
-	        // statsObj.loadedNetworks[nnId].networkId = nnId;
-	        // statsObj.loadedNetworks[nnId].inputsId = nn.inputsId;
-	        // statsObj.loadedNetworks[nnId].numInputs = nn.numInputs;
-	        // statsObj.loadedNetworks[nnId].output = [];
-	        // statsObj.loadedNetworks[nnId].successRate = nn.successRate;
-	        // statsObj.loadedNetworks[nnId].matchRate = nn.matchRate;
-	        // statsObj.loadedNetworks[nnId].overallMatchRate = nn.overallMatchRate;
-	        // statsObj.loadedNetworks[nnId].rank = Infinity;
-	        // statsObj.loadedNetworks[nnId].total = 0;
-	        // statsObj.loadedNetworks[nnId].match = 0;
-	        // statsObj.loadedNetworks[nnId].mismatch = 0;
-	        // statsObj.loadedNetworks[nnId].matchFlag = false;
-	        // statsObj.loadedNetworks[nnId].left = 0;
-	        // statsObj.loadedNetworks[nnId].neutral = 0;
-	        // statsObj.loadedNetworks[nnId].right = 0;
-	        // statsObj.loadedNetworks[nnId].positive = 0;
-	        // statsObj.loadedNetworks[nnId].negative = 0;
-
-		      should.exist(currentBestNetworkStats);
-		      currentBestNetworkStats.matchRate.should.be.a.Number();
-
-		      cb();
-	    	}
-	    	catch(err){
-	        console.log("NNT | *** TEST ACTIVATE ERROR: " + err);
-	        should.not.exist(err);
-	        return cb(err);
-	    	}
-	    });
-
-		}, function(err){
-	    if (err) { console.log("NNT | *** TEST ACTIVATE ERROR: " + err); }
-	    should.not.exist(err);
-
-      console.log("NNT | TEST ACTIVATE END");
-		});
+		// });
 
 
 	});
-
 });

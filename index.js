@@ -3,9 +3,8 @@
 
 const neataptic = require("neataptic");
 // const carrot = require("@liquid-carrot/carrot");
-
-// const networkTechnology = "neataptic";
-
+const assert = require("assert");
+const should = require("should");
 const async = require("async");
 const util = require("util");
 const _ = require("lodash");
@@ -13,8 +12,10 @@ const EventEmitter = require("events");
 const MergeHistograms = require("@threeceelabs/mergehistograms");
 const mergeHistograms = new MergeHistograms();
 const HashMap = require("hashmap").HashMap;
-const deepcopy = require("deep-copy");
+// const deepcopy = require("deep-copy");
 const defaults = require("object.defaults");
+const pick = require("object.pick");
+const table = require("text-table");
 
 const tcuChildName = "NNT_TCU";
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
@@ -30,13 +31,17 @@ const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
 
 const networksHashMap = new HashMap();
+const inputsHashMap = new HashMap();
+
 let primaryNeuralNetworkId;
 
 const configuration = {};
 configuration.verbose = false;
 
 const statsObj = {};
-statsObj.loadedNetworks = {};
+statsObj.networks = {};
+statsObj.bestNetwork = {};
+statsObj.currentBestNetwork = {};
 
 const NeuralNetworkTools = function(app_name){
   const self = this;
@@ -85,6 +90,69 @@ NeuralNetworkTools.prototype.getNumberNetworks = function(){
   return numNetworks;
 }
 
+const networkDefaults = {};
+
+networkDefaults.rank = Infinity;
+networkDefaults.matchRate = 0;
+networkDefaults.overallMatchRate = 0;
+networkDefaults.successRate = 0;
+networkDefaults.testCycles = 0;
+networkDefaults.testCycleHistory = [];
+
+networkDefaults.meta = {};
+
+networkDefaults.meta.output = [];
+networkDefaults.meta.total = 0;
+networkDefaults.meta.match = 0;
+networkDefaults.meta.mismatch = 0;
+
+networkDefaults.meta.left = 0;
+networkDefaults.meta.neutral = 0;
+networkDefaults.meta.right = 0;
+networkDefaults.meta.none = 0;
+networkDefaults.meta.positive = 0;
+networkDefaults.meta.negative = 0;
+
+const networkPickArray = [
+  "inputsId",
+  "inputsObj",
+  "matchRate",
+  "meta",
+  "networkId",
+  "numInputs",
+  "numOutputs",
+  "output",
+  "overallMatchRate",
+  "rank",
+  "seedNetworkId",
+  "seedNetworkRes",
+  "successRate",
+  "testCycleHistory",
+  "testCycles",
+];
+
+const networkMetaPickArray = Object.keys(networkDefaults.meta);
+
+console.log("networkMetaPickArray\n" + jsonPrint(networkMetaPickArray));
+
+const currentBestNetworkPicks = [
+  "inputsId",
+  "matchFlag",
+  "matchRate",
+  "meta",
+  "networkId",
+  "numInputs",
+  "numOutputs",
+  "output",
+  "overallMatchRate",
+  "rank",
+  "seedNetworkId",
+  "seedNetworkRes",
+  "successRate",
+  "testCycleHistory",
+  "testCycles",
+];
+
 NeuralNetworkTools.prototype.loadNetwork = function(params){
 
   return new Promise(function(resolve, reject){
@@ -95,19 +163,66 @@ NeuralNetworkTools.prototype.loadNetwork = function(params){
     }
 
     try{
-      let nnObj = deepcopy(params.networkObj);
 
-      nnObj = defaults(nnObj, networkMetaDefaults);
+      const nn = params.networkObj;
 
-      const network = neataptic.Network.fromJSON(nnObj.network);
+      nn.meta = networkDefaults.meta;
 
-      nnObj.network = network;
+      assert.equal(nn.meta, networkDefaults.meta);
 
-      networksHashMap.set(nnObj.networkId, nnObj);
+      statsObj.networks[nn.networkId] = {};
+      statsObj.networks = pick(nn, networkPickArray);
+      statsObj.networks.meta = {};
+      statsObj.networks.meta = networkDefaults.meta;
 
-      console.log(chalkLog("NNT | --> LOAD NN: " + nnObj.networkId));
+      if (params.isBestNetwork) {
 
-      resolve(nnObj.networkId);
+        printNetworkObj("NNT | --> LOAD BEST NETWORK", nn, chalkAlert);
+
+        statsObj.bestNetwork = {};
+        statsObj.bestNetwork = pick(nn, networkPickArray);
+        statsObj.bestNetwork.meta = {};
+        statsObj.bestNetwork.meta = networkDefaults.meta;
+
+      }
+
+      if (!statsObj.currentBestNetwork || statsObj.currentBestNetwork === undefined || statsObj.currentBestNetwork === {}){
+
+        printNetworkObj("NNT | --> LOAD CURRENT BEST NETWORK", nn, chalk.green);
+
+        statsObj.currentBestNetwork.meta = {};
+        statsObj.currentBestNetwork.meta = nn.meta;
+        statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
+
+
+      }
+      if (statsObj.currentBestNetwork.matchRate < nn.matchRate){
+
+        printNetworkObj("NNT | --> UPDATE CURRENT BEST NETWORK", nn, chalk.green);
+
+        statsObj.currentBestNetwork.meta = nn.meta;
+        statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
+      }
+
+      should.exist(nn.network);
+
+      const network = neataptic.Network.fromJSON(nn.network);
+
+      nn.network = network;
+
+      const inputsObj = nn.inputsObj;
+
+      inputsHashMap.set(nn.inputsId, inputsObj);
+
+      delete nn.inputsObj; // save memory
+
+      networksHashMap.set(nn.networkId, nn);
+
+      console.log(chalkLog("NNT | --> LOAD NN: " + nn.networkId + " | " + networksHashMap.size + " NNs"));
+      console.log(chalkLog("NNT | --> LOAD IN: " + nn.inputsId + " | " + inputsHashMap.size + " INPUT OBJs"));
+
+      resolve(nn.networkId);
+
     }
     catch(err){
       console.log(chalkError("NNT | *** LOAD NN ERROR: " + err));
@@ -163,13 +278,13 @@ NeuralNetworkTools.prototype.printNetworkInput = function(params){
 
   return new Promise(function(resolve, reject){
 
-    if (!params.inputsObj.input || params.inputsObj.input === undefined){
-      console.log(chalkError("NNT | *** printNetworkInput ERROR | inputsObj.input UNDEFINED"));
+    if (!params.datum.input || params.datum.input === undefined){
+      console.log(chalkError("NNT | *** printNetworkInput ERROR | datum.input UNDEFINED"));
       return reject();
     }
 
-    const inputArray = params.inputsObj.input;
-    const nameArray = params.inputsObj.name;
+    const inputArray = params.datum.input;
+    const nameArray = params.datum.name;
     const columns = params.columns || 100;
 
     let col = 0;
@@ -182,7 +297,7 @@ NeuralNetworkTools.prototype.printNetworkInput = function(params){
     let hitRate = 0;
     const inputArraySize = inputArray.length;
 
-    if (previousPrintedNetworkObj && (previousPrintedNetworkObj.inputsId === params.inputsObj.inputsId)) {
+    if (previousPrintedNetworkObj && (previousPrintedNetworkObj.inputsId === params.datum.inputsId)) {
       previousPrintedNetworkObj.truncated = true;
       previousPrintedNetworkObj.title = params.title;
       outputNetworkInputText(previousPrintedNetworkObj);
@@ -227,7 +342,7 @@ NeuralNetworkTools.prototype.printNetworkInput = function(params){
 
       previousPrintedNetworkObj = {
         title: params.title,
-        inputsId: params.inputsObj.inputsId,
+        inputsId: params.datum.inputsId,
         text: text,
         hits: hits,
         inputArraySize: inputArraySize,
@@ -242,11 +357,113 @@ NeuralNetworkTools.prototype.printNetworkInput = function(params){
   });
 }
 
-const printNetworkInput = NeuralNetworkTools.prototype.printNetworkInput;
+let titleDefault;
 
-// const arrayOfArrays = [];
-let nnIdArray = [];
-let currentBestNetwork;
+NeuralNetworkTools.prototype.printNetworkResults = function(p){
+
+  const statsTextArray = [];
+
+  return new Promise(function(resolve, reject){
+
+    let params = {};
+    params = params || p;
+
+    statsObj.currentBestNetwork = defaults(statsObj.currentBestNetwork, networkDefaults);
+    // statsObj.currentBestNetwork.meta = defaults(statsObj.currentBestNetwork.meta, networkDefaults.meta);
+
+    titleDefault = "BEST"
+      + " | " + statsObj.currentBestNetwork.networkId
+      + " | " + statsObj.currentBestNetwork.inputsId
+      + " | RANK: " + statsObj.currentBestNetwork.rank
+      + " | " + statsObj.currentBestNetwork.meta.match + "/" + statsObj.currentBestNetwork.meta.total
+      + " | MR: " + statsObj.currentBestNetwork.matchRate.toFixed(2) + "%"
+      + " | OUT: " + statsObj.currentBestNetwork.meta.output
+      + " | MATCH: " + statsObj.currentBestNetwork.meta.matchFlag;
+
+    if (!params.title) { params.title = titleDefault; }
+
+    const sortedNetworksArray = _.sortBy(networksHashMap.values(), ["matchRate"]);
+    _.reverse(sortedNetworksArray);
+
+    async.eachOfSeries(sortedNetworksArray, function(nn, index, cb0){
+
+      if (nn.meta === undefined) {
+        nn.meta = {};
+        nn.meta = defaults(nn.meta, networkDefaults.meta);
+        console.log("nn.meta\n" + jsonPrint(nn.meta));
+      }
+
+      if (!nn.testCycleHistory || nn.testCycleHistory === undefined) {
+        nn.testCycleHistory = [];
+        console.log("nn.testCycleHistory\n" + jsonPrint(nn.testCycleHistory));
+      }
+
+      if (nn.meta.matchFlag === undefined) { nn.meta.matchFlag = false; }
+      if (nn.meta.output.length === 0) { nn.meta.output = "---"; }
+
+      statsTextArray[index] = [];
+      statsTextArray[index] = [
+        "NNT | ",
+        nn.rank,
+        nn.networkId,
+        nn.inputsId,
+        nn.numInputs,
+        nn.overallMatchRate.toFixed(2),
+        nn.successRate.toFixed(2),
+        nn.testCycles,
+        nn.testCycleHistory.length,
+        nn.meta.matchFlag,
+        nn.meta.output,
+        nn.meta.total,
+        nn.meta.match,
+        nn.meta.mismatch,
+        nn.matchRate.toFixed(2),
+      ];
+
+      cb0();
+
+    }, function(err){
+
+      if (err) {
+        console.log(chalkError("TNN | *** printNetworkResults ERROR: " + err));
+        return reject(err);
+      }
+
+      statsTextArray.unshift([
+        "NNT | ",
+        "RANK",
+        "NNID",
+        "INPUTSID",
+        "INPUTS",
+        "OAMR",
+        "SR",
+        "TCs",
+        "TCH",
+        "MFLAG",
+        "OUTPUT",
+        "TOT",
+        " M",
+        " MM",
+        " MR"
+      ]);
+
+      console.log(chalk.blue(
+          "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
+        + "\nNNT | " + params.title 
+        + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------\n"
+        + table(statsTextArray, { align: ["l", "r", "l", "l", "r", "r", "r", "r", "r", "l", "r", "r", "r", "r", "r"] })
+        + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
+      ));
+
+      resolve();
+
+    });
+
+  });
+}
+
+const printNetworkResults = NeuralNetworkTools.prototype.printNetworkResults;
+const printNetworkInput = NeuralNetworkTools.prototype.printNetworkInput;
 
 function arrayToCategory(arr){
   if (_.isEqual(arr, [0,0,0])) { return "none"; }
@@ -256,36 +473,22 @@ function arrayToCategory(arr){
   throw new Error("INVALID ARR arrayToCategory");
 }
 
-const networkDefaults = function (networkObj){
-
-  if (networkObj.betterChild === undefined) { networkObj.betterChild = false; }
-  if (networkObj.testCycles === undefined) { networkObj.testCycles = 0; }
-  if (networkObj.testCycleHistory === undefined) { networkObj.testCycleHistory = []; }
-  if (networkObj.overallMatchRate === undefined) { networkObj.overallMatchRate = 0; }
-  if (networkObj.matchRate === undefined) { networkObj.matchRate = 0; }
-  if (networkObj.successRate === undefined) { networkObj.successRate = 0; }
-
-  return networkObj;
-};
-
 function printNetworkObj(title, nObj, format) {
 
   const chalkFormat = (format !== undefined) ? format : chalk.blue;
 
-  const networkObj = networkDefaults(nObj);
+  const nn = defaults(nObj, networkDefaults);
 
   console.log(chalkFormat(title
-    + " | RANK: " + networkObj.rank.toFixed(0)
-    + " | ARCHVD: " + networkObj.archived
-    + " | OAMR: " + networkObj.overallMatchRate.toFixed(2) + "%"
-    + " | MR: " + networkObj.matchRate.toFixed(2) + "%"
-    + " | SR: " + networkObj.successRate.toFixed(2) + "%"
-    + " | CR: " + tcUtils.getTimeStamp(networkObj.createdAt)
-    + " | TC:  " + networkObj.testCycles
-    + " | TCH: " + networkObj.testCycleHistory.length
-    + " | INs: " + networkObj.numInputs
-    + " | IN ID:  " + networkObj.inputsId
-    + " | " + networkObj.networkId
+    + " | RK: " + nn.rank.toFixed(0)
+    + " | OR: " + nn.overallMatchRate.toFixed(2) + "%"
+    + " | MR: " + nn.matchRate.toFixed(2) + "%"
+    + " | SR: " + nn.successRate.toFixed(2) + "%"
+    + " | CR: " + tcUtils.getTimeStamp(nn.createdAt)
+    + " | TC:  " + nn.testCycles
+    + " | TH: " + nn.testCycleHistory.length
+    + " |  " + nn.inputsId
+    + " | " + nn.networkId
   ));
 
   return;
@@ -297,15 +500,13 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
   return new Promise(function(resolve, reject){
 
     const networkOutput = params.networkOutput; // array of networks
-    const expectedCategory = params.expectedCategory; // "left", "right", "neutral"
+    const user = params.user; 
 
-    if (!expectedCategory || expectedCategory === undefined) {
-      console.log(chalkWarn("NNT | ??? updateNetworkStats | EXPECTED CATEGORY UNDEFINED: " + expectedCategory));
-    }
+    const nnIdArray = Object.keys(networkOutput);
 
-    nnIdArray = Object.keys(networkOutput);
+    let chalkCategory = chalk.gray;
 
-    async.eachSeries(nnIdArray, async function(nnId){
+    async.eachSeries(nnIdArray, function(nnId, cb){
 
       const nn = networksHashMap.get(nnId);
 
@@ -313,93 +514,105 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
         return reject(new Error("NNT | updateNetworkStats NN UNDEFINED"));
       }
 
-      if (statsObj.loadedNetworks[nnId] === undefined) {
-        // console.log(chalkAlert("INIT statsObj.loadNetworks " + nnId));
-        statsObj.loadedNetworks[nnId] = {};
-        statsObj.loadedNetworks[nnId].networkId = nnId;
-        statsObj.loadedNetworks[nnId].inputsId = nn.inputsId;
-        statsObj.loadedNetworks[nnId].numInputs = nn.numInputs;
-        statsObj.loadedNetworks[nnId].output = [];
-        statsObj.loadedNetworks[nnId].successRate = nn.successRate;
-        statsObj.loadedNetworks[nnId].matchRate = nn.matchRate;
-        statsObj.loadedNetworks[nnId].overallMatchRate = nn.overallMatchRate;
-        statsObj.loadedNetworks[nnId].rank = Infinity;
-        statsObj.loadedNetworks[nnId].total = 0;
-        statsObj.loadedNetworks[nnId].match = 0;
-        statsObj.loadedNetworks[nnId].mismatch = 0;
-        statsObj.loadedNetworks[nnId].matchFlag = false;
-        statsObj.loadedNetworks[nnId].left = 0;
-        statsObj.loadedNetworks[nnId].neutral = 0;
-        statsObj.loadedNetworks[nnId].right = 0;
-        statsObj.loadedNetworks[nnId].positive = 0;
-        statsObj.loadedNetworks[nnId].negative = 0;
-        statsObj.loadedNetworks[nnId].none = 0;
-      }
+      statsObj.networks[nnId] = pick(nn, networkPickArray);
+      statsObj.networks[nnId].meta = pick(nn.meta, networkMetaPickArray);
 
-      nn.categoryAuto = arrayToCategory(networkOutput[nnId].output);
-      networkOutput[nnId].categoryAuto = nn.categoryAuto;
+      // printNetworkObj("NNT | NN", nn, chalkAlert);
 
-      nn.meta.output = networkOutput[nnId].output;
-      nn.meta[expectedCategory] += 1;
-      nn.meta.total += 1;
+      statsObj.networks[nnId].categoryAuto = arrayToCategory(networkOutput[nnId].output);
+      networkOutput[nnId].categoryAuto = statsObj.networks[nnId].categoryAuto;
 
-      if (networkOutput[nnId].categoryAuto === expectedCategory) {
-        nn.meta.match += 1;
-        nn.meta.matchFlag = true;
+      statsObj.networks[nnId].meta.output = [];
+      statsObj.networks[nnId].meta.output = networkOutput[nnId].output;
+      statsObj.networks[nnId].meta[user.category] += 1;
+      statsObj.networks[nnId].meta.total += 1;
+
+      if (networkOutput[nnId].categoryAuto === user.category) {
+        statsObj.networks[nnId].meta.match += 1;
+        statsObj.networks[nnId].meta.matchFlag = "MATCH";
+        chalkCategory = chalk.green;
       }
       else {
-        nn.meta.mismatch += 1;
-        nn.meta.matchFlag = false;
+        statsObj.networks[nnId].meta.mismatch += 1;
+        statsObj.networks[nnId].meta.matchFlag = "MISS";
+        chalkCategory = chalk.gray;
       }
 
-      nn.matchRate = 100.0 * nn.meta.match / nn.meta.total;
+      console.log(chalkCategory("NNT | " + statsObj.networks[nnId].meta.matchFlag
+        + " | @" + user.screenName
+        + " | CM: " + user.category + " | CA: " + networkOutput[nnId].categoryAuto
+        + " | " + statsObj.networks[nnId].networkId
+        + " | " + statsObj.networks[nnId].inputsId
+        + " | SR: " + statsObj.networks[nnId].successRate.toFixed(2) 
+        + " | MR: " + statsObj.networks[nnId].matchRate.toFixed(2) 
+        + " | OR: " + statsObj.networks[nnId].overallMatchRate.toFixed(2) 
+      ));
 
-      statsObj.loadedNetworks[nnId][expectedCategory] = nn.meta[expectedCategory];
-      statsObj.loadedNetworks[nnId].total = nn.meta.total;
-      statsObj.loadedNetworks[nnId].match = nn.meta.match;
-      statsObj.loadedNetworks[nnId].mismatch += nn.meta.mismatch;
-      statsObj.loadedNetworks[nnId].successRate = nn.successRate;
-      statsObj.loadedNetworks[nnId].overallMatchRate = nn.overallMatchRate;
-      statsObj.loadedNetworks[nnId].matchRate = nn.matchRate;
-      statsObj.loadedNetworks[nnId].matchFlag = nn.meta.matchFlag;
-
-      if ((!currentBestNetwork 
-        || (currentBestNetwork === undefined) 
-        || currentBestNetwork.matchRate === undefined) 
-        || (nn.meta.matchRate > currentBestNetwork.matchRate)
-      ){
-
-        currentBestNetwork = statsObj.loadedNetworks[nnId];
-
-        printNetworkObj("NNT | +++ NEW BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.blue);
-
-        // console.log(chalk.black.bold("NNT | +++ NET BEST NETWORK"
-        //   + " | " + nn.matchRate.toFixed(2)
-        //   + " | " + nn.networkId
-        //   + " | " + currentBestNetwork.match + "/" + currentBestNetwork.total
-        // ));
+      if (statsObj.networks[nnId].meta.total === 0) {
+        statsObj.networks[nnId].matchRate = 0;
       }
+      else {
+        statsObj.networks[nnId].matchRate = 100.0 * statsObj.networks[nnId].meta.match / statsObj.networks[nnId].meta.total;
+      }
+
+      nn.rank = statsObj.networks[nnId].rank;
+      nn.matchFlag = statsObj.networks[nnId].matchFlag;
+      nn.matchRate = statsObj.networks[nnId].matchRate;
+      nn.overallMatchRate = statsObj.networks[nnId].overallMatchRate;
+      nn.successRate = statsObj.networks[nnId].successRate;
+      nn.testCycleHistory = statsObj.networks[nnId].testCycleHistory;
+      nn.testCycles = statsObj.networks[nnId].testCycles;
+      nn.output = statsObj.networks[nnId].output;
+      nn.meta = statsObj.networks[nnId].meta;
 
       networksHashMap.set(nnId, nn);
 
-      return;
+      async.setImmediate(function() { return cb(); });
 
-    }, async function(){
+    }, function(err2){
+
+      if (err2) {
+        return reject(err2);
+      }
 
       try {
 
         const sortedNetworksArray = _.sortBy(networksHashMap.values(), ["matchRate"]);
         _.reverse(sortedNetworksArray);
 
-        // console.log("BEST NETWORK\n" + jsonPrint(sortedNetworksArray[0]));
-
         async.eachOfSeries(sortedNetworksArray, function(nn, index, cb1){
+
           nn.rank = index;
-          printNetworkObj("NNT", nn, chalk.blue);
+
           networksHashMap.set(nn.networkId, nn);
-          cb1();
-        }, function(){
-          resolve(currentBestNetwork);
+
+          if (statsObj.bestNetwork.networkId === nn.networkId){
+            statsObj.bestNetwork = pick(nn, currentBestNetworkPicks);
+            statsObj.bestNetwork.meta = nn.meta;
+            printNetworkObj("NNT | ^^^ UPDATE BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.black);
+          }
+
+          if (statsObj.currentBestNetwork.matchRate < nn.matchRate) {
+            statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
+            statsObj.currentBestNetwork.meta = nn.meta;
+            printNetworkObj("NNT | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green.bold);
+          }
+          else if (statsObj.currentBestNetwork.networkId === nn.networkId){
+            statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
+            statsObj.currentBestNetwork.meta = nn.meta;
+            printNetworkObj("NNT | ^^^ UPDATE CURRENT BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.gray);
+          }
+          
+          async.setImmediate(function() { return cb1(); });
+
+        }, async function(err1){
+
+          if (err1) {
+            return reject(err1);
+          }
+          await printNetworkResults();
+
+          resolve(statsObj.currentBestNetwork);
         });
 
       }
@@ -409,38 +622,10 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
       }
 
     });
-
   });
 }
 
-const networkMetaDefaults = {};
-
-networkMetaDefaults.matchRate = 0;
-networkMetaDefaults.overallMatchRate = 0;
-networkMetaDefaults.successRate = 0;
-networkMetaDefaults.rank = Infinity;
-
-networkMetaDefaults.meta = {};
-networkMetaDefaults.meta = {};
-networkMetaDefaults.meta = {};
-
-networkMetaDefaults.meta.output = [];
-
-networkMetaDefaults.meta.total = 0;
-networkMetaDefaults.meta.match = 0;
-networkMetaDefaults.meta.mismatch = 0;
-
-networkMetaDefaults.meta.left = 0;
-networkMetaDefaults.meta.neutral = 0;
-networkMetaDefaults.meta.right = 0;
-networkMetaDefaults.meta.none = 0;
-
-networkMetaDefaults.meta.positive = 0;
-networkMetaDefaults.meta.negative = 0;
-
 NeuralNetworkTools.prototype.activate = function (params) {
-
-  // params.user, .updateStats, .verbose
 
   return new Promise(async function(resolve, reject){
 
@@ -477,23 +662,29 @@ NeuralNetworkTools.prototype.activate = function (params) {
 
       async.each(networksHashMap.keys(), async function(nnId){
 
-        const networkObj = networksHashMap.get(nnId);
+        const nn = networksHashMap.get(nnId);
 
-        if (!networkObj || (networkObj === undefined)){
-          return reject(new Error("NNT | networkObj UNDEFINED | NN ID: " + nnId));
+        if (!nn || (nn === undefined)){
+          return reject(new Error("NNT | nn UNDEFINED | NN ID: " + nnId));
         }
 
-        if (networkObj.inputsObj.inputs === undefined) {
-          console.log(chalkError("NNT | UNDEFINED NETWORK INPUTS OBJ | NETWORK OBJ KEYS: " + Object.keys(networkObj)));
+        const inputsObj = inputsHashMap.get(nn.inputsId);
+
+        if (inputsObj.inputs === undefined) {
+          console.log(chalkError("NNT | UNDEFINED NETWORK INPUTS OBJ | NETWORK OBJ KEYS: " + Object.keys(nn)));
           return ("UNDEFINED NETWORK INPUTS OBJ");
         }
 
 
         try {
+          const convertDatumObj = await tcUtils.convertDatum({
+            datum: user, 
+            inputsObj: inputsObj, 
+            generateInputRaw: false, 
+            inputsBinaryMode: false
+          });
 
-          const networkInputObj = await tcUtils.convertDatum({datum: user, inputsObj: networkObj.inputsObj, generateInputRaw: false});
-
-          const outputRaw = networkObj.network.activate(networkInputObj.input);
+          const outputRaw = nn.network.activate(convertDatumObj.input);
 
           if (outputRaw.length !== 3) {
             console.log(chalkError("NNT | *** ZERO LENGTH NETWORK OUTPUT | " + nnId ));
@@ -505,7 +696,7 @@ NeuralNetworkTools.prototype.activate = function (params) {
           networkOutput[nnId].outputRaw = outputRaw;
           networkOutput[nnId].output = [];
           networkOutput[nnId].categoryAuto = "none";
-          networkOutput[nnId].matchFlag = false;
+          networkOutput[nnId].matchFlag = "MISS";
 
           const maxOutputIndex = await indexOfMax(outputRaw);
 
@@ -527,17 +718,17 @@ NeuralNetworkTools.prototype.activate = function (params) {
               networkOutput[nnId].output = [0,0,0];
           }
 
-          networkOutput[nnId].matchFlag = (user.category && (user.category !== undefined) && (user.category !== "none") && (networkOutput[nnId].categoryAuto === user.category));
+          networkOutput[nnId].matchFlag = ((user.category !== "none") && (networkOutput[nnId].categoryAuto === user.category)) ? "MATCH" : "MISS";
 
           if (verbose) {
             await printNetworkInput({
-              title: networkObj.networkId
-              + " | INPUT: " + networkObj.inputsId 
+              title: nn.networkId
+              + " | INPUT: " + nn.inputsId 
               + " | @" + user.screenName 
               + " | C: " + user.category 
               + " | A: " + networkOutput[nnId].categoryAuto
               + " | MATCH: " + networkOutput[nnId].matchFlag,
-              inputsObj: networkInputObj
+              datum: convertDatumObj
             });
           }
 
@@ -551,7 +742,7 @@ NeuralNetworkTools.prototype.activate = function (params) {
       }, function(err){
 
         if (err) {
-          console.log(chalkError("NNT | *** ACTIVATE NETWORK ERROR", err));
+          console.log(chalkError("NNT | *** ACTIVATE NETWORK ERROR (async callback)", err));
           return reject(err);
         }
 
