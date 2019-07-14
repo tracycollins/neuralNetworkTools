@@ -55,8 +55,11 @@ NeuralNetworkTools.prototype.verbose = function(v){
 }
 
 NeuralNetworkTools.prototype.setMaxInputHashMap = function(m){
-  tcUtils.setMaxInputHashMap(m);
-  console.log(chalkAlert("NNT | --> SET MAX INPUT HASHMAP: " + Object.keys(tcUtils.getMaxInputHashMap())));
+  return new Promise(function(resolve, reject){
+    tcUtils.setMaxInputHashMap(m);
+    console.log(chalkAlert("NNT | --> SET MAX INPUT HASHMAP: " + Object.keys(tcUtils.getMaxInputHashMap())));
+    resolve();
+  });
 }
 
 NeuralNetworkTools.prototype.getMaxInputHashMap = function(){
@@ -64,9 +67,11 @@ NeuralNetworkTools.prototype.getMaxInputHashMap = function(){
 }
 
 NeuralNetworkTools.prototype.setNormalization = function(n){
-  tcUtils.setNormalization(n);
-  console.log(chalkAlert("NNT | --> SET NORMALIZATION\n" + jsonPrint(tcUtils.getNormalization())));
-  return;
+  return new Promise(function(resolve, reject){
+    tcUtils.setNormalization(n);
+    console.log(chalkAlert("NNT | --> SET NORMALIZATION\n" + jsonPrint(tcUtils.getNormalization())));
+    resolve();
+  });
 }
 
 NeuralNetworkTools.prototype.getNormalization = function(){
@@ -74,26 +79,26 @@ NeuralNetworkTools.prototype.getNormalization = function(){
   return normalization;
 }
 
-NeuralNetworkTools.prototype.loadNetwork = function(nn){
+NeuralNetworkTools.prototype.loadNetwork = function(params){
 
   return new Promise(function(resolve, reject){
 
-    if (!nn || nn === undefined || nn.network === undefined) {
-      console.log(chalkError("NNT | *** LOAD NETWORK UNDEFINED: " + nn));
+    if (!params.networkObj || params.networkObj === undefined || params.networkObj.network === undefined) {
+      console.log(chalkError("NNT | *** LOAD NETWORK UNDEFINED: " + params.networkObj));
       return reject(new Error("NNT | LOAD NETWORK UNDEFINED"));
     }
 
-    const nnLoaded = deepcopy(nn);
+    const nnObj = deepcopy(params.networkObj);
 
-    const network = neataptic.Network.fromJSON(nnLoaded.network);
+    const network = neataptic.Network.fromJSON(nnObj.network);
 
-    nnLoaded.network = network;
+    nnObj.network = network;
 
-    networksHashMap.set(nnLoaded.networkId, nnLoaded);
+    networksHashMap.set(nnObj.networkId, nnObj);
 
-    console.log(chalkAlert("NNT | --> LOAD NN: " + nnLoaded.networkId));
+    console.log(chalkAlert("NNT | --> LOAD NN: " + nnObj.networkId));
 
-    resolve(nnLoaded.networkId);
+    resolve(nnObj.networkId);
 
   });
 }

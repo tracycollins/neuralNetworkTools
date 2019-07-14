@@ -201,24 +201,36 @@ describe("mongoose", function() {
     });
   });
 
-	describe("#activate()", async function() {
+	describe("#activate()", function() {
 
-		try{
-			await nnTools.loadNetwork(test_nn);
-			await nnTools.setPrimaryNeuralNetwork(test_nn.networkId);
-		}
-		catch(err){
-		  if (err) { console.log("NNT | *** TEST ACTIVATE setPrimaryNeuralNetwork ERROR: " + err); }
-		  assert.ifError(err);
-		}
+    it('should init networks', async function() {
 
-		nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
-		nnTools.setNormalization(maxNormObj.normalization);
-		
-		async.eachSeries(testUsersArray, async function(user){
+			try{
+        (nnTools.loadNetwork({networkObj: test_nn})).should.be.fulfilled();
+        (nnTools.setPrimaryNeuralNetwork(test_nn.networkId)).should.be.fulfilled();
+        (nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap)).should.be.fulfilled();
+        (nnTools.setNormalization(maxNormObj.normalization)).should.be.fulfilled();
+			}
+			catch(err){
+			  if (err) { console.log("NNT | *** TEST ACTIVATE setPrimaryNeuralNetwork ERROR: " + err); }
+			  assert.ifError(err);
+			}
+		});
+
+		async.each(testUsersArray, function(user, cb){
+
 	    it('should get network activate results', async function() {
 	    	try{
-		      const results = await nnTools.activate({user: user, verbose: true});
+	    		// let results;
+	        // (results = await nnTools.activate({user: user, verbose: true})).should.be.fulfilled();
+		      const results = await nnTools.activate({user: user, verbose: false});
+
+		      console.log("NNT | NN ACTIVATE RESULTS"
+		      	+ " | " + results.networkOutput[test_nn.networkId].output
+		      	+ " | MATCH: " + results.networkOutput[test_nn.networkId].match
+		      	+ " | @" + results.user.screenName
+		      	+ " | CM: " + results.user.category + " CA: " + results.user.categoryAuto
+		      );
 
 		      should.equal(results.user.screenName, user.screenName);
 		      should.exist(results.networkOutput[test_nn.networkId]);
@@ -230,23 +242,22 @@ describe("mongoose", function() {
 		      should.exist(results.networkOutput[test_nn.networkId].positive);
 		      should.exist(results.networkOutput[test_nn.networkId].neutral);
 
-		      console.log("NNT | NN ACTIVATE RESULTS"
-		      	+ " | " + results.networkOutput[test_nn.networkId].output
-		      	+ " | MATCH: " + results.networkOutput[test_nn.networkId].match
-		      	+ " | @" + results.user.screenName
-		      	+ " | CM: " + results.user.category + " CA: " + results.user.categoryAuto
-		      );
-		      return;
+		      cb();
 	    	}
 	    	catch(err){
-	        if (err) { console.log("NNT | *** TEST ACTIVATE ERROR: " + err); }
-	        assert.ifError(err);
+	        console.log("NNT | *** TEST ACTIVATE ERROR: " + err);
+	        should.not.exist(err);
+	        return cb(err);
 	    	}
 	    });
+
 		}, function(err){
 	    if (err) { console.log("NNT | *** TEST ACTIVATE ERROR: " + err); }
-	    assert.ifError(err);
+	    should.not.exist(err);
+
+      console.log("NNT | TEST ACTIVATE END");
 		});
+
 
 	});
 
