@@ -482,13 +482,6 @@ NeuralNetworkTools.prototype.activate = function (params) {
         if (!networkObj || (networkObj === undefined)){
           return reject(new Error("NNT | networkObj UNDEFINED | NN ID: " + nnId));
         }
-        // console.log("ACTIVATE NN " + networkObj.networkId);
-
-        // if (statsObj.loadedNetworks[nnId] === undefined){
-        //   statsObj.loadedNetworks[nnId] = {};
-        // }
-
-        // statsObj.loadedNetworks[nnId] = defaults(statsObj.loadedNetworks[nnId], networkMetaDefaults);
 
         if (networkObj.inputsObj.inputs === undefined) {
           console.log(chalkError("NNT | UNDEFINED NETWORK INPUTS OBJ | NETWORK OBJ KEYS: " + Object.keys(networkObj)));
