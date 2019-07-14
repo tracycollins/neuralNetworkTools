@@ -283,16 +283,6 @@ NeuralNetworkTools.prototype.generateNetworksOutput = function (params){
         statsObj.loadedNetworks[nnId].negative = 0;
       }
 
-      if (statsObj.allTimeLoadedNetworks[nnId] === undefined) {
-        console.log(chalkAlert("INIT statsObj.allTimeLoadedNetworks " + nnId));
-        statsObj.allTimeLoadedNetworks[nnId] = {};
-        statsObj.allTimeLoadedNetworks[nnId].networkId = nnId;
-        statsObj.allTimeLoadedNetworks[nnId].inputsId = nn.inputsId;
-        statsObj.allTimeLoadedNetworks[nnId].numInputs = nn.numInputs;
-        statsObj.allTimeLoadedNetworks[nnId].successRate = nn.successRate;
-        statsObj.allTimeLoadedNetworks[nnId].overallMatchRate = nn.overallMatchRate;
-      }
-
       statsObj.loadedNetworks[nnId].output = nnOutput;
 
       if (expectedOutput[0] === 1 || expectedOutput[1] === 1 || expectedOutput[2] === 1) {
@@ -323,7 +313,11 @@ NeuralNetworkTools.prototype.generateNetworksOutput = function (params){
         statsObj.loadedNetworks[nnId].matchFlag = "---";
       }
 
-      if ((currentBestNetwork.matchRate === undefined) || (nn.matchRate > currentBestNetwork.matchRate)){
+      if ((!currentBestNetwork 
+        || (currentBestNetwork === undefined) 
+        || currentBestNetwork.matchRate === undefined) 
+        || (nn.matchRate > currentBestNetwork.matchRate)
+      ){
         console.log("NNT | +++ NET BEST NETWORK | " + nn.matchRate.toFixed(2) + " | " + nn.networkId);
         currentBestNetwork = deepcopy(nn);
       }
