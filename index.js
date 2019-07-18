@@ -12,7 +12,6 @@ const EventEmitter = require("events");
 const MergeHistograms = require("@threeceelabs/mergehistograms");
 const mergeHistograms = new MergeHistograms();
 const HashMap = require("hashmap").HashMap;
-// const deepcopy = require("deep-copy");
 const defaults = require("object.defaults");
 const pick = require("object.pick");
 const table = require("text-table");
@@ -34,6 +33,7 @@ const networksHashMap = new HashMap();
 const inputsHashMap = new HashMap();
 
 let primaryNeuralNetworkId;
+// let primaryNetworkObj;
 
 const configuration = {};
 configuration.verbose = false;
@@ -155,7 +155,7 @@ const currentBestNetworkPicks = [
 
 NeuralNetworkTools.prototype.loadNetwork = function(params){
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
 
     if (!params.networkObj || params.networkObj === undefined || params.networkObj.network === undefined) {
       console.log(chalkError("NNT | *** LOAD NETWORK UNDEFINED: " + params.networkObj));
@@ -214,6 +214,13 @@ NeuralNetworkTools.prototype.loadNetwork = function(params){
 
       inputsHashMap.set(nn.inputsId, inputsObj);
 
+      try{
+        const loadedInputsId = await tcUtils.loadInputs({inputsObj: inputsObj});
+      }
+      catch(err){
+        console.log(chalkError("NNT | *** LOAD INPUTS ERROR: " + err));
+      }
+
       delete nn.inputsObj; // save memory
 
       networksHashMap.set(nn.networkId, nn);
@@ -234,7 +241,7 @@ NeuralNetworkTools.prototype.loadNetwork = function(params){
 
 NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = function(nnId){
 
-  return new Promise(function(resolve, reject){
+  return new Promise(async function(resolve, reject){
 
     if (!nnId || nnId === undefined) {
       console.log(chalkError("NNT | *** PRIMARY NETWORK ID UNDEFINED: " + nnId));
@@ -247,6 +254,15 @@ NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = function(nnId){
     }
 
     primaryNeuralNetworkId = nnId;
+    const nnObj = networksHashMap.get(primaryNeuralNetworkId);
+
+    try{
+      const loadedInputsId = await tcUtils.loadInputs({inputsObj: nnObj.inputsObj});
+      await tcUtils.setPrimaryInputs({inputsId: nnObj.inputsId});
+    }
+    catch(err){
+      return reject(err);
+    }
 
     console.log(chalkLog("NNT | --> SET PRIMARY NN: " + primaryNeuralNetworkId));
 
@@ -625,6 +641,86 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
   });
 }
 
+const networkOutput = {};
+
+NeuralNetworkTools.prototype.activateSingleNetwork = function (params) {
+
+  return new Promise(async function(resolve, reject){
+
+    try {
+
+      const verbose = configuration.verbose || params.verbose;
+
+     // const datum = params.datum;
+     //  const inputsObj = params.inputsObj;
+     //  const generateInputRaw = params.generateInputRaw;
+     //  const inputsBinaryMode = params.inputsBinaryMode || DEFAULT_INPUT_MODE_BINARY;
+
+     const nnId = params.networkId;
+     const nnObj = networksHashMap.get(nnId);
+
+      const convertDatumObj = await tcUtils.convertDatum({datum: params.user});
+
+      const outputRaw = nnObj.network.activate(convertDatumObj.input);
+
+      if (outputRaw.length !== 3) {
+        console.log(chalkError("NNT | *** ZERO LENGTH NETWORK OUTPUT | " + nnId ));
+        return("ZERO LENGTH NETWORK OUTPUT");
+      }
+
+      networkOutput[nnId] = {};
+      networkOutput[nnId].outputRaw = [];
+      networkOutput[nnId].outputRaw = outputRaw;
+      networkOutput[nnId].output = [];
+      networkOutput[nnId].categoryAuto = "none";
+      networkOutput[nnId].matchFlag = "MISS";
+
+      const maxOutputIndex = await indexOfMax(outputRaw);
+
+      switch (maxOutputIndex) {
+        case 0:
+          networkOutput[nnId].categoryAuto = "left";
+          networkOutput[nnId].output = [1,0,0];
+        break;
+        case 1:
+          networkOutput[nnId].categoryAuto = "neutral";
+          networkOutput[nnId].output = [0,1,0];
+        break;
+        case 2:
+          networkOutput[nnId].categoryAuto = "right";
+          networkOutput[nnId].output = [0,0,1];
+        break;
+        default:
+          networkOutput[nnId].categoryAuto = "none";
+          networkOutput[nnId].output = [0,0,0];
+      }
+
+      networkOutput[nnId].matchFlag = ((params.user.category !== "none") && (networkOutput[nnId].categoryAuto === params.user.category)) ? "MATCH" : "MISS";
+
+      if (verbose) {
+        await printNetworkInput({
+          title: nnObj.networkId
+          + " | INPUT: " + nnObj.inputsId 
+          + " | @" + params.user.screenName 
+          + " | C: " + params.user.category 
+          + " | A: " + networkOutput[nnId].categoryAuto
+          + " | MATCH: " + networkOutput[nnId].matchFlag,
+          datum: convertDatumObj
+        });
+      }
+
+      return;
+    }
+    catch(err){
+      console.log(chalkError("NNT | *** ERROR ACTIVATE NETWORK", err));
+      return reject(err);
+    }
+  });
+};
+
+const activateSingleNetwork = NeuralNetworkTools.prototype.activateSingleNetwork;
+
+
 NeuralNetworkTools.prototype.activate = function (params) {
 
   return new Promise(async function(resolve, reject){
@@ -638,7 +734,7 @@ NeuralNetworkTools.prototype.activate = function (params) {
 
       const user = params.user;
 
-      const verbose = configuration.verbose || params.verbose;
+      // const verbose = configuration.verbose || params.verbose;
 
       if (!user.profileHistograms || (user.profileHistograms === undefined)) {
         console.log(chalkWarn("NNT | UNDEFINED USER PROFILE HISTOGRAMS | @" + user.screenName));
@@ -658,7 +754,7 @@ NeuralNetworkTools.prototype.activate = function (params) {
       const userHistograms = await mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: user.tweetHistograms });
       userHistograms.friends = await tcUtils.generateObjFromArray({ keys: user.friends, value: 1 }); // [ 1,2,3... ] => { 1:1, 2:1, 3:1, ... }
 
-      const networkOutput = {};
+      let networkOutput;
 
       async.each(networksHashMap.keys(), async function(nnId){
 
@@ -668,77 +764,15 @@ NeuralNetworkTools.prototype.activate = function (params) {
           return reject(new Error("NNT | nn UNDEFINED | NN ID: " + nnId));
         }
 
-        const inputsObj = inputsHashMap.get(nn.inputsId);
+        // const inputsObj = inputsHashMap.get(nn.inputsId);
 
-        if (inputsObj.inputs === undefined) {
-          console.log(chalkError("NNT | UNDEFINED NETWORK INPUTS OBJ | NETWORK OBJ KEYS: " + Object.keys(nn)));
-          return ("UNDEFINED NETWORK INPUTS OBJ");
-        }
+        // if (inputsObj.inputs === undefined) {
+        //   console.log(chalkError("NNT | UNDEFINED NETWORK INPUTS OBJ | NETWORK OBJ KEYS: " + Object.keys(nn)));
+        //   return ("UNDEFINED NETWORK INPUTS OBJ");
+        // }
 
+        networkOutput = await activateSingleNetwork({networkId: nnId, user: user});
 
-        try {
-          const convertDatumObj = await tcUtils.convertDatum({
-            datum: user, 
-            inputsObj: inputsObj, 
-            generateInputRaw: false, 
-            inputsBinaryMode: false
-          });
-
-          const outputRaw = nn.network.activate(convertDatumObj.input);
-
-          if (outputRaw.length !== 3) {
-            console.log(chalkError("NNT | *** ZERO LENGTH NETWORK OUTPUT | " + nnId ));
-            return("ZERO LENGTH NETWORK OUTPUT");
-          }
-
-          networkOutput[nnId] = {};
-          networkOutput[nnId].outputRaw = [];
-          networkOutput[nnId].outputRaw = outputRaw;
-          networkOutput[nnId].output = [];
-          networkOutput[nnId].categoryAuto = "none";
-          networkOutput[nnId].matchFlag = "MISS";
-
-          const maxOutputIndex = await indexOfMax(outputRaw);
-
-          switch (maxOutputIndex) {
-            case 0:
-              networkOutput[nnId].categoryAuto = "left";
-              networkOutput[nnId].output = [1,0,0];
-            break;
-            case 1:
-              networkOutput[nnId].categoryAuto = "neutral";
-              networkOutput[nnId].output = [0,1,0];
-            break;
-            case 2:
-              networkOutput[nnId].categoryAuto = "right";
-              networkOutput[nnId].output = [0,0,1];
-            break;
-            default:
-              networkOutput[nnId].categoryAuto = "none";
-              networkOutput[nnId].output = [0,0,0];
-          }
-
-          networkOutput[nnId].matchFlag = ((user.category !== "none") && (networkOutput[nnId].categoryAuto === user.category)) ? "MATCH" : "MISS";
-
-          if (verbose) {
-            await printNetworkInput({
-              title: nn.networkId
-              + " | INPUT: " + nn.inputsId 
-              + " | @" + user.screenName 
-              + " | C: " + user.category 
-              + " | A: " + networkOutput[nnId].categoryAuto
-              + " | MATCH: " + networkOutput[nnId].matchFlag,
-              datum: convertDatumObj
-            });
-          }
-
-          return;
-
-        }
-        catch(err){
-          console.log(chalkError("NNT | *** ERROR ACTIVATE NETWORK", err));
-          return reject(err);
-        }
       }, function(err){
 
         if (err) {
@@ -750,8 +784,8 @@ NeuralNetworkTools.prototype.activate = function (params) {
           user: user,
           networkOutput: networkOutput
         });
-        
       });
+
     }
     catch(err){
 

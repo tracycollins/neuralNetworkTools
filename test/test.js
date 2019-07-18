@@ -1,5 +1,6 @@
 
 const fs = require("fs");
+const fsp = require('fs').promises;
 const path = require("path");
 const async = require("async");
 const debug = require("debug");
@@ -159,11 +160,13 @@ describe("mongoose", function() {
 
 			try{
 
+				await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
+				await nnTools.setNormalization(maxNormObj.normalization);
+
 				const usersFolder = path.join(__dirname, "users");
-				const networksFolder = path.join(__dirname, "networks");
+				const usersFileArray = await fsp.readdir(usersFolder);
 
-				fs.readdirSync(usersFolder).forEach(file => {
-
+				async.eachSeries(usersFileArray, async function(file){
 					if (file.startsWith("user_") && file.endsWith(".json")) {
 						const userId = file.replace(".json", "");
 		      	console.log("USER LOAD: " + file);
@@ -173,12 +176,17 @@ describe("mongoose", function() {
 		      else{
 		      	console.log("... SKIPPING USER LOAD: " + file);
 		      }
+		      return;
+				}, function(err){
+	        should.not.exist(err);
+					console.log("FOUND " + userArray.length + " USERS IN " + usersFolder);
 				});
 
-				console.log("FOUND " + userArray.length + " USERS IN " + usersFolder);
 
-				fs.readdirSync(networksFolder).forEach(async function(file){
+				const networksFolder = path.join(__dirname, "networks");
+				const nnFileArray = await fsp.readdir(networksFolder);
 
+				async.eachSeries(nnFileArray, async function(file){
 					if (file.endsWith(".json") && !file.includes("bestRuntimeNetwork")) {
 
 						const nnId = file.replace(".json", "");
@@ -189,22 +197,53 @@ describe("mongoose", function() {
 
 						networkIdArray.push(nnId);
 
-						await nnTools.loadNetwork({networkObj: nn});
+						nnTools.loadNetwork({networkObj: nn})
+						.then(function(){
+							return;
+						})
+						.catch(function(err){
+			        should.not.exist(err);
+						})
 
-		        // (await nnTools.loadNetwork({networkObj: nn})).should.be.fulfilled();
 		      }
 		      else{
 		      	console.log("... SKIPPING NETWORK LOAD: " + file);
 		      }
+		      return;
+				}, async function(err){
+	        should.not.exist(err);
+					console.log("FOUND " + nnTools.getNumberNetworks() + " NETWORKS IN " + networksFolder);
+
+					const randomNnId = randomItem(networkIdArray);
+					await nnTools.setPrimaryNeuralNetwork(randomNnId);
 				});
 
-				console.log("FOUND " + nnTools.getNumberNetworks() + " NETWORKS IN " + networksFolder);
+				// fs.readdirSync(networksFolder).forEach(file => {
 
-				const randomNnId = randomItem(networkIdArray);
+				// 	if (file.endsWith(".json") && !file.includes("bestRuntimeNetwork")) {
 
-				await nnTools.setPrimaryNeuralNetwork(randomNnId);
-				await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
-				await nnTools.setNormalization(maxNormObj.normalization);
+				// 		const nnId = file.replace(".json", "");
+
+		  //     	// console.log("NETWORK LOAD: " + file);
+
+				// 		const nn = require("./networks/" + nnId + ".json");
+
+				// 		networkIdArray.push(nnId);
+
+				// 		nnTools.loadNetwork({networkObj: nn})
+				// 		.then(function(){
+
+				// 		})
+				// 		.catch(function(err){
+			 //        should.not.exist(err);
+				// 		})
+
+		  //     }
+		  //     else{
+		  //     	console.log("... SKIPPING NETWORK LOAD: " + file);
+		  //     }
+				// });
+
 
 		    // it('should init networks', async function() {
 
