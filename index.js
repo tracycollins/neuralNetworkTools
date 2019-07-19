@@ -616,7 +616,9 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
           if (statsObj.bestNetwork.networkId === nn.networkId){
             statsObj.bestNetwork = pick(nn, currentBestNetworkPicks);
             statsObj.bestNetwork.meta = nn.meta;
-            printNetworkObj("NNT | ^^^ UPDATE BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.black);
+            if (verbose) {
+              printNetworkObj("NNT | ^^^ UPDATE BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.black);
+            }
           }
 
           if (statsObj.currentBestNetwork.networkId === nn.networkId){
