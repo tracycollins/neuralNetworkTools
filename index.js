@@ -4,7 +4,7 @@
 const neataptic = require("neataptic");
 // const carrot = require("@liquid-carrot/carrot");
 const assert = require("assert");
-const should = require("should");
+// const should = require("should");
 const async = require("async");
 const util = require("util");
 const _ = require("lodash");
@@ -204,7 +204,7 @@ NeuralNetworkTools.prototype.loadNetwork = function(params){
         statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
       }
 
-      should.exist(nn.network);
+      // should.exist(nn.network);
 
       const network = neataptic.Network.fromJSON(nn.network);
 
@@ -215,7 +215,7 @@ NeuralNetworkTools.prototype.loadNetwork = function(params){
       inputsHashMap.set(nn.inputsId, inputsObj);
 
       try{
-        const loadedInputsId = await tcUtils.loadInputs({inputsObj: inputsObj});
+        await tcUtils.loadInputs({inputsObj: inputsObj});
       }
       catch(err){
         console.log(chalkError("NNT | *** LOAD INPUTS ERROR: " + err));
@@ -256,8 +256,12 @@ NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = function(nnId){
     primaryNeuralNetworkId = nnId;
     const nnObj = networksHashMap.get(primaryNeuralNetworkId);
 
+    if (!inputsHashMap.has(nnObj.inputsId)){
+      console.log(chalkError("NNT | *** setPrimaryNeuralNetwork PRIMARY NETWORK INPUTS NOT IN HASHMAP: " + nnObj.inputsId));
+      return reject(new Error("NNT | PRIMARY NETWORK INPUTS NOT IN HASHMAP: " + nnObj.inputsId));
+    }
+
     try{
-      const loadedInputsId = await tcUtils.loadInputs({inputsObj: nnObj.inputsObj});
       await tcUtils.setPrimaryInputs({inputsId: nnObj.inputsId});
     }
     catch(err){
@@ -384,7 +388,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
     let params = {};
     params = params || p;
 
-    statsObj.currentBestNetwork = defaults(statsObj.currentBestNetwork, networkDefaults);
+    // statsObj.currentBestNetwork = defaults(statsObj.currentBestNetwork, networkDefaults);
     // statsObj.currentBestNetwork.meta = defaults(statsObj.currentBestNetwork.meta, networkDefaults.meta);
 
     titleDefault = "BEST"
@@ -394,7 +398,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
       + " | " + statsObj.currentBestNetwork.meta.match + "/" + statsObj.currentBestNetwork.meta.total
       + " | MR: " + statsObj.currentBestNetwork.matchRate.toFixed(2) + "%"
       + " | OUT: " + statsObj.currentBestNetwork.meta.output
-      + " | MATCH: " + statsObj.currentBestNetwork.meta.matchFlag;
+      + " | " + statsObj.currentBestNetwork.meta.matchFlag;
 
     if (!params.title) { params.title = titleDefault; }
 
@@ -510,10 +514,17 @@ function printNetworkObj(title, nObj, format) {
   return;
 }
 
+NeuralNetworkTools.prototype.getNetworkStats = function (){
+  return new Promise(function(resolve){
+    resolve(statsObj);
+  });
+}
 
 NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
   return new Promise(function(resolve, reject){
+
+    const verbose = params.verbose; // array of networks
 
     const networkOutput = params.networkOutput; // array of networks
     const user = params.user; 
@@ -532,10 +543,8 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
       statsObj.networks[nnId] = pick(nn, networkPickArray);
       statsObj.networks[nnId].meta = pick(nn.meta, networkMetaPickArray);
-
-      // printNetworkObj("NNT | NN", nn, chalkAlert);
-
       statsObj.networks[nnId].categoryAuto = arrayToCategory(networkOutput[nnId].output);
+
       networkOutput[nnId].categoryAuto = statsObj.networks[nnId].categoryAuto;
 
       statsObj.networks[nnId].meta.output = [];
@@ -554,15 +563,17 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
         chalkCategory = chalk.gray;
       }
 
-      console.log(chalkCategory("NNT | " + statsObj.networks[nnId].meta.matchFlag
-        + " | @" + user.screenName
-        + " | CM: " + user.category + " | CA: " + networkOutput[nnId].categoryAuto
-        + " | " + statsObj.networks[nnId].networkId
-        + " | " + statsObj.networks[nnId].inputsId
-        + " | SR: " + statsObj.networks[nnId].successRate.toFixed(2) 
-        + " | MR: " + statsObj.networks[nnId].matchRate.toFixed(2) 
-        + " | OR: " + statsObj.networks[nnId].overallMatchRate.toFixed(2) 
-      ));
+      if (verbose){
+        console.log(chalkCategory("NNT | " + statsObj.networks[nnId].meta.matchFlag
+          + " | @" + user.screenName
+          + " | CM: " + user.category + " | CA: " + networkOutput[nnId].categoryAuto
+          + " | " + statsObj.networks[nnId].networkId
+          + " | " + statsObj.networks[nnId].inputsId
+          + " | SR: " + statsObj.networks[nnId].successRate.toFixed(2) 
+          + " | MR: " + statsObj.networks[nnId].matchRate.toFixed(2) 
+          + " | OR: " + statsObj.networks[nnId].overallMatchRate.toFixed(2) 
+        ));
+      }
 
       if (statsObj.networks[nnId].meta.total === 0) {
         statsObj.networks[nnId].matchRate = 0;
@@ -608,15 +619,15 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
             printNetworkObj("NNT | ^^^ UPDATE BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.black);
           }
 
-          if (statsObj.currentBestNetwork.matchRate < nn.matchRate) {
+          if (statsObj.currentBestNetwork.networkId === nn.networkId){
+            statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
+            statsObj.currentBestNetwork.meta = nn.meta;
+            // printNetworkObj("NNT | ^^^ UPDATE CURRENT BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.gray);
+          }
+          else if (statsObj.currentBestNetwork.matchRate < nn.matchRate) {
             statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
             statsObj.currentBestNetwork.meta = nn.meta;
             printNetworkObj("NNT | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green.bold);
-          }
-          else if (statsObj.currentBestNetwork.networkId === nn.networkId){
-            statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
-            statsObj.currentBestNetwork.meta = nn.meta;
-            printNetworkObj("NNT | ^^^ UPDATE CURRENT BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.gray);
           }
           
           async.setImmediate(function() { return cb1(); });
@@ -626,7 +637,9 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
           if (err1) {
             return reject(err1);
           }
-          await printNetworkResults();
+
+          // if (verbose) { printNetworkResults(); }
+          statsObj.currentBestNetwork = defaults(statsObj.currentBestNetwork, networkDefaults);
 
           resolve(statsObj.currentBestNetwork);
         });
@@ -641,8 +654,6 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
   });
 }
 
-const networkOutput = {};
-
 NeuralNetworkTools.prototype.activateSingleNetwork = function (params) {
 
   return new Promise(async function(resolve, reject){
@@ -651,51 +662,55 @@ NeuralNetworkTools.prototype.activateSingleNetwork = function (params) {
 
       const verbose = configuration.verbose || params.verbose;
 
-     // const datum = params.datum;
-     //  const inputsObj = params.inputsObj;
-     //  const generateInputRaw = params.generateInputRaw;
-     //  const inputsBinaryMode = params.inputsBinaryMode || DEFAULT_INPUT_MODE_BINARY;
+      const nnId = params.networkId;
+      const nnObj = networksHashMap.get(nnId);
 
-     const nnId = params.networkId;
-     const nnObj = networksHashMap.get(nnId);
-
-      const convertDatumObj = await tcUtils.convertDatum({datum: params.user});
+      const convertDatumObj = await tcUtils.convertDatum({datum: params.user, inputsId: nnObj.inputsId});
 
       const outputRaw = nnObj.network.activate(convertDatumObj.input);
 
       if (outputRaw.length !== 3) {
         console.log(chalkError("NNT | *** ZERO LENGTH NETWORK OUTPUT | " + nnId ));
-        return("ZERO LENGTH NETWORK OUTPUT");
+        return reject("ZERO LENGTH NETWORK OUTPUT");
       }
 
-      networkOutput[nnId] = {};
-      networkOutput[nnId].outputRaw = [];
-      networkOutput[nnId].outputRaw = outputRaw;
-      networkOutput[nnId].output = [];
-      networkOutput[nnId].categoryAuto = "none";
-      networkOutput[nnId].matchFlag = "MISS";
+      const networkOutput = {};
+      networkOutput.nnId = nnId;
+      networkOutput.outputRaw = [];
+      networkOutput.outputRaw = outputRaw;
+      networkOutput.output = [];
+      networkOutput.categoryAuto = "none";
+      networkOutput.matchFlag = "MISS";
 
       const maxOutputIndex = await indexOfMax(outputRaw);
 
       switch (maxOutputIndex) {
         case 0:
-          networkOutput[nnId].categoryAuto = "left";
-          networkOutput[nnId].output = [1,0,0];
+          networkOutput.categoryAuto = "left";
+          networkOutput.output = [1,0,0];
         break;
         case 1:
-          networkOutput[nnId].categoryAuto = "neutral";
-          networkOutput[nnId].output = [0,1,0];
+          networkOutput.categoryAuto = "neutral";
+          networkOutput.output = [0,1,0];
         break;
         case 2:
-          networkOutput[nnId].categoryAuto = "right";
-          networkOutput[nnId].output = [0,0,1];
+          networkOutput.categoryAuto = "right";
+          networkOutput.output = [0,0,1];
         break;
         default:
-          networkOutput[nnId].categoryAuto = "none";
-          networkOutput[nnId].output = [0,0,0];
+          networkOutput.categoryAuto = "none";
+          networkOutput.output = [0,0,0];
       }
 
-      networkOutput[nnId].matchFlag = ((params.user.category !== "none") && (networkOutput[nnId].categoryAuto === params.user.category)) ? "MATCH" : "MISS";
+      networkOutput.matchFlag = ((params.user.category !== "none") && (networkOutput.categoryAuto === params.user.category)) ? "MATCH" : "MISS";
+
+      // console.log("NNT | ACTIVATE"
+      //   + " | INPUT: " + nnObj.inputsId 
+      //   + " | @" + params.user.screenName 
+      //   + " | C: " + params.user.category 
+      //   + " | A: " + networkOutput.categoryAuto
+      //   + " | MATCH: " + networkOutput.matchFlag
+      // );
 
       if (verbose) {
         await printNetworkInput({
@@ -703,13 +718,13 @@ NeuralNetworkTools.prototype.activateSingleNetwork = function (params) {
           + " | INPUT: " + nnObj.inputsId 
           + " | @" + params.user.screenName 
           + " | C: " + params.user.category 
-          + " | A: " + networkOutput[nnId].categoryAuto
-          + " | MATCH: " + networkOutput[nnId].matchFlag,
+          + " | A: " + networkOutput.categoryAuto
+          + " | MATCH: " + networkOutput.matchFlag,
           datum: convertDatumObj
         });
       }
 
-      return;
+      resolve(networkOutput);
     }
     catch(err){
       console.log(chalkError("NNT | *** ERROR ACTIVATE NETWORK", err));
@@ -727,14 +742,12 @@ NeuralNetworkTools.prototype.activate = function (params) {
 
     try {
 
-      if (networksHashMap.keys().length === 0) {
+      if (networksHashMap.size === 0) {
         console.log(chalkError("NNT | *** NO NETWORKS IN HASHMAP"));
         return reject(new Error("NNT | *** NO NETWORKS IN HASHMAP"));
       }
 
       const user = params.user;
-
-      // const verbose = configuration.verbose || params.verbose;
 
       if (!user.profileHistograms || (user.profileHistograms === undefined)) {
         console.log(chalkWarn("NNT | UNDEFINED USER PROFILE HISTOGRAMS | @" + user.screenName));
@@ -751,27 +764,19 @@ NeuralNetworkTools.prototype.activate = function (params) {
         user.friends = [];
       }
 
-      const userHistograms = await mergeHistograms.merge({ histogramA: user.profileHistograms, histogramB: user.tweetHistograms });
-      userHistograms.friends = await tcUtils.generateObjFromArray({ keys: user.friends, value: 1 }); // [ 1,2,3... ] => { 1:1, 2:1, 3:1, ... }
+      const networkOutput = {};
+      const nnIdArray = networksHashMap.keys();
 
-      let networkOutput;
+      async.eachSeries(nnIdArray, async function(nnId){
 
-      async.each(networksHashMap.keys(), async function(nnId){
-
-        const nn = networksHashMap.get(nnId);
-
-        if (!nn || (nn === undefined)){
-          return reject(new Error("NNT | nn UNDEFINED | NN ID: " + nnId));
+        if (!networksHashMap.has(nnId)){
+          return reject(new Error("NNT | NET NOT IN HASHMAP | NN ID: " + nnId));
         }
 
-        // const inputsObj = inputsHashMap.get(nn.inputsId);
+        networkOutput[nnId] = {};
+        networkOutput[nnId] = await activateSingleNetwork({networkId: nnId, user: user});
 
-        // if (inputsObj.inputs === undefined) {
-        //   console.log(chalkError("NNT | UNDEFINED NETWORK INPUTS OBJ | NETWORK OBJ KEYS: " + Object.keys(nn)));
-        //   return ("UNDEFINED NETWORK INPUTS OBJ");
-        // }
-
-        networkOutput = await activateSingleNetwork({networkId: nnId, user: user});
+        return;
 
       }, function(err){
 
@@ -780,10 +785,8 @@ NeuralNetworkTools.prototype.activate = function (params) {
           return reject(err);
         }
 
-        resolve({
-          user: user,
-          networkOutput: networkOutput
-        });
+        resolve({ user: user, networkOutput: networkOutput });
+
       });
 
     }
