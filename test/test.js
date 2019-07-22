@@ -112,50 +112,88 @@ function loadNetworks(networksFolder){
 
 let currentBestNetworkStats;
 
-function activateUsers(userArray){
-  return new Promise(async function(resolve, reject){
+async function activateUsers(userArray){
+
+  // return new Promise(function(resolve, reject){
+
     try{
 
-      async.eachSeries(userArray, async function(user){
+      // async.eachSeries(userArray, async function(user){
 
-        const resultsActivate = await nnTools.activate({user: user});
+      //   console.log("user @" + user.screenName);
 
-        currentBestNetworkStats = await nnTools.updateNetworkStats(resultsActivate);
+      //   const resultsActivate = await nnTools.activate({user: user});
 
-        console.log("NNT | NN UPDATE STATS | BEST NETWORK"
-          + " | " + currentBestNetworkStats.networkId
-          + " | " + currentBestNetworkStats.inputsId
-          + " | RANK: " + currentBestNetworkStats.rank
-          + " | " + currentBestNetworkStats.meta.match + "/" + currentBestNetworkStats.meta.total
-          + " | MR: " + currentBestNetworkStats.matchRate.toFixed(2) + "%"
-          + " | OUT: " + currentBestNetworkStats.meta.output
-          + " | MATCH: " + currentBestNetworkStats.meta.matchFlag
-        );
+      //   console.log("resultsActivate\n" + jsonPrint(resultsActivate));
 
-        return;
+      //   currentBestNetworkStats = await nnTools.updateNetworkStats(resultsActivate);
 
-      }, async function(err){
+      //   console.log("NNT | NN UPDATE STATS | BEST NETWORK"
+      //     + " | " + currentBestNetworkStats.networkId
+      //     + " | " + currentBestNetworkStats.inputsId
+      //     + " | RANK: " + currentBestNetworkStats.rank
+      //     + " | " + currentBestNetworkStats.meta.match + "/" + currentBestNetworkStats.meta.total
+      //     + " | MR: " + currentBestNetworkStats.matchRate.toFixed(2) + "%"
+      //     + " | OUT: " + currentBestNetworkStats.meta.output
+      //     + " | MATCH: " + currentBestNetworkStats.meta.matchFlag
+      //   );
 
-        if (err) { console.log("NNT | *** TEST ACTIVATE ERROR: " + err); }
+      //   return;
 
-        try{
+      // }, function(err){
 
-          // await nnTools.printNetworkResults();
-          resolve();
+      //   if (err) { 
+      //     console.log("NNT | *** TEST ACTIVATE ERROR: " + err);
+      //     return reject(err);
+      //   }
 
-        }
-        catch(e){
-          console.log("NNT | *** TEST ACTIVATE ERROR: " + e);
-          return reject(e);
-        }
+      //   console.log("NNT | TEST ACTIVATE END");
+      //   resolve();
+      // });
+
+      const activateUsersPromiseArray = [];
+
+      userArray.forEach(function(user){
+
+        console.log("user @" + user.screenName);
+
+        // const resultsActivate = await nnTools.activate({user: user});
+
+        // console.log("resultsActivate\n" + jsonPrint(resultsActivate));
+
+        activateUsersPromiseArray.push(nnTools.activate({user: user}));
+
+      });
+
+      Promise.all(activateUsersPromiseArray)
+      .then(function(activateOutputArray){
+
+        const primaryNetworkId = nnTools.getPrimaryNeuralNetwork();
+
+        console.log("PRIMARY ID: " + primaryNetworkId)
+
+        activateOutputArray.forEach(function(noutObj){
+
+          const nnOut = noutObj.networkOutput[primaryNetworkId];
+
+          console.log("NN OUT"
+            + " | PRI NN: " + nnOut.nnId
+            + " | OUT: " + nnOut.output
+            + " | MATCH: " + nnOut.matchFlag
+            + " | @" + noutObj.user.screenName
+            + " | CM: " + noutObj.user.category
+            + " | CA: " + noutObj.user.categoryAuto
+          );
+        });
         console.log("NNT | TEST ACTIVATE END");
+        return;
       });
 
     }
     catch(err){
-      return reject(err);
+      return err;
     }
-  });
+  // });
 }
 
 describe("neural networks", function() {
