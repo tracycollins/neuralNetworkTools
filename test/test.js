@@ -172,18 +172,27 @@ async function activateUsers(userArray){
 
         console.log("PRIMARY ID: " + primaryNetworkId)
 
-        activateOutputArray.forEach(function(noutObj){
+        activateOutputArray.forEach(async function(noutObj){
 
-          const nnOut = noutObj.networkOutput[primaryNetworkId];
+          // const nnOut = noutObj.networkOutput[primaryNetworkId];
 
-          console.log("NN OUT"
-            + " | PRI NN: " + nnOut.nnId
-            + " | OUT: " + nnOut.output
-            + " | MATCH: " + nnOut.matchFlag
-            + " | @" + noutObj.user.screenName
-            + " | CM: " + noutObj.user.category
-            + " | CA: " + noutObj.user.categoryAuto
-          );
+          try{
+            await nnTools.updateNetworkStats({user: noutObj.user, networkOutput: noutObj.networkOutput});
+            await nnTools.printNetworkResults();
+          }
+          catch(err){
+            console.log("NNT | ERROR: " + err);
+          }
+
+          // console.log("NN OUT"
+          //   + " | PRI NN: " + nnOut.nnId
+          //   + " | OUT: " + nnOut.output
+          //   + " | MATCH: " + nnOut.matchFlag
+          //   + " | CM: " + noutObj.user.category
+          //   + " | new CA: " + nnOut.categoryAuto
+          //   + " | @" + noutObj.user.screenName
+          // );
+
         });
         console.log("NNT | TEST ACTIVATE END");
         return;

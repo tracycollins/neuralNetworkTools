@@ -41,7 +41,7 @@ configuration.verbose = false;
 const statsObj = {};
 statsObj.networks = {};
 statsObj.bestNetwork = false;
-statsObj.currentBestNetwork = {};
+statsObj.currentBestNetwork = false;
 
 const NeuralNetworkTools = function(app_name){
   const self = this;
@@ -175,7 +175,12 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
       statsObj.networks.meta = {};
       statsObj.networks.meta = networkDefaults.meta;
 
-      if (params.isBestNetwork || !statsObj.bestNetwork || (statsObj.bestNetwork.overallMatchRate < nn.overallMatchRate)) {
+      if (params.isBestNetwork 
+        || !statsObj.bestNetwork 
+        || (statsObj.bestNetwork === undefined)
+        || (statsObj.bestNetwork === {})
+        || (statsObj.bestNetwork.overallMatchRate < nn.overallMatchRate)
+      ) {
 
         printNetworkObj("NNT | --> LOAD BEST NETWORK", nn, chalkAlert);
 
@@ -186,7 +191,11 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
       }
 
-      if (!statsObj.currentBestNetwork || statsObj.currentBestNetwork === undefined || statsObj.currentBestNetwork === {}){
+      if (!statsObj.currentBestNetwork 
+        || (statsObj.currentBestNetwork === undefined)
+        || (statsObj.currentBestNetwork === {})
+        || (statsObj.currentBestNetwork.overallMatchRate < nn.overallMatchRate)
+      ){
 
         printNetworkObj("NNT | --> LOAD CURRENT BEST NETWORK", nn, chalk.green);
 
@@ -539,14 +548,15 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
       const nn = networksHashMap.get(nnId);
 
       if (!nn || nn === undefined) {
-        return reject(new Error("NNT | updateNetworkStats NN UNDEFINED"));
+        return reject(new Error("NNT | updateNetworkStats NN UNDEFINED | NN ID: " + nnId));
       }
 
       statsObj.networks[nnId] = pick(nn, networkPickArray);
       statsObj.networks[nnId].meta = pick(nn.meta, networkMetaPickArray);
       statsObj.networks[nnId].categoryAuto = arrayToCategory(networkOutput[nnId].output);
 
-      networkOutput[nnId].categoryAuto = statsObj.networks[nnId].categoryAuto;
+      networkOutput[nnId].category = user.category;
+      networkOutput[nnId].categoryAuto = arrayToCategory(networkOutput[nnId].output);
 
       statsObj.networks[nnId].meta.output = [];
       statsObj.networks[nnId].meta.output = networkOutput[nnId].output;
@@ -613,6 +623,11 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
           nn.rank = index;
 
           networksHashMap.set(nn.networkId, nn);
+
+          if (statsObj.currentBestNetwork){
+            statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
+            statsObj.currentBestNetwork.meta = nn.meta;
+          }
 
           if (statsObj.bestNetwork.networkId === nn.networkId){
             statsObj.bestNetwork = pick(nn, currentBestNetworkPicks);
