@@ -619,9 +619,21 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
           networksHashMap.set(nn.networkId, nn);
 
-          if (statsObj.currentBestNetwork){
+          if (!statsObj.currentBestNetwork || (statsObj.currentBestNetwork === undefined)){
             statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
             statsObj.currentBestNetwork.meta = nn.meta;
+          }
+          
+          if (statsObj.currentBestNetwork.matchRate < nn.matchRate) {
+            statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
+            statsObj.currentBestNetwork.meta = nn.meta;
+            printNetworkObj("NNT | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green.bold);
+          }
+          
+          if (statsObj.currentBestNetwork.networkId === nn.networkId){
+            statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
+            statsObj.currentBestNetwork.meta = nn.meta;
+            // printNetworkObj("NNT | ^^^ UPDATE CURRENT BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.gray);
           }
 
           if (statsObj.bestNetwork.networkId === nn.networkId){
@@ -632,17 +644,6 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
             }
           }
 
-          if (statsObj.currentBestNetwork.networkId === nn.networkId){
-            statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
-            statsObj.currentBestNetwork.meta = nn.meta;
-            // printNetworkObj("NNT | ^^^ UPDATE CURRENT BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.gray);
-          }
-          else if (statsObj.currentBestNetwork.matchRate < nn.matchRate) {
-            statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
-            statsObj.currentBestNetwork.meta = nn.meta;
-            printNetworkObj("NNT | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green.bold);
-          }
-          
           async.setImmediate(function() { return cb1(); });
 
         }, async function(err1){
