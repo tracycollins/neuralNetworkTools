@@ -529,9 +529,20 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
   return new Promise(function(resolve, reject){
 
-    const verbose = params.verbose || false; // array of networks
+    const primaryNetwork = params.primaryNetwork || false; // 
+    const verbose = params.verbose || false; //
 
-    const networkOutput = params.networkOutput; // array of networks
+    let networkOutput = {};
+
+    if (primaryNetwork) {
+      networkOutput[params.networkOutput.nnId] = {};
+      networkOutput[params.networkOutput.nnId] = params.networkOutput;
+    }
+    else {
+      networkOutput = params.networkOutput;
+    }
+
+    // const networkOutput = params.networkOutput; // array of networks OR primary network
     const user = params.user; 
 
     const nnIdArray = Object.keys(networkOutput);
