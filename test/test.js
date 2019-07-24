@@ -118,50 +118,13 @@ async function activateUsers(userArray){
 
     try{
 
-      // async.eachSeries(userArray, async function(user){
-
-      //   console.log("user @" + user.screenName);
-
-      //   const resultsActivate = await nnTools.activate({user: user});
-
-      //   console.log("resultsActivate\n" + jsonPrint(resultsActivate));
-
-      //   currentBestNetworkStats = await nnTools.updateNetworkStats(resultsActivate);
-
-      //   console.log("NNT | NN UPDATE STATS | BEST NETWORK"
-      //     + " | " + currentBestNetworkStats.networkId
-      //     + " | " + currentBestNetworkStats.inputsId
-      //     + " | RANK: " + currentBestNetworkStats.rank
-      //     + " | " + currentBestNetworkStats.meta.match + "/" + currentBestNetworkStats.meta.total
-      //     + " | MR: " + currentBestNetworkStats.matchRate.toFixed(2) + "%"
-      //     + " | OUT: " + currentBestNetworkStats.meta.output
-      //     + " | MATCH: " + currentBestNetworkStats.meta.matchFlag
-      //   );
-
-      //   return;
-
-      // }, function(err){
-
-      //   if (err) { 
-      //     console.log("NNT | *** TEST ACTIVATE ERROR: " + err);
-      //     return reject(err);
-      //   }
-
-      //   console.log("NNT | TEST ACTIVATE END");
-      //   resolve();
-      // });
-
       const activateUsersPromiseArray = [];
 
       userArray.forEach(function(user){
 
-        console.log("user @" + user.screenName);
+        console.log("NNT | user @" + user.screenName);
 
-        // const resultsActivate = await nnTools.activate({user: user});
-
-        // console.log("resultsActivate\n" + jsonPrint(resultsActivate));
-
-        activateUsersPromiseArray.push(nnTools.activate({user: user}));
+        activateUsersPromiseArray.push(nnTools.activate({user: user, verbose: false}));
 
       });
 
@@ -174,8 +137,6 @@ async function activateUsers(userArray){
 
         activateOutputArray.forEach(async function(noutObj){
 
-          // const nnOut = noutObj.networkOutput[primaryNetworkId];
-
           try{
             await nnTools.updateNetworkStats({user: noutObj.user, networkOutput: noutObj.networkOutput});
             await nnTools.printNetworkResults();
@@ -183,15 +144,6 @@ async function activateUsers(userArray){
           catch(err){
             console.log("NNT | ERROR: " + err);
           }
-
-          // console.log("NN OUT"
-          //   + " | PRI NN: " + nnOut.nnId
-          //   + " | OUT: " + nnOut.output
-          //   + " | MATCH: " + nnOut.matchFlag
-          //   + " | CM: " + noutObj.user.category
-          //   + " | new CA: " + nnOut.categoryAuto
-          //   + " | @" + noutObj.user.screenName
-          // );
 
         });
         console.log("NNT | TEST ACTIVATE END");

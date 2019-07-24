@@ -2,15 +2,11 @@
 /*jshint sub:true*/
 
 const neataptic = require("neataptic");
-// const carrot = require("@liquid-carrot/carrot");
 const assert = require("assert");
-// const should = require("should");
 const async = require("async");
 const util = require("util");
 const _ = require("lodash");
 const EventEmitter = require("events");
-// const MergeHistograms = require("@threeceelabs/mergehistograms");
-// const mergeHistograms = new MergeHistograms();
 const HashMap = require("hashmap").HashMap;
 const defaults = require("object.defaults");
 const pick = require("object.pick");
@@ -33,7 +29,6 @@ const networksHashMap = new HashMap();
 const inputsHashMap = new HashMap();
 
 let primaryNeuralNetworkId;
-// let primaryNetworkObj;
 
 const configuration = {};
 configuration.verbose = false;
@@ -674,86 +669,75 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
 NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
-  // return new Promise(async function(resolve, reject){
+  const verbose = configuration.verbose || params.verbose;
+  const nnId = params.networkId;
 
-    // try {
+  if (!networksHashMap.has(nnId)){
+    return new Error("NN NOT IN NETWORK HASHMAP: " + nnId);
+  }
+  const nnObj = networksHashMap.get(nnId);
 
-      const verbose = configuration.verbose || params.verbose;
+  const convertDatumObj = await tcUtils.convertDatum({datum: params.user, inputsId: nnObj.inputsId});
 
-      const nnId = params.networkId;
-      const nnObj = networksHashMap.get(nnId);
+  if (verbose) {
+    console.log("convertDatumObj\n" + jsonPrint(convertDatumObj));
+  }
 
-      const convertDatumObj = await tcUtils.convertDatum({datum: params.user, inputsId: nnObj.inputsId});
+  const outputRaw = nnObj.network.activate(convertDatumObj.input);
 
-      const outputRaw = nnObj.network.activate(convertDatumObj.input);
+  if (outputRaw.length !== 3) {
+    console.log(chalkError("NNT | *** ZERO LENGTH NETWORK OUTPUT | " + nnId ));
+    return new Error("ZERO LENGTH NETWORK OUTPUT");
+  }
 
-      if (outputRaw.length !== 3) {
-        console.log(chalkError("NNT | *** ZERO LENGTH NETWORK OUTPUT | " + nnId ));
-        return new Error("ZERO LENGTH NETWORK OUTPUT");
-      }
+  const networkOutput = {};
+  networkOutput.nnId = nnId;
+  networkOutput.user = {};
+  networkOutput.user.nodeId = params.user.nodeId;
+  networkOutput.user.screenName = params.user.screenName;
+  networkOutput.user.category = params.user.category;
+  networkOutput.user.categoryAuto = params.user.categoryAuto;
+  networkOutput.outputRaw = [];
+  networkOutput.outputRaw = outputRaw;
+  networkOutput.output = [];
+  networkOutput.categoryAuto = "none";
+  networkOutput.matchFlag = "MISS";
 
-      const networkOutput = {};
-      networkOutput.nnId = nnId;
-      networkOutput.user = {};
-      networkOutput.user.nodeId = params.user.nodeId;
-      networkOutput.user.screenName = params.user.screenName;
-      networkOutput.user.category = params.user.category;
-      networkOutput.user.categoryAuto = params.user.categoryAuto;
-      networkOutput.outputRaw = [];
-      networkOutput.outputRaw = outputRaw;
-      networkOutput.output = [];
+  const maxOutputIndex = await indexOfMax(outputRaw);
+
+  switch (maxOutputIndex) {
+    case 0:
+      networkOutput.categoryAuto = "left";
+      networkOutput.output = [1,0,0];
+    break;
+    case 1:
+      networkOutput.categoryAuto = "neutral";
+      networkOutput.output = [0,1,0];
+    break;
+    case 2:
+      networkOutput.categoryAuto = "right";
+      networkOutput.output = [0,0,1];
+    break;
+    default:
       networkOutput.categoryAuto = "none";
-      networkOutput.matchFlag = "MISS";
+      networkOutput.output = [0,0,0];
+  }
 
-      const maxOutputIndex = await indexOfMax(outputRaw);
+  networkOutput.matchFlag = ((params.user.category !== "none") && (networkOutput.categoryAuto === params.user.category)) ? "MATCH" : "MISS";
 
-      switch (maxOutputIndex) {
-        case 0:
-          networkOutput.categoryAuto = "left";
-          networkOutput.output = [1,0,0];
-        break;
-        case 1:
-          networkOutput.categoryAuto = "neutral";
-          networkOutput.output = [0,1,0];
-        break;
-        case 2:
-          networkOutput.categoryAuto = "right";
-          networkOutput.output = [0,0,1];
-        break;
-        default:
-          networkOutput.categoryAuto = "none";
-          networkOutput.output = [0,0,0];
-      }
+  if (verbose) {
+    await printNetworkInput({
+      title: nnObj.networkId
+      + " | INPUT: " + nnObj.inputsId 
+      + " | @" + params.user.screenName 
+      + " | C: " + params.user.category 
+      + " | A: " + networkOutput.categoryAuto
+      + " | MATCH: " + networkOutput.matchFlag,
+      datum: convertDatumObj
+    });
+  }
 
-      networkOutput.matchFlag = ((params.user.category !== "none") && (networkOutput.categoryAuto === params.user.category)) ? "MATCH" : "MISS";
-
-      // console.log("NNT | ACTIVATE"
-      //   + " | INPUT: " + nnObj.inputsId 
-      //   + " | @" + params.user.screenName 
-      //   + " | C: " + params.user.category 
-      //   + " | A: " + networkOutput.categoryAuto
-      //   + " | MATCH: " + networkOutput.matchFlag
-      // );
-
-      if (verbose) {
-        await printNetworkInput({
-          title: nnObj.networkId
-          + " | INPUT: " + nnObj.inputsId 
-          + " | @" + params.user.screenName 
-          + " | C: " + params.user.category 
-          + " | A: " + networkOutput.categoryAuto
-          + " | MATCH: " + networkOutput.matchFlag,
-          datum: convertDatumObj
-        });
-      }
-
-      return networkOutput;
-    // }
-    // catch(err){
-    //   console.log(chalkError("NNT | *** ERROR ACTIVATE NETWORK", err));
-    //   return err;
-    // }
-  // });
+  return networkOutput;
 };
 
 const activateSingleNetwork = NeuralNetworkTools.prototype.activateSingleNetwork;
@@ -770,6 +754,7 @@ NeuralNetworkTools.prototype.activate = function (params) {
         return reject(new Error("NNT | *** NO NETWORKS IN HASHMAP"));
       }
 
+      const verbose = params.verbose || false;
       const user = params.user;
 
       if (!user.profileHistograms || (user.profileHistograms === undefined)) {
@@ -798,12 +783,13 @@ NeuralNetworkTools.prototype.activate = function (params) {
 
         networkOutput[nnId] = {};
 
-        activateSingleNetwork({networkId: nnId, user: user})
+        activateSingleNetwork({networkId: nnId, user: user, verbose: verbose})
         .then(function(output){
           networkOutput[nnId] = output;
           cb();
         })
         .catch(function(e){
+          console.log(chalkError("NNT | activateSingleNetwork | *** ACTIVATE NETWORK ERROR: ", e));
           cb(e);
         });
 
