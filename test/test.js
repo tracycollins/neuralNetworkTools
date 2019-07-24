@@ -91,7 +91,7 @@ function loadNetworks(networksFolder){
           })
           .catch(function(err){
             should.not.exist(err);
-          })
+          });
 
         }
         else{

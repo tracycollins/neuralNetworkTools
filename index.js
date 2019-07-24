@@ -671,7 +671,7 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   const verbose = configuration.verbose || params.verbose;
-  const nnId = params.networkId;
+  const nnId = params.networkId || primaryNeuralNetworkId;
 
   if (!networksHashMap.has(nnId)){
     return new Error("NN NOT IN NETWORK HASHMAP: " + nnId);
