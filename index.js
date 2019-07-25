@@ -155,98 +155,92 @@ NeuralNetworkTools.prototype.loadInputs = async function(params){
 
 NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
-  // return new Promise(async function(resolve, reject){
+  if (!params.networkObj || params.networkObj === undefined || params.networkObj.network === undefined) {
+    console.log(chalkError("NNT | *** LOAD NETWORK UNDEFINED: " + params.networkObj));
+    return new Error("NNT | LOAD NETWORK UNDEFINED");
+  }
 
-    if (!params.networkObj || params.networkObj === undefined || params.networkObj.network === undefined) {
-      console.log(chalkError("NNT | *** LOAD NETWORK UNDEFINED: " + params.networkObj));
-      return new Error("NNT | LOAD NETWORK UNDEFINED");
+  try{
+
+    const nn = params.networkObj;
+
+    nn.meta = networkDefaults.meta;
+
+    assert.equal(nn.meta, networkDefaults.meta);
+
+    statsObj.networks[nn.networkId] = {};
+    statsObj.networks = pick(nn, networkPickArray);
+    statsObj.networks.meta = {};
+    statsObj.networks.meta = networkDefaults.meta;
+
+    if (params.isBestNetwork 
+      || !statsObj.bestNetwork 
+      || (statsObj.bestNetwork === undefined)
+      || (statsObj.bestNetwork === {})
+      || (statsObj.bestNetwork.overallMatchRate < nn.overallMatchRate)
+    ) {
+
+      printNetworkObj("NNT | --> LOAD BEST NETWORK", nn, chalkAlert);
+
+      statsObj.bestNetwork = {};
+      statsObj.bestNetwork = pick(nn, networkPickArray);
+      statsObj.bestNetwork.meta = {};
+      statsObj.bestNetwork.meta = networkDefaults.meta;
+
     }
+
+    if (!statsObj.currentBestNetwork 
+      || (statsObj.currentBestNetwork === undefined)
+      || (statsObj.currentBestNetwork === {})
+      || (statsObj.currentBestNetwork.overallMatchRate < nn.overallMatchRate)
+    ){
+
+      printNetworkObj("NNT | --> LOAD CURRENT BEST NETWORK", nn, chalk.green);
+
+      statsObj.currentBestNetwork.meta = {};
+      statsObj.currentBestNetwork.meta = nn.meta;
+      statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
+
+
+    }
+    if (statsObj.currentBestNetwork.matchRate < nn.matchRate){
+
+      printNetworkObj("NNT | --> UPDATE CURRENT BEST NETWORK", nn, chalk.green);
+
+      statsObj.currentBestNetwork.meta = nn.meta;
+      statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
+    }
+
+    const network = neataptic.Network.fromJSON(nn.network);
+
+    nn.network = network;
+
+    const inputsObj = nn.inputsObj;
+
+    inputsHashMap.set(nn.inputsId, inputsObj);
 
     try{
-
-      const nn = params.networkObj;
-
-      nn.meta = networkDefaults.meta;
-
-      assert.equal(nn.meta, networkDefaults.meta);
-
-      statsObj.networks[nn.networkId] = {};
-      statsObj.networks = pick(nn, networkPickArray);
-      statsObj.networks.meta = {};
-      statsObj.networks.meta = networkDefaults.meta;
-
-      if (params.isBestNetwork 
-        || !statsObj.bestNetwork 
-        || (statsObj.bestNetwork === undefined)
-        || (statsObj.bestNetwork === {})
-        || (statsObj.bestNetwork.overallMatchRate < nn.overallMatchRate)
-      ) {
-
-        printNetworkObj("NNT | --> LOAD BEST NETWORK", nn, chalkAlert);
-
-        statsObj.bestNetwork = {};
-        statsObj.bestNetwork = pick(nn, networkPickArray);
-        statsObj.bestNetwork.meta = {};
-        statsObj.bestNetwork.meta = networkDefaults.meta;
-
-      }
-
-      if (!statsObj.currentBestNetwork 
-        || (statsObj.currentBestNetwork === undefined)
-        || (statsObj.currentBestNetwork === {})
-        || (statsObj.currentBestNetwork.overallMatchRate < nn.overallMatchRate)
-      ){
-
-        printNetworkObj("NNT | --> LOAD CURRENT BEST NETWORK", nn, chalk.green);
-
-        statsObj.currentBestNetwork.meta = {};
-        statsObj.currentBestNetwork.meta = nn.meta;
-        statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
-
-
-      }
-      if (statsObj.currentBestNetwork.matchRate < nn.matchRate){
-
-        printNetworkObj("NNT | --> UPDATE CURRENT BEST NETWORK", nn, chalk.green);
-
-        statsObj.currentBestNetwork.meta = nn.meta;
-        statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
-      }
-
-      // should.exist(nn.network);
-
-      const network = neataptic.Network.fromJSON(nn.network);
-
-      nn.network = network;
-
-      const inputsObj = nn.inputsObj;
-
-      inputsHashMap.set(nn.inputsId, inputsObj);
-
-      try{
-        await tcUtils.loadInputs({inputsObj: inputsObj});
-      }
-      catch(err){
-        console.log(chalkError("NNT | *** LOAD INPUTS ERROR: " + err));
-        return err;
-      }
-
-      delete nn.inputsObj; // save memory
-
-      networksHashMap.set(nn.networkId, nn);
-
-      console.log(chalkLog("NNT | --> LOAD NN: " + nn.networkId + " | " + networksHashMap.size + " NNs"));
-      console.log(chalkLog("NNT | --> LOAD IN: " + nn.inputsId + " | " + inputsHashMap.size + " INPUT OBJs"));
-
-      return nn.networkId;
-
+      await tcUtils.loadInputs({inputsObj: inputsObj});
     }
     catch(err){
-      console.log(chalkError("NNT | *** LOAD NN ERROR: " + err));
+      console.log(chalkError("NNT | *** LOAD INPUTS ERROR: " + err));
       return err;
     }
 
-  // });
+    delete nn.inputsObj; // save memory
+
+    networksHashMap.set(nn.networkId, nn);
+
+    console.log(chalkLog("NNT | --> LOAD NN: " + nn.networkId + " | " + networksHashMap.size + " NNs"));
+    console.log(chalkLog("NNT | --> LOAD IN: " + nn.inputsId + " | " + inputsHashMap.size + " INPUT OBJs"));
+
+    return nn.networkId;
+  }
+  catch(err){
+    console.log(chalkError("NNT | *** LOAD NN ERROR: " + err));
+    return err;
+  }
+
 }
 
 NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = async function(nnId){
@@ -640,16 +634,16 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
             statsObj.currentBestNetwork.meta = nn.meta;
           }
           
-          if (statsObj.currentBestNetwork.matchRate < nn.matchRate) {
+          if ((statsObj.currentBestNetwork.networkId === nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
             statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
             statsObj.currentBestNetwork.meta = nn.meta;
-            printNetworkObj("NNT | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green.bold);
+            printNetworkObj("NNT | ^^^ UPD CURRENT BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.black);
           }
           
-          if (statsObj.currentBestNetwork.networkId === nn.networkId){
+          if ((statsObj.currentBestNetwork.networkId !== nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
             statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
             statsObj.currentBestNetwork.meta = nn.meta;
-            // printNetworkObj("NNT | ^^^ UPDATE CURRENT BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.gray);
+            printNetworkObj("NNT | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green);
           }
 
           if (statsObj.bestNetwork.networkId === nn.networkId){
