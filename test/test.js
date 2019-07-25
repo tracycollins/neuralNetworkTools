@@ -112,52 +112,57 @@ function loadNetworks(networksFolder){
 
 let currentBestNetworkStats;
 
-async function activateUsers(userArray){
+function activateUsers(userArray){
 
-  // return new Promise(function(resolve, reject){
+  return new Promise(function(resolve, reject){
 
-    try{
+    const activateUsersPromiseArray = [];
 
-      const activateUsersPromiseArray = [];
+    userArray.forEach(function(user){
 
-      userArray.forEach(function(user){
+      console.log("NNT | user @" + user.screenName);
 
-        console.log("NNT | user @" + user.screenName);
+      activateUsersPromiseArray.push(nnTools.activate({user: user, verbose: false}));
+    });
 
-        activateUsersPromiseArray.push(nnTools.activate({user: user, verbose: false}));
+    Promise.all(activateUsersPromiseArray)
+    .then(function(activateOutputArray){
 
-      });
+      const primaryNetworkId = nnTools.getPrimaryNeuralNetwork();
 
-      Promise.all(activateUsersPromiseArray)
-      .then(function(activateOutputArray){
+      console.log("PRIMARY ID: " + primaryNetworkId)
 
-        const primaryNetworkId = nnTools.getPrimaryNeuralNetwork();
+      async.eachSeries(activateOutputArray, function(noutObj, cb){
 
-        console.log("PRIMARY ID: " + primaryNetworkId)
+        console.log("noutObj.networkOutput\n" + jsonPrint(noutObj.networkOutput));
 
-        activateOutputArray.forEach(async function(noutObj){
-
-          try{
-            await nnTools.updateNetworkStats({user: noutObj.user, networkOutput: noutObj.networkOutput});
-            await nnTools.printNetworkResults();
-          }
-          catch(err){
-            console.log("NNT | ERROR: " + err);
-          }
-
+        nnTools.updateNetworkStats({user: noutObj.user, networkOutput: noutObj.networkOutput})
+        .then(function(networkStats){
+          console.log("networkStats\n" + jsonPrint(networkStats));
+          cb();
+        })
+        .catch(function(err){
+          console.log("NNT | ERROR: " + err);
+          cb(err);
         });
+
+      }, function(err){
+        if (err) {
+          return reject(err);
+        }
+
+        nnTools.printNetworkResults();
         console.log("NNT | TEST ACTIVATE END");
-        return;
+        resolve();
+
       });
 
-    }
-    catch(err){
-      return err;
-    }
-  // });
+    });
+
+  });
 }
 
-describe("neural networks", function() {
+// describe("neural networks", function() {
 
   // beforeEach(async function() {
   //  await User.deleteMany({}); // Delete all users
@@ -171,72 +176,64 @@ describe("neural networks", function() {
   //  if (db !== undefined) { db.close(); }
   // });
  
-  let currentBestNetworkStats = {};
+//   let currentBestNetworkStats = {};
 
-  describe("#activate()", async function() {
+//   describe("#activate()", async function() {
 
-   let userArray = [];
-   let networkIdArray = [];
+//    let userArray = [];
+//    let networkIdArray = [];
 
-   try{
+//      await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
+//      await nnTools.setNormalization(maxNormObj.normalization);
 
-     await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
-     await nnTools.setNormalization(maxNormObj.normalization);
+//      usersFolder = path.join(__dirname, "users");
 
-     usersFolder = path.join(__dirname, "users");
+//      userArray = await loadUsers(usersFolder);
+//      console.log("userArray.length: " + userArray.length);
+//       userArray.length.should.equal(42);
 
-     userArray = await loadUsers(usersFolder);
-     console.log("userArray.length: " + userArray.length);
-      userArray.length.should.equal(42);
+//      const networksFolder = path.join(__dirname, "networks");
+//      networkIdArray = await loadNetworks(networksFolder);
 
-     const networksFolder = path.join(__dirname, "networks");
-     networkIdArray = await loadNetworks(networksFolder);
+//      const randomNnId = randomItem(networkIdArray);
+//      await nnTools.setPrimaryNeuralNetwork(randomNnId);
 
-     const randomNnId = randomItem(networkIdArray);
-     await nnTools.setPrimaryNeuralNetwork(randomNnId);
+//      await activateUsers(userArray);
 
-     await activateUsers(userArray);
+//      const statsObj = await nnTools.getNetworkStats();
+//      // console.log("statsObj\n" + jsonPrint(statsObj));
 
-     const statsObj = await nnTools.getNetworkStats();
-     // console.log("statsObj\n" + jsonPrint(statsObj));
+//      // assert.ok();
+//  });
+// });
 
-     // assert.ok();
-   }
-   catch(err){
-     if (err) { console.log("NNT | *** TEST ACTIVATE setPrimaryNeuralNetwork ERROR: " + err); }
-     assert.ifError(err);
-   }
+async function main(){
+  try{
 
- });
-});
+    await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
+    await nnTools.setNormalization(maxNormObj.normalization);
 
-// async function main(){
-//   try{
+    const usersFolder = path.join(__dirname, "users");
+    const userArray = await loadUsers(usersFolder);
 
-//     await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
-//     await nnTools.setNormalization(maxNormObj.normalization);
+    console.log("userArray.length: " + userArray.length);
+    userArray.length.should.equal(42);
 
-//     const usersFolder = path.join(__dirname, "users");
-//     const userArray = await loadUsers(usersFolder);
+    const networksFolder = path.join(__dirname, "networks");
+    const networkIdArray = await loadNetworks(networksFolder);
 
-//     console.log("userArray.length: " + userArray.length);
-//     userArray.length.should.equal(42);
+    const randomNnId = randomItem(networkIdArray);
+    await nnTools.setPrimaryNeuralNetwork(randomNnId);
 
-//     const networksFolder = path.join(__dirname, "networks");
-//     const networkIdArray = await loadNetworks(networksFolder);
+    await activateUsers(userArray);
 
-//     const randomNnId = randomItem(networkIdArray);
-//     await nnTools.setPrimaryNeuralNetwork(randomNnId);
-
-//     await activateUsers(userArray);
-
-//     const statsObj = await nnTools.getNetworkStats();
-//     process.exit();
-//   }
-//   catch(err){
-//     if (err) { console.log("NNT | *** TEST ACTIVATE setPrimaryNeuralNetwork ERROR: " + err); }
-//     assert.ifError(err);
-//   }
-// }
+    const statsObj = await nnTools.getNetworkStats();
+    process.exit();
+  }
+  catch(err){
+    if (err) { console.log("NNT | *** TEST ACTIVATE setPrimaryNeuralNetwork ERROR: " + err); }
+    assert.ifError(err);
+  }
+}
 
 // main();
