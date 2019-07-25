@@ -1,6 +1,7 @@
 /*jslint node: true */
 /*jshint sub:true*/
 
+const carrot = require("@liquid-carrot/carrot");
 const neataptic = require("neataptic");
 const assert = require("assert");
 const async = require("async");
@@ -211,7 +212,16 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
       statsObj.currentBestNetwork = pick(nn, currentBestNetworkPicks);
     }
 
-    const network = neataptic.Network.fromJSON(nn.network);
+    let network;
+
+    if (nn.networkTechnology === "neataptic"){
+      console.log("NNT | CONVERT NN FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId);
+      network = neataptic.Network.fromJSON(nn.network);
+    }
+
+    if (nn.networkTechnology === "carrot"){
+      network = carrot.Network.fromJSON(nn.network);
+    }
 
     nn.network = network;
 
