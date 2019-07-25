@@ -148,6 +148,11 @@ const currentBestNetworkPicks = [
   "testCycles",
 ];
 
+NeuralNetworkTools.prototype.loadInputs = async function(params){
+  await tcUtils.loadInputs({inputsObj: params.inputsObj});
+  return;
+}
+
 NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
   // return new Promise(async function(resolve, reject){
