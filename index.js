@@ -597,7 +597,6 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
       statsObj.networks[nnId].meta[user.category] += 1;
       statsObj.networks[nnId].meta.total += 1;
 
-
       if (networkOutput[nnId].categoryAuto === user.category) {
         statsObj.networks[nnId].meta.match += 1;
         statsObj.networks[nnId].meta.matchFlag = "MATCH";
@@ -653,33 +652,44 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
         async.eachOfSeries(sortedNetworksArray, function(nn, index, cb1){
 
           nn.rank = index;
-
           networksHashMap.set(nn.networkId, nn);
 
-          if (!statsObj.currentBestNetwork || (statsObj.currentBestNetwork === undefined)|| (statsObj.currentBestNetwork === {})){
+          if (index === 0){
+            if ((statsObj.currentBestNetwork.networkId === nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
+              printNetworkObj("NNT | ^^^ UPD CURRENT BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.black);
+            }
+            if ((statsObj.currentBestNetwork.networkId !== nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
+              printNetworkObj("NNT | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green);
+            }
             statsObj.currentBestNetwork = pick(nn, networkPickArray);
             statsObj.currentBestNetwork.meta = pick(nn.meta, networkMetaPickArray);
-          }
-          
-          if ((statsObj.currentBestNetwork.networkId === nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
-            statsObj.currentBestNetwork = pick(nn, networkPickArray);
-            statsObj.currentBestNetwork.meta = pick(nn.meta, networkMetaPickArray);
-            printNetworkObj("NNT | ^^^ UPD CURRENT BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.black);
-          }
-          
-          if ((statsObj.currentBestNetwork.networkId !== nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
-            statsObj.currentBestNetwork = pick(nn, networkPickArray);
-            statsObj.currentBestNetwork.meta = pick(nn.meta, networkMetaPickArray);
-            printNetworkObj("NNT | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green);
           }
 
-          if (statsObj.bestNetwork.networkId === nn.networkId){
-            statsObj.bestNetwork = pick(nn, networkPickArray);
-            statsObj.bestNetwork.meta = pick(nn.meta, networkMetaPickArray);
-            if (verbose) {
-              printNetworkObj("NNT | ^^^ UPDATE BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.black);
-            }
-          }
+
+          // if (!statsObj.currentBestNetwork || (statsObj.currentBestNetwork === undefined)|| (statsObj.currentBestNetwork === {})){
+          //   statsObj.currentBestNetwork = pick(nn, networkPickArray);
+          //   statsObj.currentBestNetwork.meta = pick(nn.meta, networkMetaPickArray);
+          // }
+          
+          // if ((statsObj.currentBestNetwork.networkId === nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
+          //   statsObj.currentBestNetwork = pick(nn, networkPickArray);
+          //   statsObj.currentBestNetwork.meta = pick(nn.meta, networkMetaPickArray);
+          //   printNetworkObj("NNT | ^^^ UPD CURRENT BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.black);
+          // }
+          
+          // if ((statsObj.currentBestNetwork.networkId !== nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
+          //   statsObj.currentBestNetwork = pick(nn, networkPickArray);
+          //   statsObj.currentBestNetwork.meta = pick(nn.meta, networkMetaPickArray);
+          //   printNetworkObj("NNT | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green);
+          // }
+
+          // if (statsObj.bestNetwork.networkId === nn.networkId){
+          //   statsObj.bestNetwork = pick(nn, networkPickArray);
+          //   statsObj.bestNetwork.meta = pick(nn.meta, networkMetaPickArray);
+          //   if (verbose) {
+          //     printNetworkObj("NNT | ^^^ UPDATE BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.black);
+          //   }
+          // }
 
           cb1();
 
