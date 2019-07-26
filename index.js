@@ -213,7 +213,8 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     }
 
     if (nn.networkTechnology === "carrot"){
-      network = carrot.Network.fromJSON(nn.network);
+      console.log("NNT | CONVERT NN FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId);
+      network = neataptic.Network.fromJSON(nn.network);
     }
 
     nn.network = network;
@@ -240,7 +241,11 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     return nn.networkId;
   }
   catch(err){
-    console.log(chalkError("NNT | *** LOAD NN ERROR: " + err));
+    console.log(chalkError("NNT | *** LOAD NN ERROR"
+      + " | NN ID: " + params.networkObj.networkId
+      + " | IN ID: " + params.networkObj.inputsId
+      + " | " + err
+    ));
     return err;
   }
 
