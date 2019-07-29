@@ -1,6 +1,6 @@
 {
   "name": "@threeceelabs/neural-network-tools",
-  "version": "1.0.42",
+  "version": "1.0.46",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
   "dependencies": {
     "@liquid-carrot/carrot": "^0.3.0",
     "@threeceelabs/mongoose-twitter": "^1.0.258",
-    "@threeceelabs/threecee-utilities": "^1.0.26",
+    "@threeceelabs/threecee-utilities": "^1.0.36",
     "@threeceelabs/user-server-controller": "^1.0.466",
     "async": "^3.1.0",
     "carrot": "0.0.1",

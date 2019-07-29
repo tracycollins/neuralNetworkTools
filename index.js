@@ -133,26 +133,6 @@ const networkPickArray = [
 
 const networkMetaPickArray = Object.keys(networkDefaults.meta);
 
-console.log("networkMetaPickArray\n" + jsonPrint(networkMetaPickArray));
-
-// const currentBestNetworkPicks = [
-//   "inputsId",
-//   "matchFlag",
-//   "matchRate",
-//   "meta",
-//   "networkId",
-//   "numInputs",
-//   "numOutputs",
-//   "output",
-//   "overallMatchRate",
-//   "rank",
-//   "seedNetworkId",
-//   "seedNetworkRes",
-//   "successRate",
-//   "testCycleHistory",
-//   "testCycles",
-// ];
-
 NeuralNetworkTools.prototype.loadInputs = async function(params){
   await tcUtils.loadInputs({inputsObj: params.inputsObj});
   return;
@@ -248,43 +228,38 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     ));
     return err;
   }
-
 }
 
 NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = async function(nnId){
 
-  // return new Promise(async function(resolve, reject){
+  if (!nnId || nnId === undefined) {
+    console.log(chalkError("NNT | *** PRIMARY NETWORK ID UNDEFINED: " + nnId));
+    return new Error("NNT | PRIMARY NETWORK ID UNDEFINED");
+  }
 
-    if (!nnId || nnId === undefined) {
-      console.log(chalkError("NNT | *** PRIMARY NETWORK ID UNDEFINED: " + nnId));
-      return new Error("NNT | PRIMARY NETWORK ID UNDEFINED");
-    }
+  if (!networksHashMap.has(nnId)){
+    console.log(chalkError("NNT | *** PRIMARY NETWORK NOT LOADED: " + nnId));
+    return new Error("NNT | PRIMARY NETWORK NOT LOADED: " + nnId);
+  }
 
-    if (!networksHashMap.has(nnId)){
-      console.log(chalkError("NNT | *** PRIMARY NETWORK NOT LOADED: " + nnId));
-      return new Error("NNT | PRIMARY NETWORK NOT LOADED: " + nnId);
-    }
+  primaryNeuralNetworkId = nnId;
+  const nnObj = networksHashMap.get(primaryNeuralNetworkId);
 
-    primaryNeuralNetworkId = nnId;
-    const nnObj = networksHashMap.get(primaryNeuralNetworkId);
+  if (!inputsHashMap.has(nnObj.inputsId)){
+    console.log(chalkError("NNT | *** setPrimaryNeuralNetwork PRIMARY NETWORK INPUTS NOT IN HASHMAP: " + nnObj.inputsId));
+    return new Error("NNT | PRIMARY NETWORK INPUTS NOT IN HASHMAP: " + nnObj.inputsId);
+  }
 
-    if (!inputsHashMap.has(nnObj.inputsId)){
-      console.log(chalkError("NNT | *** setPrimaryNeuralNetwork PRIMARY NETWORK INPUTS NOT IN HASHMAP: " + nnObj.inputsId));
-      return new Error("NNT | PRIMARY NETWORK INPUTS NOT IN HASHMAP: " + nnObj.inputsId);
-    }
+  try{
+    await tcUtils.setPrimaryInputs({inputsId: nnObj.inputsId});
+  }
+  catch(err){
+    return err;
+  }
 
-    try{
-      await tcUtils.setPrimaryInputs({inputsId: nnObj.inputsId});
-    }
-    catch(err){
-      return err;
-    }
+  console.log(chalkLog("NNT | --> SET PRIMARY NN: " + primaryNeuralNetworkId));
 
-    console.log(chalkLog("NNT | --> SET PRIMARY NN: " + primaryNeuralNetworkId));
-
-    return primaryNeuralNetworkId;
-
-  // });
+  return primaryNeuralNetworkId;
 }
 
 NeuralNetworkTools.prototype.getPrimaryNeuralNetwork = function(){
@@ -401,7 +376,6 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
     params = params || p;
 
     statsObj.currentBestNetwork = defaults(statsObj.currentBestNetwork, networkDefaults);
-    // statsObj.currentBestNetwork.meta = defaults(statsObj.currentBestNetwork.meta, networkDefaults.meta);
 
     titleDefault = "BEST"
       + " | " + statsObj.currentBestNetwork.networkId
@@ -501,7 +475,6 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
   });
 }
 
-// const printNetworkResults = NeuralNetworkTools.prototype.printNetworkResults;
 const printNetworkInput = NeuralNetworkTools.prototype.printNetworkInput;
 
 function arrayToCategory(arr){
@@ -515,9 +488,6 @@ function arrayToCategory(arr){
 function printNetworkObj(title, nn, format) {
 
   const chalkFormat = (format !== undefined) ? format : chalk.blue;
-
-  // const nn = defaults(nObj, networkDefaults);
-
   console.log(chalkFormat(title
     + " | RK: " + nn.rank.toFixed(0)
     + " | OR: " + nn.overallMatchRate.toFixed(2) + "%"
@@ -785,7 +755,6 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
 const activateSingleNetwork = NeuralNetworkTools.prototype.activateSingleNetwork;
 
-
 NeuralNetworkTools.prototype.activate = function (params) {
 
   return new Promise(function(resolve, reject){
@@ -843,7 +812,6 @@ NeuralNetworkTools.prototype.activate = function (params) {
       resolve({ user: user, networkOutput: networkOutput });
     });
   });
-
 };
 
 module.exports = NeuralNetworkTools;
