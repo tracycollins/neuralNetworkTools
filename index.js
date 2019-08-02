@@ -625,41 +625,15 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
           networksHashMap.set(nn.networkId, nn);
 
           if (index === 0){
-            if ((statsObj.currentBestNetwork.networkId === nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
-              printNetworkObj("NNT | ^^^ UPD CURRENT BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.black);
-            }
+            // if ((statsObj.currentBestNetwork.networkId === nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
+            //   printNetworkObj("NNT | ^^^ UPD CURRENT BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.black);
+            // }
             if ((statsObj.currentBestNetwork.networkId !== nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
               printNetworkObj("NNT | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green);
             }
             statsObj.currentBestNetwork = pick(nn, networkPickArray);
             statsObj.currentBestNetwork.meta = pick(nn.meta, networkMetaPickArray);
           }
-
-
-          // if (!statsObj.currentBestNetwork || (statsObj.currentBestNetwork === undefined)|| (statsObj.currentBestNetwork === {})){
-          //   statsObj.currentBestNetwork = pick(nn, networkPickArray);
-          //   statsObj.currentBestNetwork.meta = pick(nn.meta, networkMetaPickArray);
-          // }
-          
-          // if ((statsObj.currentBestNetwork.networkId === nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
-          //   statsObj.currentBestNetwork = pick(nn, networkPickArray);
-          //   statsObj.currentBestNetwork.meta = pick(nn.meta, networkMetaPickArray);
-          //   printNetworkObj("NNT | ^^^ UPD CURRENT BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.black);
-          // }
-          
-          // if ((statsObj.currentBestNetwork.networkId !== nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
-          //   statsObj.currentBestNetwork = pick(nn, networkPickArray);
-          //   statsObj.currentBestNetwork.meta = pick(nn.meta, networkMetaPickArray);
-          //   printNetworkObj("NNT | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green);
-          // }
-
-          // if (statsObj.bestNetwork.networkId === nn.networkId){
-          //   statsObj.bestNetwork = pick(nn, networkPickArray);
-          //   statsObj.bestNetwork.meta = pick(nn.meta, networkMetaPickArray);
-          //   if (verbose) {
-          //     printNetworkObj("NNT | ^^^ UPDATE BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.black);
-          //   }
-          // }
 
           cb1();
 
@@ -668,10 +642,6 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
           if (err1) {
             return reject(err1);
           }
-
-          // if (verbose) { printNetworkResults(); }
-          // statsObj.currentBestNetwork = defaults(statsObj.currentBestNetwork, networkDefaults);
-          // printNetworkObj("NNT | CURRENT BEST NETWORK | " + statsObj.bestNetwork.meta.match + "/" + statsObj.bestNetwork.meta.total, statsObj.bestNetwork, chalk.black);
 
           resolve(statsObj.currentBestNetwork);
         });
