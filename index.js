@@ -38,6 +38,8 @@ const statsObj = {};
 statsObj.networks = {};
 statsObj.bestNetwork = false;
 statsObj.currentBestNetwork = false;
+statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
+statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 
 const NeuralNetworkTools = function(app_name){
   const self = this;
@@ -114,7 +116,7 @@ networkDefaults.meta.negative = 0;
 
 const networkPickArray = [
   "inputsId",
-  "inputsObj",
+  // "inputsObj",
   "matchRate",
   "matchFlag",
   "meta",
@@ -135,6 +137,10 @@ const networkMetaPickArray = Object.keys(networkDefaults.meta);
 
 NeuralNetworkTools.prototype.loadInputs = async function(params){
   await tcUtils.loadInputs({inputsObj: params.inputsObj});
+
+  statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
+  statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
+
   return;
 }
 
@@ -217,6 +223,9 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     console.log(chalkLog("NNT | --> LOAD NN: " + nn.networkId + " | " + networksHashMap.size + " NNs"));
     console.log(chalkLog("NNT | --> LOAD IN: " + nn.inputsId + " | " + inputsHashMap.size + " INPUT OBJs"));
+
+    statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
+    statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 
     return nn.networkId;
   }
@@ -505,6 +514,8 @@ function printNetworkObj(title, nn, format) {
 
 NeuralNetworkTools.prototype.getNetworkStats = function (){
   return new Promise(function(resolve){
+    statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
+    statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
     resolve(statsObj);
   });
 }
@@ -640,8 +651,15 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
         }, function(err1){
 
           if (err1) {
+
+            statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
+            statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
+
             return reject(err1);
           }
+
+          statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
+          statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 
           resolve(statsObj.currentBestNetwork);
         });
@@ -719,6 +737,9 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
       datum: convertDatumObj
     });
   }
+
+  statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
+  statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 
   return networkOutput;
 };

@@ -9,13 +9,38 @@ const randomItem = require("random-item");
 const mongoose = require("mongoose");
 mongoose.set("useFindAndModify", false);
 
+const os = require("os");
+let hostname = os.hostname();
+hostname = hostname.replace(/\.example\.com/g, "");
+hostname = hostname.replace(/\.local/g, "");
+hostname = hostname.replace(/\.home/g, "");
+hostname = hostname.replace(/\.at\.net/g, "");
+hostname = hostname.replace(/\.fios-router\.home/g, "");
+hostname = hostname.replace(/word0-instance-1/g, "google");
+hostname = hostname.replace(/word/g, "google");
+
+let DROPBOX_ROOT_FOLDER;
+
+if (hostname === "google") {
+  DROPBOX_ROOT_FOLDER = "/home/tc/Dropbox/Apps/wordAssociation";
+}
+else {
+  DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
+}
+
+const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
+const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility",hostname);
+
 const tcuChildName = Number("NNT_TEST_TCU");
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities(tcuChildName);
 
 const jsonPrint = tcUtils.jsonPrint;
 
-const test_user_tobi = require("./test_user_tobi.json");
+const testUserFolder = path.join(configHostFolder, "test/testData/user/converted");
+
+// const test_user_tobi = require("./test_user_tobi.json");
+const test_user_tobi = tcUtils.loadFile({folder: testUserFolder, file:"user_10032112.json"});
 const test_user_hector = require("./test_user_hector.json");
 
 const testUsersArray = [];
