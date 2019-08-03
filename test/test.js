@@ -37,11 +37,15 @@ const tcUtils = new ThreeceeUtilities(tcuChildName);
 
 const jsonPrint = tcUtils.jsonPrint;
 
+const testNetworkFolder = path.join(configHostFolder, "test/testData/networks");
 const testUserFolder = path.join(configHostFolder, "test/testData/user/converted");
 
 // const test_user_tobi = require("./test_user_tobi.json");
 const test_user_tobi = tcUtils.loadFile({folder: testUserFolder, file:"user_10032112.json"});
-const test_user_hector = require("./test_user_hector.json");
+const test_user_hector = tcUtils.loadFile({folder: testUserFolder, file:"user_10069612.json"});
+
+const testInputsFolder = path.join(configHostFolder, "test/testData/inputs");
+const maxNormObj = tcUtils.loadFile({folder: testInputsFolder, file:"maxInputHashMap.json"});
 
 const testUsersArray = [];
 testUsersArray.push(test_user_tobi);
@@ -61,13 +65,6 @@ const dbOptions = {
   poolSize: 100
 };
 
-// mongoose.connect("mongodb://localhost/test", dbOptions);
-
-// const db = mongoose.connection;
-
-// global.globalDbConnection = db;
-
-const maxNormObj = require("./maxInputHashMap.json");
 
 function loadUsers(usersFolder){
   return new Promise(async function(resolve, reject){
@@ -238,14 +235,12 @@ async function main(){
     await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
     await nnTools.setNormalization(maxNormObj.normalization);
 
-    const usersFolder = path.join(__dirname, "users");
-    const userArray = await loadUsers(usersFolder);
+    const userArray = await loadUsers(testUserFolder);
 
     console.log("userArray.length: " + userArray.length);
     userArray.length.should.equal(42);
 
-    const networksFolder = path.join(__dirname, "networks");
-    const networkIdArray = await loadNetworks(networksFolder);
+    const networkIdArray = await loadNetworks(testNetworkFolder);
 
     const randomNnId = randomItem(networkIdArray);
     await nnTools.setPrimaryNeuralNetwork(randomNnId);

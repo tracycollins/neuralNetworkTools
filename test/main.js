@@ -7,14 +7,44 @@ const randomItem = require("random-item");
 const mongoose = require("mongoose");
 mongoose.set("useFindAndModify", false);
 
+const os = require("os");
+let hostname = os.hostname();
+hostname = hostname.replace(/\.example\.com/g, "");
+hostname = hostname.replace(/\.local/g, "");
+hostname = hostname.replace(/\.home/g, "");
+hostname = hostname.replace(/\.at\.net/g, "");
+hostname = hostname.replace(/\.fios-router\.home/g, "");
+hostname = hostname.replace(/word0-instance-1/g, "google");
+hostname = hostname.replace(/word/g, "google");
+
+let DROPBOX_ROOT_FOLDER;
+
+if (hostname === "google") {
+  DROPBOX_ROOT_FOLDER = "/home/tc/Dropbox/Apps/wordAssociation";
+}
+else {
+  DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
+}
+
+const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
+const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility",hostname);
+
 const tcuChildName = Number("NNT_TEST_TCU");
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities(tcuChildName);
 
 const jsonPrint = tcUtils.jsonPrint;
 
-const test_user_tobi = require("./test_user_tobi.json");
-const test_user_hector = require("./test_user_hector.json");
+const testNetworkFolder = path.join(configHostFolder, "test/testData/networks");
+const testUserFolder = path.join(configHostFolder, "test/testData/user/converted");
+
+const test_user_tobi = tcUtils.loadFile({folder: testUserFolder, file:"user_10032112.json"});
+const test_user_hector = tcUtils.loadFile({folder: testUserFolder, file:"user_10069612.json"});
+
+const testInputsFolder = path.join(configHostFolder, "test/testData/inputs");
+
+const maxNormObj = tcUtils.loadFile({folder: testInputsFolder, file:"maxInputHashMap.json"});
+
 
 const testUsersArray = [];
 testUsersArray.push(test_user_tobi);
@@ -23,7 +53,6 @@ testUsersArray.push(test_user_hector);
 const NeuralNetworkTools = require("../index.js");
 const nnTools = new NeuralNetworkTools("TEST");
 
-const maxNormObj = require("./maxInputHashMap.json");
 
 function loadUsers(usersFolder){
   return new Promise(function(resolve, reject){
@@ -39,9 +68,15 @@ function loadUsers(usersFolder){
         if (file.startsWith("user_") && file.endsWith(".json")) {
           const userId = file.replace(".json", "");
           console.log("USER LOAD: " + file);
-          const user = require("./users/" + userId + ".json");
-          userArray.push(user);
-          cb();
+
+          tcUtils.loadFile({folder: testUserFolder, file: file})
+          .then(function(user){
+            userArray.push(user);
+            cb();
+          })
+          .catch(function(e){
+            cb(e);
+          });
         }
         else{
           console.log("... SKIPPING USER LOAD: " + file);
@@ -73,16 +108,23 @@ function loadNetworks(networksFolder){
         if (file.endsWith(".json") && !file.includes("bestRuntimeNetwork")) {
 
           const nnId = file.replace(".json", "");
-          const nn = require("./networks/" + nnId + ".json");
 
-          networkIdArray.push(nnId);
+          tcUtils.loadFile({folder: testNetworkFolder, file: file})
+          .then(function(nn){
 
-          nnTools.loadNetwork({networkObj: nn})
-          .then(function(){
-            cb();
+            networkIdArray.push(nnId);
+
+            nnTools.loadNetwork({networkObj: nn})
+            .then(function(){
+              cb();
+            })
+            .catch(function(err){
+              cb(err);
+            });
+
           })
-          .catch(function(err){
-            cb(err);
+          .catch(function(e){
+            cb(e);
           });
 
         }
@@ -146,15 +188,13 @@ async function main(){
     await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
     await nnTools.setNormalization(maxNormObj.normalization);
 
-    const networksFolder = path.join(__dirname, "networks");
-    const networkIdArray = await loadNetworks(networksFolder);
+    const networkIdArray = await loadNetworks(testNetworkFolder);
 
     const randomNnId = randomItem(networkIdArray);
     console.log("setPrimaryNeuralNetwork: " + randomNnId);
     await nnTools.setPrimaryNeuralNetwork(randomNnId);
 
-    const usersFolder = path.join(__dirname, "users");
-    const userArray = await loadUsers(usersFolder);
+    const userArray = await loadUsers(testUserFolder);
 
     console.log("userArray.length: " + userArray.length);
 
