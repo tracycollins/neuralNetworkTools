@@ -497,14 +497,20 @@ function arrayToCategory(arr){
 function printNetworkObj(title, nn, format) {
 
   const chalkFormat = (format !== undefined) ? format : chalk.blue;
+  const rank = nn.rank || Infinity;
+  const overallMatchRate = nn.overallMatchRate || 0;
+  const matchRate = nn.matchRate || 0;
+  const successRate = nn.successRate || 0;
+  const testCycleHistory = nn.testCycleHistory || [];
+
   console.log(chalkFormat(title
-    + " | RK: " + nn.rank.toFixed(0)
-    + " | OR: " + nn.overallMatchRate.toFixed(2) + "%"
-    + " | MR: " + nn.matchRate.toFixed(2) + "%"
-    + " | SR: " + nn.successRate.toFixed(2) + "%"
+    + " | RK: " + rank
+    + " | OR: " + overallMatchRate.toFixed(2) + "%"
+    + " | MR: " + matchRate.toFixed(2) + "%"
+    + " | SR: " + successRate.toFixed(2) + "%"
     + " | CR: " + tcUtils.getTimeStamp(nn.createdAt)
     + " | TC:  " + nn.testCycles
-    + " | TH: " + nn.testCycleHistory.length
+    + " | TH: " + testCycleHistory.length
     + " |  " + nn.inputsId
     + " | " + nn.networkId
   ));
