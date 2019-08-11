@@ -180,7 +180,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     }
 
     if (params.isBestNetwork || (statsObj.bestNetwork.overallMatchRate < nn.overallMatchRate)) {
-      printNetworkObj("NNT | --> LOAD BEST NETWORK", nn, chalkAlert);
+      printNetworkObj("NNT | --> LOAD BEST NETWORK", nn, chalk.green);
       statsObj.bestNetwork = pick(nn, networkPickArray);
       statsObj.bestNetwork.meta = pick(nn.meta, networkMetaPickArray);
     }
