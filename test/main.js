@@ -175,12 +175,15 @@ function activateUsers(userArray){
         })
         .catch(function(err){
           console.log("NNT | ERROR: " + err);
-          return cb(err);
+          cb();
+          // return cb(err);
         });
 
       })
       .catch(function(err){
-        return cb(err);
+        console.log("NN ACTIVATE ERROR: " + err);
+        cb();
+        // return cb(err);
       });
     }, function(err){
       if (err) { return reject(err); }

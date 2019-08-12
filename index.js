@@ -380,7 +380,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
 
   return new Promise(function(resolve, reject){
 
-    let params = p || {};
+    const params = p || {};
 
     statsObj.currentBestNetwork = defaults(statsObj.currentBestNetwork, networkDefaults);
 
@@ -662,11 +662,16 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   const nnId = params.networkId || primaryNeuralNetworkId;
 
   if (!networksHashMap.has(nnId)){
-    return new Error("NN NOT IN NETWORK HASHMAP: " + nnId);
+    throw new Error("NN NOT IN NETWORK HASHMAP: " + nnId);
   }
   const nnObj = networksHashMap.get(nnId);
 
   const results = await tcUtils.convertDatum({datum: params.user, inputsId: nnObj.inputsId});
+
+  if (!results || results === undefined) {
+    console.log("NNT | *** CONVERT DATUM ERROR | NO RESULTS");
+    throw new Error("CONVERT DATUM ERROR | NO RESULTS")
+  }
 
   if (verbose) {
 
@@ -682,8 +687,9 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   const outputRaw = nnObj.network.activate(results.datum.input);
 
   if (outputRaw.length !== 3) {
-    console.log(chalkError("NNT | *** ZERO LENGTH NETWORK OUTPUT | " + nnId ));
-    return new Error("ZERO LENGTH NETWORK OUTPUT");
+    console.log(chalkError("NNT | *** ZERO LENGTH NETWORK OUTPUT | " + nnId + " | outputRaw: " + outputRaw));
+    console.log(chalkError("NNT | *** ZERO LENGTH NETWORK OUTPUT | " + nnId + " | results.datum.input\n" + results.datum.input));
+    throw new Error("ZERO LENGTH NETWORK OUTPUT");
   }
 
   const networkOutput = {};
