@@ -686,12 +686,6 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   const outputRaw = nnObj.network.activate(results.datum.input);
 
-  if (outputRaw.length !== 3) {
-    console.log(chalkError("NNT | *** ZERO LENGTH NETWORK OUTPUT | " + nnId + " | outputRaw: " + outputRaw));
-    console.log(chalkError("NNT | *** ZERO LENGTH NETWORK OUTPUT | " + nnId + " | results.datum.input\n" + results.datum.input));
-    throw new Error("ZERO LENGTH NETWORK OUTPUT");
-  }
-
   const networkOutput = {};
   networkOutput.nnId = nnId;
   networkOutput.user = {};
@@ -702,11 +696,19 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   networkOutput.outputRaw = [];
   networkOutput.outputRaw = outputRaw;
   networkOutput.output = [];
+  networkOutput.output = [0,0,0];
   networkOutput.categoryAuto = "none";
   networkOutput.matchFlag = "MISS";
   networkOutput.inputHits = results.inputHits;
   networkOutput.inputMisses = results.inputMisses;
   networkOutput.inputHitRate = results.inputHitRate;
+
+  if (outputRaw.length !== 3) {
+    console.log(chalkError("NNT | *** NETWORK OUTPUT SIZE !== 3  | " + nnId + " | outputRaw: " + outputRaw));
+    // throw new Error("ZERO LENGTH NETWORK OUTPUT");
+    return networkOutput;
+  }
+
 
   const maxOutputIndex = await indexOfMax(outputRaw);
 
