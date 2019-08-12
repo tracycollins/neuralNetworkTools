@@ -26,7 +26,7 @@ else {
   DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
 }
 
-const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
+// const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
 const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility",hostname);
 
 const tcuChildName = Number("NNT_TEST_TCU");
@@ -38,12 +38,12 @@ const jsonPrint = tcUtils.jsonPrint;
 const testNetworkFolder = path.join(configHostFolder, "test/testData/networks");
 const testUserFolder = path.join(configHostFolder, "test/testData/user/converted");
 
-const test_user_tobi = tcUtils.loadFile({folder: testUserFolder, file:"user_10032112.json"});
-const test_user_hector = tcUtils.loadFile({folder: testUserFolder, file:"user_10069612.json"});
+const test_user_tobi = tcUtils.loadFile({folder: testUserFolder, file: "user_10032112.json"});
+const test_user_hector = tcUtils.loadFile({folder: testUserFolder, file: "user_10069612.json"});
 
 const testInputsFolder = path.join(configHostFolder, "test/testData/inputs");
 
-const maxNormObj = tcUtils.loadFile({folder: testInputsFolder, file:"maxInputHashMap.json"});
+const maxNormObj = tcUtils.loadFile({folder: testInputsFolder, file: "maxInputHashMap.json"});
 
 
 const testUsersArray = [];
@@ -66,7 +66,7 @@ function loadUsers(usersFolder){
       async.eachSeries(usersFileArray, function(file, cb){
 
         if (file.startsWith("user_") && file.endsWith(".json")) {
-          const userId = file.replace(".json", "");
+          // const userId = file.replace(".json", "");
           console.log("USER LOAD: " + file);
 
           tcUtils.loadFile({folder: testUserFolder, file: file})
@@ -154,32 +154,15 @@ function activateUsers(userArray){
       nnTools.activate({user: user, verbose: false})
       .then(function(noutObj){
 
-        // const networkOutput = {};
-        // networkOutput.nnId = nnId;
-        // networkOutput.user = {};
-        // networkOutput.user.nodeId = params.user.nodeId;
-        // networkOutput.user.screenName = params.user.screenName;
-        // networkOutput.user.category = params.user.category;
-        // networkOutput.user.categoryAuto = params.user.categoryAuto;
-        // networkOutput.outputRaw = [];
-        // networkOutput.outputRaw = outputRaw;
-        // networkOutput.output = [];
-        // networkOutput.categoryAuto = "none";
-        // networkOutput.matchFlag = "MISS";
-        // networkOutput.inputHits = results.inputHits;
-        // networkOutput.inputMisses = results.inputMisses;
-        // networkOutput.inputHitRate = results.inputHitRate;
-
         nnTools.updateNetworkStats({user: noutObj.user, networkOutput: noutObj.networkOutput})
         .then(function(networkStats){
 
-          // console.log("networkStats\n" + jsonPrint(networkStats));
           const title = "BEST | @" + noutObj.user.screenName 
             + " | C M: " + noutObj.user.category 
-            + " A: " + noutObj.user.categoryAuto;
-            + " | M/MM/TOT: " + networkStats.match + "/" + networkStats.mismatch + "/" + networkStats.total
+            + " A: " + noutObj.user.categoryAuto
+            + " | M/MM/TOT: " + networkStats.meta.match + "/" + networkStats.meta.mismatch + "/" + networkStats.meta.total
             + " | MR: " + networkStats.matchRate.toFixed(3) + "%"
-            + " | MATCH: " + networkStats.matchFlag;
+            + " | MATCH: " + networkStats.meta.matchFlag;
 
           nnTools.printNetworkResults({title: title})
           .then(function(){
