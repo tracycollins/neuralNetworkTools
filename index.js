@@ -1,9 +1,8 @@
 /*jslint node: true */
 /*jshint sub:true*/
 
-const carrot = require("@liquid-carrot/carrot");
+// const carrot = require("@liquid-carrot/carrot");
 const neataptic = require("neataptic");
-// const assert = require("assert");
 const async = require("async");
 const util = require("util");
 const _ = require("lodash");
@@ -313,12 +312,12 @@ NeuralNetworkTools.prototype.printNetworkInput = function(params){
     let hitRate = 0;
     const inputArraySize = inputArray.length;
 
-    if (previousPrintedNetworkObj && (previousPrintedNetworkObj.inputsId === params.datum.inputsId)) {
-      previousPrintedNetworkObj.truncated = true;
-      previousPrintedNetworkObj.title = params.title;
-      outputNetworkInputText(previousPrintedNetworkObj);
-      return resolve();
-    }
+    // if (previousPrintedNetworkObj && (previousPrintedNetworkObj.inputsId === params.datum.inputsId)) {
+    //   previousPrintedNetworkObj.truncated = true;
+    //   previousPrintedNetworkObj.title = params.title;
+    //   outputNetworkInputText(previousPrintedNetworkObj);
+    //   return resolve();
+    // }
 
     previousPrintedNetworkObj.truncated = false;
 
@@ -381,8 +380,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
 
   return new Promise(function(resolve, reject){
 
-    let params = {};
-    params = params || p;
+    let params = p || {};
 
     statsObj.currentBestNetwork = defaults(statsObj.currentBestNetwork, networkDefaults);
 
@@ -407,20 +405,6 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
       const nn = defaults(n, networkDefaults);
       nn.meta = defaults(n.meta, networkDefaults.meta);
 
-      // if (!nn.meta || nn.meta === undefined || nn.meta === {}) {
-      //   nn.meta = {};
-      //   nn.meta = defaults(nn.meta, networkDefaults.meta);
-      //   console.log("nn.meta\n" + jsonPrint(nn.meta));
-      // }
-
-      // if (!nn.testCycleHistory || nn.testCycleHistory === undefined) {
-      //   nn.testCycleHistory = [];
-      //   console.log("nn.testCycleHistory\n" + jsonPrint(nn.testCycleHistory));
-      // }
-
-      // if (nn.meta.matchFlag === undefined) { nn.meta.matchFlag = false; }
-      // if (nn.meta.output.length === 0) { nn.meta.output = "---"; }
-
       statsTextArray[index] = [];
       statsTextArray[index] = [
         "NNT | ",
@@ -439,8 +423,6 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
         nn.meta.mismatch,
         nn.matchRate.toFixed(2),
       ];
-
-      // console.log("statsTextArray[index]\n" + jsonPrint(statsTextArray[index]));
 
       cb0();
 
@@ -684,13 +666,20 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   }
   const nnObj = networksHashMap.get(nnId);
 
-  const convertDatumObj = await tcUtils.convertDatum({datum: params.user, inputsId: nnObj.inputsId});
+  const results = await tcUtils.convertDatum({datum: params.user, inputsId: nnObj.inputsId});
 
   if (verbose) {
-    console.log("convertDatumObj\n" + jsonPrint(convertDatumObj));
+
+    console.log(chalkLog("NNT | CONVERT DATUM"
+      + " | @" + results.datum.screenName
+      + " | INPUTS ID: " + results.datum.inputsId
+      + " | H/M/TOT: " + results.inputHits + "/" + results.inputMisses + "/" + results.datum.numInputs
+      + " | INPUT HIT RATE: " + results.inputHitRate.toFixed(3) + "%"
+    ));
+
   }
 
-  const outputRaw = nnObj.network.activate(convertDatumObj.input);
+  const outputRaw = nnObj.network.activate(results.datum.input);
 
   if (outputRaw.length !== 3) {
     console.log(chalkError("NNT | *** ZERO LENGTH NETWORK OUTPUT | " + nnId ));
@@ -709,6 +698,9 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   networkOutput.output = [];
   networkOutput.categoryAuto = "none";
   networkOutput.matchFlag = "MISS";
+  networkOutput.inputHits = results.inputHits;
+  networkOutput.inputMisses = results.inputMisses;
+  networkOutput.inputHitRate = results.inputHitRate;
 
   const maxOutputIndex = await indexOfMax(outputRaw);
 
@@ -732,15 +724,18 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   networkOutput.matchFlag = ((params.user.category !== "none") && (networkOutput.categoryAuto === params.user.category)) ? "MATCH" : "MISS";
 
-  if (verbose) {
-    await printNetworkInput({
-      title: nnObj.networkId
+  const title = nnObj.networkId
       + " | INPUT: " + nnObj.inputsId 
+      + " | INPUT H/M/RATE: " + networkOutput.inputHits + "/" + networkOutput.inputMisses + "/" + networkOutput.inputHitRate.toFixed(3)
       + " | @" + params.user.screenName 
       + " | C: " + params.user.category 
       + " | A: " + networkOutput.categoryAuto
-      + " | MATCH: " + networkOutput.matchFlag,
-      datum: convertDatumObj
+      + " | MATCH: " + networkOutput.matchFlag;
+
+  if (verbose) {
+    await printNetworkInput({
+      title: title,
+      datum: results.datum
     });
   }
 
@@ -796,13 +791,14 @@ NeuralNetworkTools.prototype.activate = function (params) {
         cb();
       })
       .catch(function(e){
-        console.log(chalkError("NNT | activateSingleNetwork | *** ACTIVATE NETWORK ERROR: ", e));
+        console.trace(chalkError("NNT | activateSingleNetwork | *** ACTIVATE NETWORK ERROR: ", e));
+        console.log(chalkError("NNT | activateSingleNetwork | *** ACTIVATE NETWORK ERROR: USER\n" + jsonPrint(user)));
         cb(e);
       });
     }, function(err){
 
       if (err) {
-        console.log(chalkError("NNT | *** ACTIVATE NETWORK ERROR (async callback)", err));
+        console.trace(chalkError("NNT | *** ACTIVATE NETWORK ERROR (async callback)", err));
         return reject(err);
       }
 

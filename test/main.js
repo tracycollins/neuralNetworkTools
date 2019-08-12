@@ -154,15 +154,39 @@ function activateUsers(userArray){
       nnTools.activate({user: user, verbose: false})
       .then(function(noutObj){
 
+        // const networkOutput = {};
+        // networkOutput.nnId = nnId;
+        // networkOutput.user = {};
+        // networkOutput.user.nodeId = params.user.nodeId;
+        // networkOutput.user.screenName = params.user.screenName;
+        // networkOutput.user.category = params.user.category;
+        // networkOutput.user.categoryAuto = params.user.categoryAuto;
+        // networkOutput.outputRaw = [];
+        // networkOutput.outputRaw = outputRaw;
+        // networkOutput.output = [];
+        // networkOutput.categoryAuto = "none";
+        // networkOutput.matchFlag = "MISS";
+        // networkOutput.inputHits = results.inputHits;
+        // networkOutput.inputMisses = results.inputMisses;
+        // networkOutput.inputHitRate = results.inputHitRate;
+
         nnTools.updateNetworkStats({user: noutObj.user, networkOutput: noutObj.networkOutput})
         .then(function(networkStats){
 
-          nnTools.printNetworkResults()
+          // console.log("networkStats\n" + jsonPrint(networkStats));
+          const title = "BEST | @" + noutObj.user.screenName 
+            + " | C M: " + noutObj.user.category 
+            + " A: " + noutObj.user.categoryAuto;
+            + " | M/MM/TOT: " + networkStats.match + "/" + networkStats.mismatch + "/" + networkStats.total
+            + " | MR: " + networkStats.matchRate.toFixed(3) + "%"
+            + " | MATCH: " + networkStats.matchFlag;
+
+          nnTools.printNetworkResults({title: title})
           .then(function(){
             cb();
           })
           .catch(function(e){
-            cb(er);
+            cb(e);
           });
 
         })
