@@ -1,7 +1,7 @@
 /*jslint node: true */
 /*jshint sub:true*/
 
-// const carrot = require("@liquid-carrot/carrot");
+const carrot = require("@liquid-carrot/carrot");
 const neataptic = require("neataptic");
 const async = require("async");
 const util = require("util");
@@ -11,6 +11,7 @@ const HashMap = require("hashmap").HashMap;
 const defaults = require("object.defaults");
 const pick = require("object.pick");
 const table = require("text-table");
+const deepcopy = require("deepcopy");
 
 const tcuChildName = "NNT_TCU";
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
@@ -192,16 +193,23 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     let network;
 
-    if (nn.networkTechnology === "neataptic"){
-      console.log("NNT | CONVERT NN FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId);
-      network = neataptic.Network.fromJSON(nn.network);
-    }
-
     if (nn.networkTechnology === "carrot"){
-      console.log("NNT | CONVERT NN FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId);
+      console.log(chalkWarn("NNT | CONVERT NN FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
+      network = carrot.Network.fromJSON(nn.network);
+    }
+    else if (nn.networkTechnology === "neataptic"){
+      console.log(chalkWarn("NNT | CONVERT NN FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
+      network = neataptic.Network.fromJSON(nn.network);
+    }
+    else {
+      nn.networkTechnology = "neataptic";
+      console.log(chalkAlert("NNT | CONVERT NN FROM JSON | ??? TECH: " + nn.networkTechnology + " | " + nn.networkId));
       network = neataptic.Network.fromJSON(nn.network);
     }
 
+
+    nn.network = {};
+    // nn.network = deepcopy(network);
     nn.network = network;
 
     const inputsObj = nn.inputsObj;
@@ -661,12 +669,41 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   const verbose = configuration.verbose || params.verbose;
   const nnId = params.networkId || primaryNeuralNetworkId;
 
+  // console.log("NNT | >>> ACTIVATE NN | " + nnId 
+  //   + " | params.networkId: " + params.networkId 
+  //   + " | primaryNeuralNetworkId: " + primaryNeuralNetworkId
+  // );
+
   if (!networksHashMap.has(nnId)){
+    console.log(chalkError("NNT | NN NETWORK NOT IN HASHMAP" + nnId));
     throw new Error("NN NOT IN NETWORK HASHMAP: " + nnId);
   }
+
   const nnObj = networksHashMap.get(nnId);
 
-  const results = await tcUtils.convertDatum({datum: params.user, inputsId: nnObj.inputsId});
+  // console.log("NNT | >>> ACTIVATE NN | " + nnId 
+  //   + " | params.networkId: " + params.networkId 
+  //   + " | primaryNeuralNetworkId: " + primaryNeuralNetworkId
+  // );
+
+
+  if (!nnObj.network || (nnObj.network === undefined)){
+    console.log(chalkError("NNT | *** NN NETWORK UNDEFINED" + nnId));
+    throw new Error("NN NETWORK UNDEFINED: " + nnId);
+  }
+
+  if (nnObj.network.activate === undefined){
+    console.log(chalkAlert("NNT | NN NETWORK ACTIVATE UNDEFINED\nnnObj.network: " + Object.keys(nnObj.network)));
+    const nn = nnObj.network.fromJSON();
+    nnObj.network = nn;
+    // throw new Error("NN NETWORK ACTIVATE UNDEFINED | " + nnId);
+  }
+
+  // console.log("NNT | >>> CONVERT DATUM | " + nnId 
+  //   + " | @" + params.user.screenName 
+  // );
+
+  const results = await tcUtils.convertDatum({datum: params.user, inputsId: nnObj.inputsId, verbose: verbose});
 
   if (!results || results === undefined) {
     console.log("NNT | *** CONVERT DATUM ERROR | NO RESULTS");
@@ -674,14 +711,12 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   }
 
   if (verbose) {
-
     console.log(chalkLog("NNT | CONVERT DATUM"
       + " | @" + results.datum.screenName
       + " | INPUTS ID: " + results.datum.inputsId
       + " | H/M/TOT: " + results.inputHits + "/" + results.inputMisses + "/" + results.datum.numInputs
       + " | INPUT HIT RATE: " + results.inputHitRate.toFixed(3) + "%"
     ));
-
   }
 
   const outputRaw = nnObj.network.activate(results.datum.input);
@@ -799,8 +834,11 @@ NeuralNetworkTools.prototype.activate = function (params) {
         cb();
       })
       .catch(function(e){
-        console.trace(chalkError("NNT | activateSingleNetwork | *** ACTIVATE NETWORK ERROR: ", e));
-        console.log(chalkError("NNT | activateSingleNetwork | *** ACTIVATE NETWORK ERROR: USER\n" + jsonPrint(user)));
+        console.trace(chalkError("NNT | activateSingleNetwork | *** ACTIVATE NETWORK ERROR"
+          + " | " + nnId,
+          e
+        ));
+        // console.log(chalkError("NNT | activateSingleNetwork | *** ACTIVATE NETWORK ERROR: USER\n" + jsonPrint(user)));
         cb(e);
       });
     }, function(err){

@@ -182,8 +182,7 @@ function activateUsers(userArray){
       })
       .catch(function(err){
         console.log("NN ACTIVATE ERROR: " + err);
-        cb();
-        // return cb(err);
+        return cb(err);
       });
     }, function(err){
       if (err) { return reject(err); }

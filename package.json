@@ -1,6 +1,6 @@
 {
   "name": "@threeceelabs/neural-network-tools",
-  "version": "1.0.59",
+  "version": "1.0.62",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -24,6 +24,7 @@
     "async": "^3.1.0",
     "carrot": "0.0.1",
     "deep-copy": "^1.4.2",
+    "deepcopy": "^2.0.0",
     "hashmap": "^2.3.0",
     "mongoose": "^5.6.9",
     "neataptic": "^1.4.7",
