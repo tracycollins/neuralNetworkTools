@@ -11,7 +11,6 @@ const HashMap = require("hashmap").HashMap;
 const defaults = require("object.defaults");
 const pick = require("object.pick");
 const table = require("text-table");
-const deepcopy = require("deepcopy");
 
 const tcuChildName = "NNT_TCU";
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
@@ -38,8 +37,6 @@ const statsObj = {};
 statsObj.networks = {};
 statsObj.bestNetwork = false;
 statsObj.currentBestNetwork = false;
-statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
-statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 
 const NeuralNetworkTools = function(app_name){
   const self = this;
@@ -137,10 +134,6 @@ const networkMetaPickArray = Object.keys(networkDefaults.meta);
 
 NeuralNetworkTools.prototype.loadInputs = async function(params){
   await tcUtils.loadInputs({inputsObj: params.inputsObj});
-
-  statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
-  statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
-
   return;
 }
 
@@ -230,9 +223,6 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     console.log(chalkLog("NNT | --> LOAD NN: " + nn.networkId + " | " + networksHashMap.size + " NNs"));
     console.log(chalkLog("NNT | --> LOAD IN: " + nn.inputsId + " | " + inputsHashMap.size + " INPUT OBJs"));
-
-    statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
-    statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 
     return nn.networkId;
   }
@@ -510,8 +500,6 @@ function printNetworkObj(title, nn, format) {
 
 NeuralNetworkTools.prototype.getNetworkStats = function (){
   return new Promise(function(resolve){
-    statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
-    statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
     resolve(statsObj);
   });
 }
@@ -632,9 +620,6 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
           networksHashMap.set(nn.networkId, nn);
 
           if (index === 0){
-            // if ((statsObj.currentBestNetwork.networkId === nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
-            //   printNetworkObj("NNT | ^^^ UPD CURRENT BEST NETWORK | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.black);
-            // }
             if ((statsObj.currentBestNetwork.networkId !== nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
               printNetworkObj("NNT | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green);
             }
@@ -647,15 +632,8 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
         }, function(err1){
 
           if (err1) {
-
-            statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
-            statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
-
             return reject(err1);
           }
-
-          statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
-          statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 
           resolve(statsObj.currentBestNetwork);
         });
@@ -669,23 +647,12 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   const verbose = configuration.verbose || params.verbose;
   const nnId = params.networkId || primaryNeuralNetworkId;
 
-  // console.log("NNT | >>> ACTIVATE NN | " + nnId 
-  //   + " | params.networkId: " + params.networkId 
-  //   + " | primaryNeuralNetworkId: " + primaryNeuralNetworkId
-  // );
-
   if (!networksHashMap.has(nnId)){
     console.log(chalkError("NNT | NN NETWORK NOT IN HASHMAP" + nnId));
     throw new Error("NN NOT IN NETWORK HASHMAP: " + nnId);
   }
 
   const nnObj = networksHashMap.get(nnId);
-
-  // console.log("NNT | >>> ACTIVATE NN | " + nnId 
-  //   + " | params.networkId: " + params.networkId 
-  //   + " | primaryNeuralNetworkId: " + primaryNeuralNetworkId
-  // );
-
 
   if (!nnObj.network || (nnObj.network === undefined)){
     console.log(chalkError("NNT | *** NN NETWORK UNDEFINED" + nnId));
@@ -696,12 +663,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     console.log(chalkAlert("NNT | NN NETWORK ACTIVATE UNDEFINED\nnnObj.network: " + Object.keys(nnObj.network)));
     const nn = nnObj.network.fromJSON();
     nnObj.network = nn;
-    // throw new Error("NN NETWORK ACTIVATE UNDEFINED | " + nnId);
   }
-
-  // console.log("NNT | >>> CONVERT DATUM | " + nnId 
-  //   + " | @" + params.user.screenName 
-  // );
 
   const results = await tcUtils.convertDatum({datum: params.user, inputsId: nnObj.inputsId, verbose: verbose});
 
@@ -781,9 +743,6 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
       datum: results.datum
     });
   }
-
-  statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
-  statsObj.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 
   return networkOutput;
 };
