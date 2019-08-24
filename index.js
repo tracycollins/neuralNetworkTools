@@ -779,7 +779,7 @@ NeuralNetworkTools.prototype.activate = function (params) {
     const networkOutput = {};
     const nnIdArray = networksHashMap.keys();
 
-    async.eachSeries(nnIdArray, function(nnId, cb){
+    async.each(nnIdArray, function(nnId, cb){
 
       if (!networksHashMap.has(nnId)){
         return reject(new Error("NNT | NET NOT IN HASHMAP | NN ID: " + nnId));
