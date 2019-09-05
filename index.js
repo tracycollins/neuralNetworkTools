@@ -514,6 +514,8 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
     const primaryNetwork = params.primaryNetwork || false; // 
     const verbose = params.verbose || false; //
+    const sortByMetric = params.sortBy || "matchRate";
+    const updateRank = params.updateRank || true;
 
     let networkOutput = {};
 
@@ -611,12 +613,12 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
         return reject(err2);
       }
 
-        const sortedNetworksArray = _.sortBy(networksHashMap.values(), ["overallMatchRate"]);
+        const sortedNetworksArray = _.sortBy(networksHashMap.values(), [sortByMetric]);
         _.reverse(sortedNetworksArray);
 
         async.eachOfSeries(sortedNetworksArray, function(nn, index, cb1){
 
-          nn.rank = index;
+          if (updateRank) { nn.rank = index; }
           networksHashMap.set(nn.networkId, nn);
 
           if (index === 0){
