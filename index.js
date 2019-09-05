@@ -611,7 +611,7 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
         return reject(err2);
       }
 
-        const sortedNetworksArray = _.sortBy(networksHashMap.values(), ["matchRate"]);
+        const sortedNetworksArray = _.sortBy(networksHashMap.values(), ["overallMatchRate"]);
         _.reverse(sortedNetworksArray);
 
         async.eachOfSeries(sortedNetworksArray, function(nn, index, cb1){
