@@ -1,6 +1,6 @@
 {
   "name": "@threeceelabs/neural-network-tools",
-  "version": "1.0.67",
+  "version": "1.0.68",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -17,9 +17,9 @@
   },
   "homepage": "https://github.com/tracycollins/neuralNetworkTools#readme",
   "dependencies": {
-    "@liquid-carrot/carrot": "^0.3.11",
-    "@threeceelabs/mongoose-twitter": "^1.0.258",
-    "@threeceelabs/threecee-utilities": "^1.0.130",
+    "@liquid-carrot/carrot": "^0.3.12",
+    "@threeceelabs/mongoose-twitter": "^1.0.261",
+    "@threeceelabs/threecee-utilities": "^1.0.131",
     "@threeceelabs/user-server-controller": "^1.0.473",
     "async": "^3.1.0",
     "carrot": "0.0.1",
