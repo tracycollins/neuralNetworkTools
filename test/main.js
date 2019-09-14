@@ -1,4 +1,4 @@
-
+  
 const fsp = require('fs').promises;
 const path = require("path");
 const async = require("async");
@@ -210,7 +210,8 @@ async function main(){
     await activateUsers(userArray);
 
     const statsObj = await nnTools.getNetworkStats();
-    console.log("statsObj\n" + jsonPrint(statsObj));
+    console.log("statsObj.bestNetwork\n" + jsonPrint(statsObj.bestNetwork));
+    console.log("statsObj.currentBestNetwork\n" + jsonPrint(statsObj.currentBestNetwork));
     return;
 }
 

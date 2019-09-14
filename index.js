@@ -211,21 +211,20 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     try{
       await tcUtils.loadInputs({inputsObj: inputsObj});
+      delete nn.inputsObj; // save memory
+      networksHashMap.set(nn.networkId, nn);
+
+      console.log(chalkLog("NNT | --> LOAD NN: " + nn.networkId + " | " + networksHashMap.size + " NNs"));
+      console.log(chalkLog("NNT | --> LOAD IN: " + nn.inputsId + " | " + inputsHashMap.size + " INPUT OBJs"));
+
+      return nn.networkId;
     }
     catch(err){
       console.log(chalkError("NNT | *** LOAD INPUTS ERROR: " + err));
       return err;
     }
 
-    delete nn.inputsObj; // save memory
-
-    networksHashMap.set(nn.networkId, nn);
-
-    console.log(chalkLog("NNT | --> LOAD NN: " + nn.networkId + " | " + networksHashMap.size + " NNs"));
-    console.log(chalkLog("NNT | --> LOAD IN: " + nn.inputsId + " | " + inputsHashMap.size + " INPUT OBJs"));
-
-    return nn.networkId;
-  }
+}
   catch(err){
     console.log(chalkError("NNT | *** LOAD NN ERROR"
       + " | NN ID: " + params.networkObj.networkId
