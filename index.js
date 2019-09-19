@@ -396,6 +396,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
       + " | " + statsObj.currentBestNetwork.networkId
       + " | " + statsObj.currentBestNetwork.inputsId
       + " | RANK: " + statsObj.currentBestNetwork.rank
+      + " | TECH: " + statsObj.currentBestNetwork.networkTechnology
       + " | " + statsObj.currentBestNetwork.meta.match + "/" + statsObj.currentBestNetwork.meta.total
       + " | MR: " + statsObj.currentBestNetwork.matchRate.toFixed(2) + "%"
       + " | OUT: " + statsObj.currentBestNetwork.meta.output
@@ -417,6 +418,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
       statsTextArray[index] = [
         "NNT | ",
         nn.rank,
+        nn.networkTechnology,
         nn.networkId,
         nn.inputsId,
         nn.numInputs,
@@ -444,6 +446,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
       statsTextArray.unshift([
         "NNT | ",
         "RANK",
+        "TECH",
         "NNID",
         "INPUTSID",
         "INPUTS",
@@ -463,7 +466,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
           "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
         + "\nNNT | " + params.title 
         + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------\n"
-        + table(statsTextArray, { align: ["l", "r", "l", "l", "r", "r", "r", "r", "r", "l", "r", "r", "r", "r", "r"] })
+        + table(statsTextArray, { align: ["l", "r", "l", "l", "l", "r", "r", "r", "r", "r", "l", "r", "r", "r", "r", "r"] })
         + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
       ));
 
