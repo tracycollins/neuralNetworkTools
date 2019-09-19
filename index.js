@@ -215,6 +215,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     nn.network = {};
     nn.network = network;
+    nn.networkRawFlag = true;
 
     const inputsObj = nn.inputsObj;
 
@@ -223,6 +224,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     try{
       await tcUtils.loadInputs({inputsObj: inputsObj});
       delete nn.inputsObj; // save memory
+
       networksHashMap.set(nn.networkId, nn);
 
       console.log(chalkLog("NNT | --> LOAD NN: " + nn.networkId + " | " + networksHashMap.size + " NNs"));
@@ -674,7 +676,8 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     throw new Error("NN NETWORK UNDEFINED: " + nnId);
   }
 
-  if (nnObj.network.activate === undefined){
+  // if (nnObj.network.activate === undefined){
+  if (!nnObj.networkRawFlag || (nnObj.networkRawFlag === undefined) || (nnObj.network.activate === undefined)){
 
     console.log(chalkAlert("NNT | NN NETWORK ACTIVATE UNDEFINED | TECH: " + nnObj.networkTechnology + " | nnObj.network: " + Object.keys(nnObj.network)));
 
@@ -686,6 +689,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
       if(!nnObj.network.hidden_size || (nnObj.network.hidden_size === undefined)) { nnObj.network.hidden_size = nnObj.network.hidden; }
       if(!nnObj.network.output_size || (nnObj.network.output_size === undefined)) { nnObj.network.output_size = nnObj.network.output; }
       if(!nnObj.network.input_nodes || (nnObj.network.input_nodes === undefined)) { nnObj.network.input_nodes = []; }
+      if(!nnObj.network.hidden_nodes || (nnObj.network.hidden_nodes === undefined)) { nnObj.network.hidden_nodes = []; }
       if(!nnObj.network.output_nodes || (nnObj.network.output_nodes === undefined)) { nnObj.network.output_nodes = []; }
 
       for(const node of nnObj.network.nodes){
@@ -695,7 +699,6 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
             nnObj.network.input_nodes.push(node.index);
           break;
           case "hidden":
-            if (nnObj.network.hidden_nodes === undefined) { nnObj.network.hidden_nodes = []; }
             nnObj.network.hidden_nodes.push(node.index);
             nnObj.network.hidden_size = nnObj.network.hidden_nodes.length;
           break;
@@ -709,13 +712,15 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
         
       }
 
-      nn = carrot.Network.fromJSON(nnObj.network);
+      nn = nnObj.network;
     }
     else{
       nn = neataptic.Network.fromJSON(nnObj.network);
     }
 
     nnObj.network = nn;
+    nnObj.networkRawFlag = true;
+    networksHashMap.set(nnId, nnObj);
   }
 
   const results = await tcUtils.convertDatum({datum: params.user, inputsId: nnObj.inputsId, verbose: verbose});
