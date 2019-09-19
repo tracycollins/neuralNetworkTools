@@ -139,7 +139,7 @@ NeuralNetworkTools.prototype.loadInputs = async function(params){
 
 NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
-  if (!params.networkObj || params.networkObj === undefined || params.networkObj.network === undefined) {
+  if (!params.networkObj || params.networkObj === undefined || (params.networkObj.network === undefined && params.networkObj.networkJson === undefined)) {
     console.log(chalkError("NNT | *** LOAD NETWORK UNDEFINED: " + params.networkObj));
     return new Error("NNT | LOAD NETWORK UNDEFINED");
   }
@@ -187,23 +187,33 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     let network;
 
     if (nn.networkTechnology === "carrot"){
-      console.log(chalkWarn("NNT | CONVERT NN FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
-      // network = carrot.Network.fromJSON(nn.network);
+      console.log(chalkWarn("NNT | ... LOAD NETWORK RAW | TECH: " + nn.networkTechnology + " | " + nn.networkId));
       network = nn.network;
     }
     else if (nn.networkTechnology === "neataptic"){
-      console.log(chalkWarn("NNT | CONVERT NN FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
-      network = neataptic.Network.fromJSON(nn.network);
+      if (params.networkIsRaw) {
+        console.log(chalkWarn("NNT | ... LOAD NETWORK RAW | TECH: " + nn.networkTechnology + " | " + nn.networkId));
+        network = nn.network;
+      }
+      else{
+        console.log(chalkWarn("NNT | ... CONVERT+LOAD NETWORK FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
+        network = neataptic.Network.fromJSON(nn.network);
+      }
     }
     else {
       nn.networkTechnology = "neataptic";
-      console.log(chalkAlert("NNT | CONVERT NN FROM JSON | ??? TECH: " + nn.networkTechnology + " | " + nn.networkId));
-      network = neataptic.Network.fromJSON(nn.network);
+      console.log(chalkAlert("NNT | ??? TRY CONVERT+LOAD NETWORK FROM JSON | ??? TECH: " + nn.networkTechnology + " | " + nn.networkId));
+      try{
+        network = neataptic.Network.fromJSON(nn.network);
+      }
+      catch(err){
+        console.log(chalkAlert("NNT | ??? TRY LOAD NETWORK FROM JSON | ??? TECH: " + nn.networkTechnology + " | " + nn.networkId));
+        network = nn.network;
+      }
     }
 
 
     nn.network = {};
-    // nn.network = deepcopy(network);
     nn.network = network;
 
     const inputsObj = nn.inputsObj;
@@ -662,8 +672,40 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   }
 
   if (nnObj.network.activate === undefined){
-    console.log(chalkAlert("NNT | NN NETWORK ACTIVATE UNDEFINED\nnnObj.network: " + Object.keys(nnObj.network)));
-    const nn = nnObj.network.fromJSON();
+
+    console.log(chalkAlert("NNT | NN NETWORK ACTIVATE UNDEFINED | TECH: " + nnObj.networkTechnology + " | nnObj.network: " + Object.keys(nnObj.network)));
+
+    let nn;
+
+    if (nnObj.networkTechnology === "carrot"){
+
+      if(!nnObj.network.input_size || (nnObj.network.input_size === undefined)) { nnObj.network.input_size = nnObj.network.input; }
+      if(!nnObj.network.output_size || (nnObj.network.output_size === undefined)) { nnObj.network.output_size = nnObj.network.output; }
+      if(!nnObj.network.input_nodes || (nnObj.network.input_nodes === undefined)) { nnObj.network.input_nodes = []; }
+      if(!nnObj.network.output_nodes || (nnObj.network.output_nodes === undefined)) { nnObj.network.output_nodes = []; }
+
+      for(const node of nnObj.network.nodes){
+
+        switch (node.type) {
+          case "input":
+            nnObj.network.input_nodes.push(node.index);
+          break;
+          case "output":
+            nnObj.network.output_nodes.push(node.index);
+          break;
+          default:
+            console.log(chalkLog("NNT | ??? NN NODE TYPE: " + node.type + "\n" + jsonPrint(node)));
+            // throw new Error("UNKNOWN NN NODE TYPE: " + node.type);
+        }
+        
+      }
+
+      nn = carrot.Network.fromJSON(nnObj.network);
+    }
+    else{
+      nn = neataptic.Network.fromJSON(nnObj.network);
+    }
+
     nnObj.network = nn;
   }
 
