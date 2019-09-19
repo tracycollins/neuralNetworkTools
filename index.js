@@ -683,6 +683,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     if (nnObj.networkTechnology === "carrot"){
 
       if(!nnObj.network.input_size || (nnObj.network.input_size === undefined)) { nnObj.network.input_size = nnObj.network.input; }
+      if(!nnObj.network.hidden_size || (nnObj.network.hidden_size === undefined)) { nnObj.network.hidden_size = nnObj.network.hidden; }
       if(!nnObj.network.output_size || (nnObj.network.output_size === undefined)) { nnObj.network.output_size = nnObj.network.output; }
       if(!nnObj.network.input_nodes || (nnObj.network.input_nodes === undefined)) { nnObj.network.input_nodes = []; }
       if(!nnObj.network.output_nodes || (nnObj.network.output_nodes === undefined)) { nnObj.network.output_nodes = []; }
@@ -692,6 +693,11 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
         switch (node.type) {
           case "input":
             nnObj.network.input_nodes.push(node.index);
+          break;
+          case "hidden":
+            if (nnObj.network.hidden_nodes === undefined) { nnObj.network.hidden_nodes = []; }
+            nnObj.network.hidden_nodes.push(node.index);
+            nnObj.network.hidden_size = nnObj.network.hidden_nodes.length;
           break;
           case "output":
             nnObj.network.output_nodes.push(node.index);
