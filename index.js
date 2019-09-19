@@ -188,7 +188,8 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     if (nn.networkTechnology === "carrot"){
       console.log(chalkWarn("NNT | CONVERT NN FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
-      network = carrot.Network.fromJSON(nn.network);
+      // network = carrot.Network.fromJSON(nn.network);
+      network = nn.network;
     }
     else if (nn.networkTechnology === "neataptic"){
       console.log(chalkWarn("NNT | CONVERT NN FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
