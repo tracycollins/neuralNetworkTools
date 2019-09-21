@@ -1,7 +1,7 @@
 /*jslint node: true */
 /*jshint sub:true*/
 
-const carrot = require("@liquid-carrot/carrot");
+// const carrot = require("@liquid-carrot/carrot");
 const neataptic = require("neataptic");
 const async = require("async");
 const util = require("util");
@@ -118,6 +118,7 @@ const networkPickArray = [
   "matchFlag",
   "meta",
   "networkId",
+  "networkTechnology",
   "numInputs",
   "numOutputs",
   "output",
@@ -141,7 +142,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
   if (!params.networkObj || params.networkObj === undefined || (params.networkObj.network === undefined && params.networkObj.networkJson === undefined)) {
     console.log(chalkError("NNT | *** LOAD NETWORK UNDEFINED: " + params.networkObj));
-    return new Error("NNT | LOAD NETWORK UNDEFINED");
+    throw new Error("NNT | LOAD NETWORK UNDEFINED");
   }
 
   try{
@@ -233,20 +234,68 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
       return nn.networkId;
     }
     catch(err){
-      console.log(chalkError("NNT | *** LOAD INPUTS ERROR: " + err));
-      return err;
+      console.log(chalkError("NNT | *** LOAD INPUTS ERROR"
+        + " | NN ID: " + nn.networkId
+        + " | INPUTS ID: " + inputsObj.inputsId
+        + " | " + err
+      ));
+      throw err;
     }
 
-}
+  }
   catch(err){
     console.log(chalkError("NNT | *** LOAD NN ERROR"
       + " | NN ID: " + params.networkObj.networkId
       + " | IN ID: " + params.networkObj.inputsId
       + " | " + err
     ));
-    return err;
+    throw err;
   }
 }
+
+NeuralNetworkTools.prototype.deleteNetwork = async function(params){
+
+  if (!params.networkId) {
+    console.log(chalkError("NNT | *** DELETE NETWORK ID UNDEFINED: " + params.networkId));
+    throw new Error("NNT | DELETE NETWORK ID UNDEFINED");
+  }
+
+  try{
+
+    console.log(chalkError("NNT | XXX DELETE NETWORK: " + params.networkId));
+
+    networksHashMap.delete(params.networkId);
+
+    delete statsObj.networks[params.networkId];
+
+    if (primaryNeuralNetworkId == params.networkId){
+      console.log(chalkError("NNT | XXX DELETE PRIMARY NETWORK: " + params.networkId));
+      primaryNeuralNetworkId = false;
+    }
+
+    if (statsObj.bestNetwork && (statsObj.bestNetwork !== undefined) && (statsObj.bestNetwork.networkId == params.networkId)){
+      console.log(chalkError("NNT | XXX DELETE BEST NETWORK: " + params.networkId));
+      delete statsObj.bestNetwork;
+    }
+
+    if (statsObj.currentBestNetwork && (statsObj.currentBestNetwork !== undefined) && (statsObj.currentBestNetwork.networkId == params.networkId)){
+      console.log(chalkError("NNT | XXX DELETE CURRENT BEST NETWORK: " + params.networkId));
+      delete statsObj.currentBestNetwork;
+    }
+
+    return;
+
+  }
+  catch(err){
+    console.log(chalkError("NNT | *** DELETE NN ERROR"
+      + " | NN ID: " + params.networkId
+      + " | " + err
+    ));
+    throw err;
+  }
+}
+
+const deleteNetwork = NeuralNetworkTools.prototype.deleteNetwork;
 
 NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = async function(nnId){
 
@@ -673,54 +722,79 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   if (!nnObj.network || (nnObj.network === undefined)){
     console.log(chalkError("NNT | *** NN NETWORK UNDEFINED" + nnId));
+    await deleteNetwork(nnId);
     throw new Error("NN NETWORK UNDEFINED: " + nnId);
   }
 
   // if (nnObj.network.activate === undefined){
   if (!nnObj.networkRawFlag || (nnObj.networkRawFlag === undefined) || (nnObj.network.activate === undefined)){
 
-    console.log(chalkAlert("NNT | NN NETWORK ACTIVATE UNDEFINED | TECH: " + nnObj.networkTechnology + " | nnObj.network: " + Object.keys(nnObj.network)));
+    console.log(chalkAlert("NNT | NN NETWORK ACTIVATE UNDEFINED"
+      + " | TECH: " + nnObj.networkTechnology 
+      + " | ID: " + nnObj.networkId 
+      + " | INPUTS: " + nnObj.inputsId 
+      + " | NN RAW FLAG: " + nnObj.networkRawFlag 
+      // + " | nnObj.network: " + Object.keys(nnObj.network)
+    ));
 
-    let nn;
+    networksHashMap.delete(nnId);
 
-    if (nnObj.networkTechnology === "carrot"){
+    throw new Error("ACTIVATE_UNDEFINED: " + nnObj.networkId);
 
-      if(!nnObj.network.input_size || (nnObj.network.input_size === undefined)) { nnObj.network.input_size = nnObj.network.input; }
-      if(!nnObj.network.hidden_size || (nnObj.network.hidden_size === undefined)) { nnObj.network.hidden_size = nnObj.network.hidden; }
-      if(!nnObj.network.output_size || (nnObj.network.output_size === undefined)) { nnObj.network.output_size = nnObj.network.output; }
-      if(!nnObj.network.input_nodes || (nnObj.network.input_nodes === undefined)) { nnObj.network.input_nodes = []; }
-      if(!nnObj.network.hidden_nodes || (nnObj.network.hidden_nodes === undefined)) { nnObj.network.hidden_nodes = []; }
-      if(!nnObj.network.output_nodes || (nnObj.network.output_nodes === undefined)) { nnObj.network.output_nodes = []; }
+    // let nn;
 
-      for(const node of nnObj.network.nodes){
+    // if (nnObj.networkTechnology === "carrot"){
 
-        switch (node.type) {
-          case "input":
-            nnObj.network.input_nodes.push(node.index);
-          break;
-          case "hidden":
-            nnObj.network.hidden_nodes.push(node.index);
-            nnObj.network.hidden_size = nnObj.network.hidden_nodes.length;
-          break;
-          case "output":
-            nnObj.network.output_nodes.push(node.index);
-          break;
-          default:
-            console.log(chalkLog("NNT | ??? NN NODE TYPE: " + node.type + "\n" + jsonPrint(node)));
-            // throw new Error("UNKNOWN NN NODE TYPE: " + node.type);
-        }
+    //   // if(!nnObj.network.input_size || (nnObj.network.input_size === undefined)) { nnObj.network.input_size = nnObj.network.input; }
+    //   // if(!nnObj.network.hidden_size || (nnObj.network.hidden_size === undefined)) { nnObj.network.hidden_size = nnObj.network.hidden; }
+    //   // if(!nnObj.network.output_size || (nnObj.network.output_size === undefined)) { nnObj.network.output_size = nnObj.network.output; }
+    //   if(!nnObj.network.input_nodes || (nnObj.network.input_nodes === undefined)) { nnObj.network.input_nodes = []; }
+    //   if(!nnObj.network.hidden_nodes || (nnObj.network.hidden_nodes === undefined)) { nnObj.network.hidden_nodes = []; }
+    //   if(!nnObj.network.output_nodes || (nnObj.network.output_nodes === undefined)) { nnObj.network.output_nodes = []; }
+
+    //   nnObj.network.input_nodes = _.uniq(nnObj.network.input_nodes);
+    //   nnObj.network.output_nodes = _.uniq(nnObj.network.input_nodes);
+    //   nnObj.network.hidden_nodes = _.uniq(nnObj.network.input_nodes);
+
+    //   nnObj.network.input_size = nnObj.network.input;
+    //   nnObj.network.output_size = nnObj.network.output;
+    //   nnObj.network.hidden_size = nnObj.network.hidden;
+
+    //   for(const node of nnObj.network.nodes){
+
+    //     switch (node.type) {
+    //       case "input":
+    //         if (!nnObj.network.input_nodes.includes(node.index)){
+    //           nnObj.network.input_nodes.push(node.index);
+    //         }
+    //       break;
+    //       case "hidden":
+    //         if (!nnObj.network.hidden_nodes.includes(node.index)){
+    //           nnObj.network.hidden_nodes.push(node.index);
+    //           nnObj.network.hidden_size = nnObj.network.hidden_nodes.length;
+    //         }
+    //       break;
+    //       case "output":
+    //         if (!nnObj.network.output_nodes.includes(node.index)){
+    //           nnObj.network.output_nodes.push(node.index);
+    //         }
+    //       break;
+    //       default:
+    //         console.log(chalkLog("NNT | ??? NN NODE TYPE: " + node.type + "\n" + jsonPrint(node)));
+    //         // throw new Error("UNKNOWN NN NODE TYPE: " + node.type);
+    //     }
         
-      }
+    //   }
 
-      nn = nnObj.network;
-    }
-    else{
-      nn = neataptic.Network.fromJSON(nnObj.network);
-    }
+    //   nn = nnObj.network;
+    // }
+    // else{
+    //   nn = neataptic.Network.fromJSON(nnObj.network);
+    // }
 
-    nnObj.network = nn;
-    nnObj.networkRawFlag = true;
-    networksHashMap.set(nnId, nnObj);
+    // nnObj.network = nn;
+    // nnObj.networkRawFlag = true;
+    // networksHashMap.set(nnId, nnObj);
   }
 
   const results = await tcUtils.convertDatum({datum: params.user, inputsId: nnObj.inputsId, verbose: verbose});
@@ -851,17 +925,21 @@ NeuralNetworkTools.prototype.activate = function (params) {
         cb();
       })
       .catch(function(e){
-        console.trace(chalkError("NNT | activateSingleNetwork | *** ACTIVATE NETWORK ERROR"
-          + " | " + nnId,
-          e
+        console.log(chalkError("NNT | activateSingleNetwork | *** ACTIVATE NETWORK ERROR"
+          + " | " + nnId
+          + " | " + e
         ));
+        // console.log(e);
         // console.log(chalkError("NNT | activateSingleNetwork | *** ACTIVATE NETWORK ERROR: USER\n" + jsonPrint(user)));
         cb(e);
       });
     }, function(err){
 
       if (err) {
-        console.trace(chalkError("NNT | *** ACTIVATE NETWORK ERROR (async callback)", err));
+        console.log(chalkError("NNT | *** ACTIVATE NETWORK ERROR (async callback)"
+          + " | " + err
+        ));
+        // console.log(err);
         return reject(err);
       }
 

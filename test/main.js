@@ -100,6 +100,8 @@ function loadUsers(usersFolder){
 function loadNetworks(networksFolder){
   return new Promise(function(resolve, reject){
 
+    console.log("... LOADING NETWORKS | " + testNetworkFolder);
+
     const networkIdArray = [];
     
     fsp.readdir(networksFolder)
@@ -180,9 +182,18 @@ function activateUsers(userArray){
         });
 
       })
-      .catch(function(err){
-        console.log("NN ACTIVATE ERROR: " + err);
-        return cb(err);
+      .catch(async function(err){
+        console.log("NN *** ACTIVATE ERROR: " + err);
+        if (err.message.includes("ACTIVATE_UNDEFINED")){
+          const errParts = err.message.split(":");
+          const errNnId = errParts[1].trim();
+          console.log("ERR NN ID: " + errNnId);
+          await nnTools.deleteNetwork({networkId: errNnId});
+          return cb();
+        }
+        else {
+          return cb(err);
+        }
       });
     }, function(err){
       if (err) { return reject(err); }
