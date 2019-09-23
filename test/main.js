@@ -1,4 +1,5 @@
-  
+const BINARY_MODE = true;
+
 const fsp = require('fs').promises;
 const path = require("path");
 const async = require("async");
@@ -147,19 +148,20 @@ function loadNetworks(networksFolder){
   });
 }
 
-function activateUsers(userArray){
+function activateUsers(userArray, binaryMode){
 
   return new Promise(function(resolve, reject){
 
     async.eachSeries(userArray, function(user, cb){
 
-      nnTools.activate({user: user, verbose: false})
+      nnTools.activate({user: user, binaryMode: binaryMode, verbose: false})
       .then(function(noutObj){
 
         nnTools.updateNetworkStats({user: noutObj.user, networkOutput: noutObj.networkOutput})
         .then(function(networkStats){
 
           const title = "BEST | @" + noutObj.user.screenName 
+            + " | BIN MODE: " + binaryMode 
             + " | C M: " + noutObj.user.category 
             + " A: " + noutObj.user.categoryAuto
             + " | M/MM/TOT: " + networkStats.meta.match + "/" + networkStats.meta.mismatch + "/" + networkStats.meta.total
@@ -218,7 +220,7 @@ async function main(){
 
     console.log("userArray.length: " + userArray.length);
 
-    await activateUsers(userArray);
+    await activateUsers(userArray, BINARY_MODE);
 
     const statsObj = await nnTools.getNetworkStats();
     console.log("statsObj.bestNetwork\n" + jsonPrint(statsObj.bestNetwork));
