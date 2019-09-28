@@ -895,8 +895,6 @@ NeuralNetworkTools.prototype.activate = function (params) {
           + " | " + nnId
           + " | " + e
         ));
-        // console.log(e);
-        // console.log(chalkError("NNT | activateSingleNetwork | *** ACTIVATE NETWORK ERROR: USER\n" + jsonPrint(user)));
         cb(e);
       });
     }, function(err){
@@ -905,7 +903,6 @@ NeuralNetworkTools.prototype.activate = function (params) {
         console.log(chalkError("NNT | *** ACTIVATE NETWORK ERROR (async callback)"
           + " | " + err
         ));
-        // console.log(err);
         return reject(err);
       }
 
