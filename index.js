@@ -2,7 +2,29 @@
 /*jshint sub:true*/
 
 const DEFAULT_BINARY_MODE = true;
-// const carrot = require("@liquid-carrot/carrot");
+
+const path = require("path");
+const os = require("os");
+let hostname = os.hostname();
+hostname = hostname.replace(/\.example\.com/g, "");
+hostname = hostname.replace(/\.local/g, "");
+hostname = hostname.replace(/\.home/g, "");
+hostname = hostname.replace(/\.at\.net/g, "");
+hostname = hostname.replace(/\.fios-router\.home/g, "");
+hostname = hostname.replace(/word0-instance-1/g, "google");
+hostname = hostname.replace(/word/g, "google");
+
+let DROPBOX_ROOT_FOLDER;
+
+if (hostname == "google") {
+  DROPBOX_ROOT_FOLDER = "/home/tc/Dropbox/Apps/wordAssociation";
+}
+else {
+  DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
+}
+
+const DEFAULT_CONFIG_FOLDER = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
+
 const neataptic = require("neataptic");
 const async = require("async");
 const util = require("util");
@@ -33,6 +55,7 @@ let primaryNeuralNetworkId;
 const configuration = {};
 configuration.binaryMode = DEFAULT_BINARY_MODE;
 configuration.verbose = false;
+configuration.inputsFolder = path.join(DEFAULT_CONFIG_FOLDER, "inputs");
 
 const statsObj = {};
 statsObj.networks = {};
@@ -240,12 +263,27 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
         delete nn.inputsObj; // save memory
       }
       else {
-        console.log(chalkError("NNT | *** LOAD INPUTS ERROR"
+        const file = nn.inputsId + ".json";
+
+        console.log(chalkAlert("NNT | !!! NN INPUTS OBJ UNDEFINED ... SEARCHING FILE"
           + " | NN ID: " + nn.networkId
           + " | INPUTS ID: " + nn.inputsId
-          + " | INPUTS OBJ UNDEFINED IN NETWORK OBJ + INPUTS OBJ NOT PREVIOUSLY LOADED"
+          + " | FOLDER: " + configuration.inputsFolder
+          + " | FILE: " + file
         ));
-        throw new Error("INPUTS OBJ UNDEFINED IN NN: " + nn.networkId + " | INPUTS: " + nn.inputsId);
+
+        const inputsObj = await tcUtils.loadFileRetry({folder: configuration.inputsFolder, file: file});
+        await tcUtils.loadInputs({inputsObj: nn.inputsObj});
+        delete nn.inputsObj; // save memory
+
+        if (!inputsObj) {
+          console.log(chalkError("NNT | *** LOAD INPUTS ERROR"
+            + " | NN ID: " + nn.networkId
+            + " | INPUTS ID: " + nn.inputsId
+            + " | INPUTS OBJ UNDEFINED IN NETWORK OBJ + INPUTS OBJ NOT PREVIOUSLY LOADED"
+          ));
+          throw new Error("INPUTS OBJ UNDEFINED IN NN: " + nn.networkId + " | INPUTS: " + nn.inputsId);          
+        }
       }
 
       networksHashMap.set(nn.networkId, nn);
