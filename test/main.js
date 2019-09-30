@@ -39,8 +39,8 @@ const jsonPrint = tcUtils.jsonPrint;
 const testNetworkFolder = path.join(configHostFolder, "test/testData/networks");
 const testUserFolder = path.join(configHostFolder, "test/testData/user/converted");
 
-const test_user_tobi = tcUtils.loadFile({folder: testUserFolder, file: "user_10032112.json"});
-const test_user_hector = tcUtils.loadFile({folder: testUserFolder, file: "user_10069612.json"});
+const test_user_tobi = tcUtils.loadFileRetry({folder: testUserFolder, file: "user_10032112.json"});
+const test_user_hector = tcUtils.loadFileRetry({folder: testUserFolder, file: "user_10069612.json"});
 
 const testInputsFolder = path.join(configHostFolder, "test/testData/inputs");
 
@@ -67,7 +67,7 @@ function loadUsers(usersFolder){
           // const userId = file.replace(".json", "");
           console.log("USER LOAD: " + file);
 
-          tcUtils.loadFile({folder: testUserFolder, file: file})
+          tcUtils.loadFileRetry({folder: testUserFolder, file: file})
           .then(function(user){
             userArray.push(user);
             cb();
@@ -95,10 +95,62 @@ function loadUsers(usersFolder){
   });
 }
 
+function loadInputs(inputsFolder){
+  return new Promise(function(resolve, reject){
+
+    console.log("... LOADING INPUTS | " + inputsFolder);
+
+    const inputsIdArray = [];
+    
+    fsp.readdir(inputsFolder)
+    .then(function(inputsFileArray){
+
+      async.eachSeries(inputsFileArray, function(file, cb){
+
+        if (file.startsWith("inputs_") && file.endsWith(".json")) {
+
+          const inputsId = file.replace(".json", "");
+
+          tcUtils.loadFileRetry({folder: inputsFolder, file: file})
+          .then(function(inputsObj){
+
+            inputsIdArray.push(inputsId);
+
+            nnTools.loadInputs({inputsObj: inputsObj})
+            .then(function(){
+              cb();
+            })
+            .catch(function(err){
+              cb(err);
+            });
+
+          })
+          .catch(function(e){
+            cb(e);
+          });
+
+        }
+        else{
+          console.log("... SKIPPING INPUTS LOAD: " + file);
+          cb();
+        }
+      }, async function(err){
+        if (err) { return reject(err); }
+        console.log("LOADED " + inputsIdArray.length + " INPUTS FROM " + inputsFolder);
+        resolve(inputsIdArray);
+      });
+    })
+    .catch(function(err){
+      return reject(err);
+    });
+
+  });
+}
+
 function loadNetworks(networksFolder){
   return new Promise(function(resolve, reject){
 
-    console.log("... LOADING NETWORKS | " + testNetworkFolder);
+    console.log("... LOADING NETWORKS | " + networksFolder);
 
     const networkIdArray = [];
     
@@ -109,7 +161,7 @@ function loadNetworks(networksFolder){
 
           const nnId = file.replace(".json", "");
 
-          tcUtils.loadFile({folder: testNetworkFolder, file: file})
+          tcUtils.loadFileRetry({folder: networksFolder, file: file})
           .then(function(nn){
 
             networkIdArray.push(nnId);
@@ -134,7 +186,7 @@ function loadNetworks(networksFolder){
         }
       }, async function(err){
         if (err) { return reject(err); }
-        console.log("FOUND " + nnTools.getNumberNetworks() + " NETWORKS IN " + networksFolder);
+        console.log("LOADED " + nnTools.getNumberNetworks() + " NETWORKS FROM " + networksFolder);
         resolve(networkIdArray);
       });
     })
@@ -210,10 +262,15 @@ async function main(){
 
     console.log("LOAD maxInputHashMap: " + testInputsFolder + "/maxInputHashMap.json");
     const maxNormObj = await tcUtils.loadFileRetry({folder: testInputsFolder, file: "maxInputHashMap.json"});
+
     await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
     await nnTools.setNormalization(maxNormObj.normalization);
 
+    const inputsIdArray = await loadInputs(testInputsFolder);
+    console.log("inputsIdArray.length: " + inputsIdArray.length);
+
     const networkIdArray = await loadNetworks(testNetworkFolder);
+
 
     const randomNnId = randomItem(networkIdArray);
     console.log("setPrimaryNeuralNetwork: " + randomNnId);

@@ -227,18 +227,28 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
       }
     }
 
-
     nn.network = {};
     nn.network = network;
     nn.networkRawFlag = true;
 
-    const inputsObj = nn.inputsObj;
-
-    inputsHashMap.set(nn.inputsId, inputsObj);
-
     try{
-      await tcUtils.loadInputs({inputsObj: inputsObj});
-      delete nn.inputsObj; // save memory
+
+      if (tcUtils.inputsLoaded(nn.inputsId)){
+        delete nn.inputsObj; // save memory
+      }
+      else if (nn.inputsObj && nn.inputsObj !== undefined){
+        inputsHashMap.set(nn.inputsId, nn.inputsObj);
+        await tcUtils.loadInputs({inputsObj: nn.inputsObj});
+        delete nn.inputsObj; // save memory
+      }
+      else {
+        console.log(chalkError("NNT | *** LOAD INPUTS ERROR"
+          + " | NN ID: " + nn.networkId
+          + " | INPUTS ID: " + nn.inputsId
+          + " | INPUTS OBJ UNDEFINED IN NETWORK OBJ + INPUTS OBJ NOT PREVIOUSLY LOADED"
+        ));
+        throw new Error("INPUTS OBJ UNDEFINED IN NN: " + nn.networkId + " | INPUTS: " + nn.inputsId);
+      }
 
       networksHashMap.set(nn.networkId, nn);
 
@@ -250,7 +260,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     catch(err){
       console.log(chalkError("NNT | *** LOAD INPUTS ERROR"
         + " | NN ID: " + nn.networkId
-        + " | INPUTS ID: " + inputsObj.inputsId
+        + " | INPUTS ID: " + nn.inputsId
         + " | " + err
       ));
       throw err;
@@ -596,7 +606,7 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
     const primaryNetwork = params.primaryNetwork || false; // 
     const verbose = params.verbose || false; //
     const sortByMetric = params.sortBy || "matchRate";
-    const updateRank = params.updateRank || true;
+    // const updateRank = params.updateRank || true;
 
     let networkOutput = {};
 
