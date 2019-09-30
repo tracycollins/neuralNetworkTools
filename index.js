@@ -273,8 +273,6 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
         ));
 
         const inputsObj = await tcUtils.loadFileRetry({folder: configuration.inputsFolder, file: file});
-        await tcUtils.loadInputs({inputsObj: nn.inputsObj});
-        delete nn.inputsObj; // save memory
 
         if (!inputsObj) {
           console.log(chalkError("NNT | *** LOAD INPUTS ERROR"
@@ -284,6 +282,9 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
           ));
           throw new Error("INPUTS OBJ UNDEFINED IN NN: " + nn.networkId + " | INPUTS: " + nn.inputsId);          
         }
+
+        await tcUtils.loadInputs({inputsObj: inputsObj});
+
       }
 
       networksHashMap.set(nn.networkId, nn);
