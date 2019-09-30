@@ -558,7 +558,7 @@ function arrayToCategory(arr){
 function printNetworkObj(title, nn, format) {
 
   const chalkFormat = (format !== undefined) ? format : chalk.blue;
-  const rank = nn.rank || Infinity;
+  const rank = (nn.rank !== undefined) ? nn.rank : Infinity;
   const overallMatchRate = nn.overallMatchRate || 0;
   const matchRate = nn.matchRate || 0;
   const successRate = nn.successRate || 0;
@@ -645,7 +645,7 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
       statsObj.networks[nnId].meta[user.category] += 1;
       statsObj.networks[nnId].meta.total += 1;
 
-      if (networkOutput[nnId].categoryAuto === user.category) {
+      if (networkOutput[nnId].categoryAuto == user.category) {
         statsObj.networks[nnId].meta.match += 1;
         statsObj.networks[nnId].meta.matchFlag = "MATCH";
         chalkCategory = chalk.green;
@@ -699,7 +699,8 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
         async.eachOfSeries(sortedNetworksArray, function(nn, index, cb1){
 
-          if (updateRank) { nn.rank = index; }
+          nn.rank = index;
+
           networksHashMap.set(nn.networkId, nn);
 
           if (index === 0){

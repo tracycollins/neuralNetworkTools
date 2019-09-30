@@ -44,9 +44,6 @@ const test_user_hector = tcUtils.loadFile({folder: testUserFolder, file: "user_1
 
 const testInputsFolder = path.join(configHostFolder, "test/testData/inputs");
 
-const maxNormObj = tcUtils.loadFile({folder: testInputsFolder, file: "maxInputHashMap.json"});
-
-
 const testUsersArray = [];
 testUsersArray.push(test_user_tobi);
 testUsersArray.push(test_user_hector);
@@ -148,7 +145,7 @@ function loadNetworks(networksFolder){
   });
 }
 
-function activateUsers(userArray, binaryMode){
+function activateUsers(primaryNetworkId, userArray, binaryMode){
 
   return new Promise(function(resolve, reject){
 
@@ -157,13 +154,17 @@ function activateUsers(userArray, binaryMode){
       nnTools.activate({user: user, binaryMode: binaryMode, verbose: false})
       .then(function(noutObj){
 
+        // noutObj = { user: user, networkOutput: networkOutput }
+
         nnTools.updateNetworkStats({user: noutObj.user, networkOutput: noutObj.networkOutput})
         .then(function(networkStats){
 
-          const title = "BEST | @" + noutObj.user.screenName 
-            + " | BIN MODE: " + binaryMode 
-            + " | C M: " + noutObj.user.category 
-            + " A: " + noutObj.user.categoryAuto
+          const title = "BEST | " + networkStats.networkId
+            + " | @" + noutObj.user.screenName 
+            + "\nBIN MODE: " + binaryMode 
+            + " | C M: " + networkStats.meta.category 
+            + " A: " + networkStats.meta.categoryAuto
+            + " | INPUT HIT RATE: " + noutObj.networkOutput[networkStats.networkId].inputHitRate.toFixed(3) + "%"
             + " | M/MM/TOT: " + networkStats.meta.match + "/" + networkStats.meta.mismatch + "/" + networkStats.meta.total
             + " | MR: " + networkStats.matchRate.toFixed(3) + "%"
             + " | MATCH: " + networkStats.meta.matchFlag;
@@ -207,6 +208,8 @@ function activateUsers(userArray, binaryMode){
 
 async function main(){
 
+    console.log("LOAD maxInputHashMap: " + testInputsFolder + "/maxInputHashMap.json");
+    const maxNormObj = await tcUtils.loadFileRetry({folder: testInputsFolder, file: "maxInputHashMap.json"});
     await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
     await nnTools.setNormalization(maxNormObj.normalization);
 
@@ -220,7 +223,7 @@ async function main(){
 
     console.log("userArray.length: " + userArray.length);
 
-    await activateUsers(userArray, BINARY_MODE);
+    await activateUsers(randomNnId, userArray, BINARY_MODE);
 
     const statsObj = await nnTools.getNetworkStats();
     console.log("statsObj.bestNetwork\n" + jsonPrint(statsObj.bestNetwork));
