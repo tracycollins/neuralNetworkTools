@@ -27,7 +27,6 @@ const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
 
 const networksHashMap = new HashMap();
-const inputsHashMap = new HashMap();
 
 let primaryNeuralNetworkId;
 
@@ -237,7 +236,6 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
         delete nn.inputsObj; // save memory
       }
       else if (nn.inputsObj && nn.inputsObj !== undefined){
-        inputsHashMap.set(nn.inputsId, nn.inputsObj);
         await tcUtils.loadInputs({inputsObj: nn.inputsObj});
         delete nn.inputsObj; // save memory
       }
@@ -253,7 +251,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
       networksHashMap.set(nn.networkId, nn);
 
       console.log(chalkLog("NNT | --> LOAD NN: " + nn.networkId + " | " + networksHashMap.size + " NNs"));
-      console.log(chalkLog("NNT | --> LOAD IN: " + nn.inputsId + " | " + inputsHashMap.size + " INPUT OBJs"));
+      console.log(chalkLog("NNT | --> LOAD IN: " + nn.inputsId));
 
       return nn.networkId;
     }
@@ -333,15 +331,22 @@ NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = async function(nnId){
     return new Error("NNT | PRIMARY NETWORK NOT LOADED: " + nnId);
   }
 
-  primaryNeuralNetworkId = nnId;
-  const nnObj = networksHashMap.get(primaryNeuralNetworkId);
-
-  if (!inputsHashMap.has(nnObj.inputsId)){
-    console.log(chalkError("NNT | *** setPrimaryNeuralNetwork PRIMARY NETWORK INPUTS NOT IN HASHMAP: " + nnObj.inputsId));
-    return new Error("NNT | PRIMARY NETWORK INPUTS NOT IN HASHMAP: " + nnObj.inputsId);
-  }
-
   try{
+
+    primaryNeuralNetworkId = nnId;
+    const nnObj = networksHashMap.get(primaryNeuralNetworkId);
+
+    if (!tcUtils.inputsLoaded(nnObj.inputsId)){
+
+      if (nnObj.inputsObj && (nnObj.inputsObj !== undefined)){
+        await tcUtils.loadInputs({inputsObj: nnObj.inputsObj});
+      }
+      else{      
+        console.log(chalkError("NNT | *** setPrimaryNeuralNetwork PRIMARY NETWORK INPUTS NOT LOADED: " + nnObj.inputsId));
+        return new Error("NNT | PRIMARY NETWORK INPUTS NOT LOADED: " + nnObj.inputsId);
+      }
+    }
+
     await tcUtils.setPrimaryInputs({inputsId: nnObj.inputsId});
   }
   catch(err){
