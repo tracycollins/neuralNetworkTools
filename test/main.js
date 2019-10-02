@@ -201,7 +201,7 @@ function loadNetworks(networksFolder){
 function convertDatum(params){
   return new Promise(function(resolve, reject){
 
-    tcUtils.convertDatumOneNetwork({primaryInputsFlag: true, datum: params.user, binaryMode: params.binaryMode}).
+    tcUtils.convertDatumOneNetwork({primaryInputsFlag: true, user: params.user, binaryMode: params.binaryMode}).
     then(function(results){
 
       if (results.emptyFlag) {
