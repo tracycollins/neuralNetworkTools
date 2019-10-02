@@ -253,7 +253,25 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
           + " | TECH: " + nn.networkTechnology + " | " + nn.networkId
           + " | ERROR: " + e
         ));
-        throw new Error(e);
+
+        try{
+          if (nn.networkTechnology == "carrot"){
+            nn.networkTechnology = "neataptic";
+            nn.networkRaw = neataptic.Network.fromJSON(nn.network);
+          }
+          else{
+            nn.networkTechnology = "carrot";
+            nn.networkRaw = carrot.Network.fromJSON(nn.network);
+          }
+        }
+        catch(e2){
+          console.log(chalkError("NNT | FROM JSON ERROR"
+            + " | TECH: " + nn.networkTechnology + " | " + nn.networkId
+            + " | ERROR: " + e2
+          ));
+          throw new Error(e2);
+        }
+
       }
     }
     else if (nn.network && nn.network != undefined && nn.network.activate != undefined) {
@@ -609,7 +627,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
 
         return resolve();
       }
-      catch(err){
+      catch(err2){
         return resolve();
       }
 
