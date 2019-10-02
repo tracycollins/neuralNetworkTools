@@ -1,4 +1,5 @@
 const BINARY_MODE = true;
+const CONVERT_DATUM = false;
 
 const fsp = require('fs').promises;
 const path = require("path");
@@ -197,65 +198,89 @@ function loadNetworks(networksFolder){
   });
 }
 
-function activateUsers(primaryNetworkId, userArray, binaryMode){
-
+function convertDatum(params){
   return new Promise(function(resolve, reject){
 
-    async.eachSeries(userArray, function(user, cb){
+    tcUtils.convertDatumOneNetwork({primaryInputsFlag: true, datum: params.user, binaryMode: params.binaryMode}).
+    then(function(results){
 
-      nnTools.activate({user: user, convertDatumFlag: true, binaryMode: binaryMode, verbose: false})
-      .then(function(noutObj){
+      if (results.emptyFlag) {
+        console.error("!!! EMPTY CONVERTED DATUM ... SKIPPING | @" + params.user.screenName);
+        return reject(new Error("EMPTY CONVERTED DATUM"));
+      }
 
-        // noutObj = { user: user, networkOutput: networkOutput }
-
-        nnTools.updateNetworkStats({user: noutObj.user, networkOutput: noutObj.networkOutput})
-        .then(function(networkStats){
-
-          const title = "BEST | " + networkStats.networkId
-            + " | @" + noutObj.user.screenName 
-            + "\nBIN MODE: " + binaryMode 
-            + " | C M: " + networkStats.meta.category 
-            + " A: " + networkStats.meta.categoryAuto
-            + " | INPUT HIT RATE: " + noutObj.networkOutput[networkStats.networkId].inputHitRate.toFixed(3) + "%"
-            + " | M/MM/TOT: " + networkStats.meta.match + "/" + networkStats.meta.mismatch + "/" + networkStats.meta.total
-            + " | MR: " + networkStats.matchRate.toFixed(3) + "%"
-            + " | MATCH: " + networkStats.meta.matchFlag;
-
-          nnTools.printNetworkResults({title: title})
-          .then(function(){
-            cb();
-          })
-          .catch(function(e){
-            cb(e);
-          });
-
-        })
-        .catch(function(err){
-          console.log("NNT | ERROR: " + err);
-          cb();
-          // return cb(err);
-        });
-
-      })
-      .catch(async function(err){
-        console.log("NN *** ACTIVATE ERROR: " + err);
-        if (err.message.includes("ACTIVATE_UNDEFINED")){
-          const errParts = err.message.split(":");
-          const errNnId = errParts[1].trim();
-          console.log("ERR NN ID: " + errNnId);
-          await nnTools.deleteNetwork({networkId: errNnId});
-          return cb();
+      for(const inputValue of results.datum.input){
+        if (typeof inputValue != "number") {
+          return reject(new Error("INPUT VALUE NOT TYPE NUMBER | @" + results.datum.screenName + " | INPUT TYPE: " + typeof inputValue));
         }
-        else {
-          return cb(err);
+        if (inputValue < 0) {
+          return reject(new Error("INPUT VALUE LESS THAN ZERO | @" + results.datum.screenName + " | INPUT: " + inputValue));
         }
-      });
-    }, function(err){
-      if (err) { return reject(err); }
-      resolve();
+        if (inputValue > 1) {
+          return reject(new Error("INPUT VALUE GREATER THAN ONE | @" + results.datum.screenName + " | INPUT: " + inputValue));
+        }
+      }
+
+      for(const outputValue of results.datum.output){
+        if (typeof outputValue != "number") {
+          return reject(new Error("OUTPUT VALUE NOT TYPE NUMBER | @" + results.datum.screenName + " | OUTPUT TYPE: " + typeof outputValue));
+        }
+        if (outputValue < 0) {
+          return reject(new Error("OUTPUT VALUE LESS THAN ZERO | @" + results.datum.screenName + " | OUTPUT: " + outputValue));
+        }
+        if (outputValue > 1) {
+          return reject(new Error("OUTPUT VALUE GREATER THAN ONE | @" + results.datum.screenName + " | OUTPUT: " + outputValue));
+        }
+      }
+
+      const datum = {input: results.datum.input, output: results.datum.output};
+
+      resolve(datum);
+    }).
+    catch(function(err){
+      console.error("*** ERROR convertDatumOneNetwork: " + err);
+      return reject(err);
     });
-
   });
+}
+
+async function activateUsers(primaryNetworkId, userArray, binaryMode, convertDatumFlag){
+  for(const user of userArray) {
+
+    let params = {};
+
+    if (convertDatumFlag){
+      params = {user: user, convertDatumFlag: true, binaryMode: binaryMode, verbose: false};
+    }
+    else{
+      params.datum = await convertDatum({user: user, binaryMode: binaryMode});
+      params.user = {};
+      params.user.nodeId = user.nodeId;
+      params.user.screenName = user.screenName;
+      params.user.category = user.category;
+      params.user.categoryAuto = user.categoryAuto;
+      params.convertDatumFlag = false;
+      params.binaryMode = binaryMode;
+      params.verbose = false;
+    }
+
+    const noutObj = await nnTools.activate(params);
+
+    const networkStats = await nnTools.updateNetworkStats({user: noutObj.user, networkOutput: noutObj.networkOutput})
+
+    const title = "BEST | " + networkStats.networkId
+      + " | @" + noutObj.user.screenName 
+      + "\nBIN MODE: " + binaryMode 
+      + " | C M: " + networkStats.meta.category 
+      + " A: " + networkStats.meta.categoryAuto
+      + " | INPUT HIT RATE: " + noutObj.networkOutput[networkStats.networkId].inputHitRate.toFixed(3) + "%"
+      + " | M/MM/TOT: " + networkStats.meta.match + "/" + networkStats.meta.mismatch + "/" + networkStats.meta.total
+      + " | MR: " + networkStats.matchRate.toFixed(3) + "%"
+      + " | MATCH: " + networkStats.meta.matchFlag;
+
+    await nnTools.printNetworkResults({title: title});
+  }
+  return;
 }
 
 async function main(){
@@ -280,7 +305,7 @@ async function main(){
 
     console.log("userArray.length: " + userArray.length);
 
-    await activateUsers(randomNnId, userArray, BINARY_MODE);
+    await activateUsers(randomNnId, userArray, BINARY_MODE, CONVERT_DATUM);
 
     const statsObj = await nnTools.getNetworkStats();
     console.log("statsObj.bestNetwork\n" + jsonPrint(statsObj.bestNetwork));

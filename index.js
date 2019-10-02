@@ -853,6 +853,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     throw new Error("DATAM PARAM UNDEFINED");
   }
   else{ // input data already converted for inputsObj
+    results.datum = params.datum;
     results.emptyFlag = false;
     results.inputHits = _.compact(params.datum.input).length;
     results.inputMisses = params.datum.input.length - results.inputHits;
@@ -951,20 +952,23 @@ NeuralNetworkTools.prototype.activate = function (params) {
     const verbose = params.verbose || false;
     const convertDatumFlag = params.convertDatumFlag || false;
     const user = params.user;
+    const datum = params.datum;
 
-    if (!user.profileHistograms || (user.profileHistograms == undefined)) {
-      console.log(chalkWarn("NNT | UNDEFINED USER PROFILE HISTOGRAMS | @" + user.screenName));
-      user.profileHistograms = {};
-    }
+    if (convertDatumFlag){
+      if (!user.profileHistograms || (user.profileHistograms == undefined)) {
+        console.log(chalkWarn("NNT | UNDEFINED USER PROFILE HISTOGRAMS | @" + user.screenName));
+        user.profileHistograms = {};
+      }
 
-    if (!user.tweetHistograms || (user.tweetHistograms == undefined)) {
-      console.log(chalkWarn("NNT | UNDEFINED USER TWEET HISTOGRAMS | @" + user.screenName + "\n" + jsonPrint(params)));
-      user.tweetHistograms = {};
-    }
+      if (!user.tweetHistograms || (user.tweetHistograms == undefined)) {
+        console.log(chalkWarn("NNT | UNDEFINED USER TWEET HISTOGRAMS | @" + user.screenName + "\n" + jsonPrint(params)));
+        user.tweetHistograms = {};
+      }
 
-    if (!user.friends || (user.friends == undefined)) {
-      console.log(chalkWarn("NNT | UNDEFINED USER FRIENDS | @" + user.screenName));
-      user.friends = [];
+      if (!user.friends || (user.friends == undefined)) {
+        console.log(chalkWarn("NNT | UNDEFINED USER FRIENDS | @" + user.screenName));
+        user.friends = [];
+      }
     }
 
     const networkOutput = {};
@@ -978,7 +982,17 @@ NeuralNetworkTools.prototype.activate = function (params) {
 
       networkOutput[nnId] = {};
 
-      activateSingleNetwork({networkId: nnId, user: user, convertDatumFlag: convertDatumFlag, binaryMode: binaryMode, verbose: verbose})
+      let activateParams = {};
+
+      if (convertDatumFlag) {
+        activateParams = {networkId: nnId, user: user, convertDatumFlag: convertDatumFlag, binaryMode: binaryMode, verbose: verbose};
+      }
+      else{
+        const userParams = {screenName: user.screenName, nodeId: user.nodeId, category: user.category, categoryAuto: user.categoryAuto};
+        activateParams = {networkId: nnId, user: userParams, datum: datum, convertDatumFlag: convertDatumFlag, binaryMode: binaryMode, verbose: verbose};
+      }
+
+      activateSingleNetwork(activateParams)
       .then(function(output){
         networkOutput[nnId] = output;
         cb();
