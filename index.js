@@ -135,7 +135,7 @@ networkDefaults.meta = {};
 
 networkDefaults.meta.category = false;
 networkDefaults.meta.categoryAuto = false;
-networkDefaults.meta.binaryMode = configuration.binaryMode;
+networkDefaults.meta.binaryMode = configuration.binaryMode || "???";
 networkDefaults.meta.output = [0,0,0];
 networkDefaults.meta.total = 0;
 networkDefaults.meta.match = 0;
@@ -598,15 +598,20 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
         " MR"
       ]);
 
-      console.log(chalk.blue(
-          "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
-        + "\nNNT | " + params.title 
-        + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------\n"
-        + table(statsTextArray, { align: ["l", "r", "l", "l", "l", "r", "r", "r", "r", "r", "l", "l", "r", "r", "r", "r", "r"] })
-        + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
-      ));
+      try{
+        console.log(chalk.blue(
+            "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
+          + "\nNNT | " + params.title 
+          + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------\n"
+          + table(statsTextArray, { align: ["l", "r", "l", "l", "l", "r", "r", "r", "r", "r", "l", "l", "r", "r", "r", "r", "r"] })
+          + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
+        ));
 
-      resolve();
+        return resolve();
+      }
+      catch(err){
+        return resolve();
+      }
 
     });
 
