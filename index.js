@@ -438,7 +438,7 @@ NeuralNetworkTools.prototype.printNetworkInput = function(params){
     }
 
     const inputArray = params.datum.input;
-    const nameArray = params.datum.name;
+    const nameArray = (params.datum.name != undefined) ? params.datum.name : _.fill(Array(inputArray.length), "");
     const columns = params.columns || 100;
 
     let col = 0;
@@ -462,11 +462,13 @@ NeuralNetworkTools.prototype.printNetworkInput = function(params){
 
     async.eachOfSeries(inputArray, function(input, index, cb){
 
+      const hitName = (nameArray[index] != undefined) ? nameArray[index] : "#";
+
       if (input) {
         inputText = "X";
         hits += 1;
         hitRate = 100 * hits / inputArraySize;
-        hitRowArray.push(nameArray[index]);
+        hitRowArray.push(hitName);
       }
       else {
         inputText = ".";
@@ -832,7 +834,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   if (convertDatumFlag) {
     // results = {emptyFlag: emptyFlag, datum: convertedDatum, inputHits: inputHits, inputMisses: inputMisses, inputHitRate: inputHitRate}
-    results = await tcUtils.convertDatum({datum: user, inputsId: nnObj.inputsId, binaryMode: binaryMode, verbose: verbose});
+    results = await tcUtils.convertDatum({user: user, inputsId: nnObj.inputsId, binaryMode: binaryMode, verbose: verbose});
 
     if (!results || results == undefined) {
       console.log("NNT | *** CONVERT DATUM ERROR | NO RESULTS");
@@ -862,7 +864,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
     if (verbose) {
       console.log(chalkLog("NNT | DATUM"
-        + " | @" + params.screenName
+        + " | @" + user.screenName
         + " | INPUTS ID: " + nnObj.inputsId
         + " | H/M/TOT: " + results.inputHits + "/" + results.inputMisses + "/" + params.datum.input.length
         + " | INPUT HIT RATE: " + results.inputHitRate.toFixed(3) + "%"
