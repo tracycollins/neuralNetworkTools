@@ -203,7 +203,7 @@ function activateUsers(primaryNetworkId, userArray, binaryMode){
 
     async.eachSeries(userArray, function(user, cb){
 
-      nnTools.activate({user: user, binaryMode: binaryMode, verbose: false})
+      nnTools.activate({user: user, convertDatumFlag: true, binaryMode: binaryMode, verbose: false})
       .then(function(noutObj){
 
         // noutObj = { user: user, networkOutput: networkOutput }
