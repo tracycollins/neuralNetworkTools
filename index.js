@@ -857,7 +857,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   if (convertDatumFlag) {
     // results = {emptyFlag: emptyFlag, datum: convertedDatum, inputHits: inputHits, inputMisses: inputMisses, inputHitRate: inputHitRate}
-    results = await tcUtils.convertDatum({user: user, inputsId: nnObj.inputsId, binaryMode: binaryMode, verbose: verbose});
+    results = await tcUtils.convertDatum({primaryInputsFlag: false, user: user, inputsId: nnObj.inputsId, binaryMode: binaryMode, verbose: verbose});
 
     if (!results || results == undefined) {
       console.log("NNT | *** CONVERT DATUM ERROR | NO RESULTS");
@@ -987,7 +987,7 @@ NeuralNetworkTools.prototype.activate = function (params) {
       user.categoryAuto = "UNDEFINED";
     }
 
-    const datum = params.datum;
+    let datum = {};
 
     if (convertDatumFlag){
       if (!user.profileHistograms || (user.profileHistograms == undefined)) {
@@ -1004,6 +1004,9 @@ NeuralNetworkTools.prototype.activate = function (params) {
         console.log(chalkWarn("NNT | UNDEFINED USER FRIENDS | @" + user.screenName));
         user.friends = [];
       }
+    }
+    else{
+      datum = params.datum;
     }
 
     const networkOutput = {};

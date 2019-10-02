@@ -1,5 +1,5 @@
 const BINARY_MODE = true;
-const CONVERT_DATUM = false;
+const CONVERT_DATUM = true;
 
 const fsp = require('fs').promises;
 const path = require("path");
