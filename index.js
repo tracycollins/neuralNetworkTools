@@ -852,8 +852,8 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   }
   else if (!params.datum || params.datum == undefined){
-    console.log("NNT | *** DATAM PARAM UNDEFINED");
-    throw new Error("DATAM PARAM UNDEFINED");
+    console.log("NNT | *** DATUM PARAM UNDEFINED");
+    throw new Error("DATAM DATUM UNDEFINED");
   }
   else{ // input data already converted for inputsObj
     results.datum = params.datum;
