@@ -812,7 +812,6 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     networksHashMap.delete(nnId);
 
     throw new Error("ACTIVATE_UNDEFINED: " + nnObj.networkId);
-
   }
 
   const results = await tcUtils.convertDatum({datum: params.user, inputsId: nnObj.inputsId, binaryMode: binaryMode, verbose: verbose});
