@@ -798,6 +798,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   const verbose = configuration.verbose || params.verbose;
   const convertDatumFlag = params.convertDatumFlag || false;
   const nnId = params.networkId || primaryNeuralNetworkId;
+  const user = params.user || { nodeId: "---", screenName: "--", category: "---", categoryAuto: "---"};
 
   if (!networksHashMap.has(nnId)){
     console.log(chalkError("NNT | NN NETWORK NOT IN HASHMAP" + nnId));
@@ -831,7 +832,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   if (convertDatumFlag) {
     // results = {emptyFlag: emptyFlag, datum: convertedDatum, inputHits: inputHits, inputMisses: inputMisses, inputHitRate: inputHitRate}
-    results = await tcUtils.convertDatum({datum: params.user, inputsId: nnObj.inputsId, binaryMode: binaryMode, verbose: verbose});
+    results = await tcUtils.convertDatum({datum: user, inputsId: nnObj.inputsId, binaryMode: binaryMode, verbose: verbose});
 
     if (!results || results == undefined) {
       console.log("NNT | *** CONVERT DATUM ERROR | NO RESULTS");
@@ -874,10 +875,10 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   const networkOutput = {};
   networkOutput.nnId = nnId;
   networkOutput.user = {};
-  networkOutput.user.nodeId = params.user.nodeId;
-  networkOutput.user.screenName = params.user.screenName;
-  networkOutput.user.category = params.user.category;
-  networkOutput.user.categoryAuto = params.user.categoryAuto;
+  networkOutput.user.nodeId = user.nodeId;
+  networkOutput.user.screenName = user.screenName;
+  networkOutput.user.category = user.category;
+  networkOutput.user.categoryAuto = user.categoryAuto;
   networkOutput.binaryMode = binaryMode;
   networkOutput.outputRaw = [];
   networkOutput.outputRaw = outputRaw;
@@ -915,14 +916,14 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
       networkOutput.output = [0,0,0];
   }
 
-  networkOutput.matchFlag = ((params.user.category != "none") && (networkOutput.categoryAuto == params.user.category)) ? "MATCH" : "MISS";
+  networkOutput.matchFlag = ((user.category != "none") && (networkOutput.categoryAuto == user.category)) ? "MATCH" : "MISS";
 
   const title = nnObj.networkId
       + " | BINARY MODE: " + nnObj.meta.binaryMode 
       + " | INPUT: " + nnObj.inputsId 
       + " | INPUT H/M/RATE: " + networkOutput.inputHits + "/" + networkOutput.inputMisses + "/" + networkOutput.inputHitRate.toFixed(3)
-      + " | @" + params.user.screenName 
-      + " | C: " + params.user.category 
+      + " | @" + user.screenName 
+      + " | C: " + user.category 
       + " | A: " + networkOutput.categoryAuto
       + " | MATCH: " + networkOutput.matchFlag;
 
@@ -942,7 +943,6 @@ NeuralNetworkTools.prototype.activate = function (params) {
 
   return new Promise(function(resolve, reject){
 
-
     if (networksHashMap.size == 0) {
       console.log(chalkError("NNT | *** NO NETWORKS IN HASHMAP"));
       return reject(new Error("NNT | *** NO NETWORKS IN HASHMAP"));
@@ -951,7 +951,17 @@ NeuralNetworkTools.prototype.activate = function (params) {
     const binaryMode = (params.binaryMode != undefined) ? params.binaryMode : configuration.binaryMode;
     const verbose = params.verbose || false;
     const convertDatumFlag = params.convertDatumFlag || false;
-    const user = params.user;
+
+    let user = params.user;
+
+    if (!user || user == undefined) {
+      user = {};
+      user.nodeId = "UNDEFINED";
+      user.screenName = "UNDEFINED";
+      user.category = "UNDEFINED";
+      user.categoryAuto = "UNDEFINED";
+    }
+
     const datum = params.datum;
 
     if (convertDatumFlag){
@@ -988,8 +998,7 @@ NeuralNetworkTools.prototype.activate = function (params) {
         activateParams = {networkId: nnId, user: user, convertDatumFlag: convertDatumFlag, binaryMode: binaryMode, verbose: verbose};
       }
       else{
-        const userParams = {screenName: user.screenName, nodeId: user.nodeId, category: user.category, categoryAuto: user.categoryAuto};
-        activateParams = {networkId: nnId, user: userParams, datum: datum, convertDatumFlag: convertDatumFlag, binaryMode: binaryMode, verbose: verbose};
+        activateParams = {networkId: nnId, user: user, datum: datum, convertDatumFlag: convertDatumFlag, binaryMode: binaryMode, verbose: verbose};
       }
 
       activateSingleNetwork(activateParams)
