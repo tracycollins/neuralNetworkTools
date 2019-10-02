@@ -226,7 +226,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     console.log(chalkWarn("NNT | ... CONVERT+LOAD NETWORK FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
 
-    if (nn.networkRaw && nn.networkRaw != undefined) {
+    if (nn.networkRaw && nn.networkRaw != undefined && nn.networkRaw.activate != undefined) {
       console.log(chalkWarn("NNT | RAW NETWORK ALREADY EXISTS | TECH: " + nn.networkTechnology + " | " + nn.networkId));
     }
     else if (nn.networkJson && nn.networkJson != undefined) {
@@ -249,7 +249,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
         }
       }
       catch(e){
-        console.log(chalkError("NNT | FROM JSON ERROR"
+        console.log(chalkError("NNT | FROM JSON ERROR | ... TRY ALTERNATE NN TECH"
           + " | TECH: " + nn.networkTechnology + " | " + nn.networkId
           + " | ERROR: " + e
         ));
@@ -837,7 +837,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
     console.log(chalkError("NNT | *** NN RAW NETWORK UNDEFINED: " + nnId));
 
-    await deleteNetwork(nnId);
+    await deleteNetwork({networkId: nnId});
     throw new Error("NN RAW NETWORK UNDEFINED: " + nnId);
   }
 
@@ -849,7 +849,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
       + " | INPUTS: " + nnObj.inputsId 
     ));
 
-    await deleteNetwork(nnId);
+    await deleteNetwork({networkId: nnObj.networkId});
     throw new Error("NN RAW ACTIVATE UNDEFINED: " + nnObj.networkId);
   }
 
