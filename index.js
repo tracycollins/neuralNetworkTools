@@ -628,6 +628,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
         resolve();
       }
       catch(err2){
+        console.log(chalkError("NNT | *** printNetworkResults ERROR: " + err2));
         resolve();
       }
 
