@@ -556,7 +556,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
       + " | CA: " + statsObj.currentBestNetwork.meta.categoryAuto
       + " | " + statsObj.currentBestNetwork.meta.matchFlag;
 
-    if (!params.title) { params.title = titleDefault; }
+    if (!params.title || params == undefined) { params.title = titleDefault; }
 
     const sortedNetworksArray = _.sortBy(networksHashMap.values(), ["matchRate"]);
     _.reverse(sortedNetworksArray);
@@ -586,6 +586,10 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
         nn.meta.mismatch,
         nn.matchRate.toFixed(2),
       ];
+
+      for(let i=0; i<statsTextArray[index].length; i++){
+        statsTextArray[index][i] = (statsTextArray[index][i] == undefined) ? "???" : statsTextArray[index][i];
+      }
 
       cb0();
 
@@ -617,6 +621,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
       ]);
 
       try{
+
         console.log(chalk.blue(
             "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
           + "\nNNT | " + params.title 

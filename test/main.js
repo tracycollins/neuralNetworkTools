@@ -269,14 +269,13 @@ async function activateUsers(primaryNetworkId, userArray, binaryMode, convertDat
     const networkStats = await nnTools.updateNetworkStats({user: noutObj.user, networkOutput: noutObj.networkOutput})
 
     const title = "BEST | " + networkStats.networkId
-      + " | @" + noutObj.user.screenName 
-      + "\nBIN MODE: " + binaryMode 
-      + " | C M: " + networkStats.meta.category 
-      + " A: " + networkStats.meta.categoryAuto
-      + " | INPUT HIT RATE: " + noutObj.networkOutput[networkStats.networkId].inputHitRate.toFixed(3) + "%"
+      + " | BIN: " + binaryMode 
+      + " | IHR: " + noutObj.networkOutput[networkStats.networkId].inputHitRate.toFixed(3) + "%"
       + " | M/MM/TOT: " + networkStats.meta.match + "/" + networkStats.meta.mismatch + "/" + networkStats.meta.total
-      + " | MR: " + networkStats.matchRate.toFixed(3) + "%"
-      + " | MATCH: " + networkStats.meta.matchFlag;
+      + " | MR: " + networkStats.matchRate.toFixed(2) + "%"
+      + " | MTCH: " + networkStats.meta.matchFlag
+      + " | C M: " + networkStats.meta.category + " A: " + networkStats.meta.categoryAuto
+      + " | @" + noutObj.user.screenName;
 
     await nnTools.printNetworkResults({title: title});
   }
