@@ -335,7 +335,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
   }
   catch(err){
-    console.trace(chalkError("NNT | *** LOAD NN ERROR"
+    console.log(chalkError("NNT | *** LOAD NN ERROR"
       + " | NN ID: " + params.networkObj.networkId
       + " | IN ID: " + params.networkObj.inputsId
       + " | " + err
