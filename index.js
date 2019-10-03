@@ -625,10 +625,10 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
           + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
         ));
 
-        return resolve();
+        resolve();
       }
       catch(err2){
-        return resolve();
+        resolve();
       }
 
     });
