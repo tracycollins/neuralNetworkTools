@@ -4,7 +4,7 @@
 const DEFAULT_BINARY_MODE = true;
 
 const neataptic = require("neataptic");
-const carrot = require("@liquid-carrot/carrot");
+// const carrot = require("@liquid-carrot/carrot");
 const objectRenameKeys = require("object-rename-keys");
 const empty = require("is-empty");
 
@@ -340,42 +340,49 @@ NeuralNetworkTools.prototype.getNetwork = async function(params){
   }
 }
 
-// function rawNetworkValid(nnObj){
-//   if (!nnObj.networkRaw 
-//     || nnObj.networkRaw == undefined 
-//     || nnObj.networkRaw.toJSON == undefined 
-//     || nnObj.networkRaw.evolve == undefined 
-//     || nnObj.networkRaw.activate == undefined)
-//   {
-//     return false;
-//   }
-//   try {
-//     const networkJson = nnObj.networkRaw.toJSON();
-//     return true;
-//   }
-//   catch(err){
-//     return false;
-//   }
-// }
+NeuralNetworkTools.prototype.validateNetwork = async function(params){
 
-// function jsonNetworkValid(nnObj){
-//   if (!nnObj.networkJson || nnObj.networkJson == undefined){
-//     return false;
-//   }
-//   try {
-//     if (nnObj.networkTechnology == "neataptic"){
-//       const networkRaw = neataptic.Network.fromJSON(nnObj.networkJson);
-//       return true;
-//     }
-//     if (nnObj.networkTechnology == "carrot"){
-//       const networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
-//       return true;
-//     }
-//   }
-//   catch(err){
-//     return false;
-//   }
-// }
+  try {
+
+    if (empty(params) || empty(params.networkObj) || empty(params.networkId)) {
+      console.log(chalkError("NNT | validateNetwork *** PARAMS UNDEFINED ???\nPARAMS\n" + jsonPrint(params)));
+      throw new Error("params undefined");
+    }
+
+    if (params.networkObj.networkId != params.networkId) {
+      console.log(chalkError("NNT | *** NETWORK ID MISMATCH"
+        + " | " + params.networkObj.networkId 
+        + " | " + params.networkId
+      ));
+      return false;
+    }
+
+    if(empty(params.networkObj.numInputs)) {
+      console.log(chalkError("NNT | *** NETWORK NETWORK numInputs UNDEFINED"
+        + " | " + params.networkObj.networkId
+      ));
+      return false;
+    }
+
+    if(empty(params.networkObj.inputsId)) {
+      console.log(chalkError("NNT | *** NETWORK INPUTS ID UNDEFINED"
+        + " | " + params.networkObj.networkId));
+      return false;
+    }
+
+    if(empty(params.networkObj.networkJson)) {
+      console.log(chalkError("NNT | *** NETWORK NETWORK OBJ UNDEFINED"
+        + " | " + params.networkObj.networkId));
+      return false;
+    }
+
+    return true;
+  }
+  catch(err){
+    console.log(chalkError("NNT | *** VALIDATE NETWORK ERROR: " + err)); 
+    throw err;
+  }
+}
 
 NeuralNetworkTools.prototype.deleteNetwork = async function(params){
 
