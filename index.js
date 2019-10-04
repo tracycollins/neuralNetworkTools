@@ -180,57 +180,31 @@ NeuralNetworkTools.prototype.loadInputs = async function(params){
 
 NeuralNetworkTools.prototype.convertNetwork = async function(params){
 
-  const nnObj = params.networkObj;
+  try{
+    const nnObj = params.networkObj;
 
-  if (empty(nnObj.network) && empty(nnObj.networkRaw) && empty(nnObj.networkJson)) {
-    console.log(chalkError("NNT | *** NO OLD NET or RAW or JSON EXIST | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
-    throw new Error("NO RAW OR JSON NETWORK");
-  }
-
-  if (nnObj.networkRaw && nnObj.networkJson) {
-    console.log(chalkLog("NNT | RAW + JSON EXIST | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
-    return nnObj;
-  }
-
-  if (empty(nnObj.networkRaw) && empty(nnObj.networkJson) && nnObj.network && nnObj.network.activate == undefined) {
-
-    console.log(chalkWarn("NNT | OLD JSON NETWORK EXISTS | NO RAW | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
-
-    const newNetObj = objectRenameKeys(nnObj, {network: "networkJson"});
-
-    try {
-      if (newNetObj.networkTechnology == "neataptic"){
-        newNetObj.networkRaw = neataptic.Network.fromJSON(newNetObj.networkJson);
-        return newNetObj;
-      }
-      if (newNetObj.networkTechnology == "carrot"){
-        newNetObj.networkRaw = carrot.Network.fromJSON(newNetObj.networkJson);
-        return newNetObj;
-      }
-    }
-    catch(err){
-      throw err;
+    if (empty(nnObj.network) && empty(nnObj.networkJson)) {
+      console.log(chalkError("NNT | *** NO OLD NET or JSON EXIST | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
+      throw new Error("NO JSON NETWORK");
     }
 
+    if (nnObj.networkJson) {
+      console.log(chalkLog("NNT | JSON EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
+      nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.networkJson);
+      return nnObj;
+    }
+
+    if (nnObj.network) {
+      console.log(chalkLog("NNT | OLD JSON EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
+      const newNetObj = objectRenameKeys(nnObj, {network: "networkJson"});
+      newNetObj.networkRaw = neataptic.Network.fromJSON(newNetObj.networkJson);
+      return newNetObj;
+    }
+  }
+  catch(err){
+    throw err;
   }
 
-  if (empty(nnObj.networkJson) && nnObj.network && nnObj.network.activate == undefined) {
-
-    console.log(chalkWarn("NNT | OLD JSON NETWORK EXISTS | NO NEW JSON | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
-
-    const newNetObj = objectRenameKeys(nnObj, {network: "networkJson"});
-
-    return newNetObj;
-  }
-
-  if (empty(nnObj.networkRaw) && nnObj.network && nnObj.network.activate != undefined) {
-
-    console.log(chalkWarn("NNT | OLD RAW NETWORK EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
-
-    const newNetObj = objectRenameKeys(nnObj, {network: "networkRaw"});
-
-    return newNetObj;
-  }
 }
 
 const convertNetwork = NeuralNetworkTools.prototype.convertNetwork;
@@ -896,25 +870,25 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   const nnObj = networksHashMap.get(nnId);
   nnObj.meta.binaryMode = binaryMode;
 
-  if (!nnObj.networkRaw || (nnObj.networkRaw == undefined)){
+  // if (empty(nnObj.networkRaw)){
 
-    console.log(chalkError("NNT | *** NN RAW NETWORK UNDEFINED: " + nnId));
+  //   console.log(chalkError("NNT | *** NN RAW NETWORK UNDEFINED: " + nnId));
 
-    await deleteNetwork({networkId: nnId});
-    throw new Error("NN RAW NETWORK UNDEFINED: " + nnId);
-  }
+  //   await deleteNetwork({networkId: nnId});
+  //   throw new Error("NN RAW NETWORK UNDEFINED: " + nnId);
+  // }
 
-  if (nnObj.networkRaw.activate == undefined){
+  // if (nnObj.networkRaw.activate == undefined){
 
-    console.log(chalkAlert("NNT | NN RAW NETWORK ACTIVATE UNDEFINED"
-      + " | TECH: " + nnObj.networkTechnology 
-      + " | ID: " + nnObj.networkId 
-      + " | INPUTS: " + nnObj.inputsId 
-    ));
+  //   console.log(chalkAlert("NNT | NN RAW NETWORK ACTIVATE UNDEFINED"
+  //     + " | TECH: " + nnObj.networkTechnology 
+  //     + " | ID: " + nnObj.networkId 
+  //     + " | INPUTS: " + nnObj.inputsId 
+  //   ));
 
-    await deleteNetwork({networkId: nnObj.networkId});
-    throw new Error("NN RAW ACTIVATE UNDEFINED: " + nnObj.networkId);
-  }
+  //   await deleteNetwork({networkId: nnObj.networkId});
+  //   throw new Error("NN RAW ACTIVATE UNDEFINED: " + nnObj.networkId);
+  // }
 
   let results = {};
 
