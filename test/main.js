@@ -169,7 +169,8 @@ function loadNetworks(networksFolder){
               cb();
             })
             .catch(function(err){
-              cb(err);
+              console.log("LOAD NN ERROR: " + err);
+              cb();
             });
 
           })

@@ -181,6 +181,11 @@ NeuralNetworkTools.prototype.convertNetwork = async function(params){
 
   const nnObj = params.networkObj;
 
+  if (!nnObj.network && nnObj.networkRaw && nnObj.networkJson) {
+    console.log(chalkError("NNT | *** NO OLD NET or RAW or JSON EXIST | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
+    throw new Error("NO RAW OR JSON NETWORK");
+  }
+
   if (nnObj.networkRaw && nnObj.networkJson) {
     console.log(chalkLog("NNT | RAW + JSON EXIST | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
     return nnObj;
@@ -231,9 +236,10 @@ const convertNetwork = NeuralNetworkTools.prototype.convertNetwork;
 
 NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
-  if (!params.networkObj || params.networkObj == undefined 
+  if (!params.networkObj 
+    || params.networkObj == undefined 
     || (params.networkObj.networkJson == undefined && params.networkObj.networkRaw == undefined && params.networkObj.network == undefined)) {
-    console.log(chalkError("NNT | *** LOAD NETWORK UNDEFINED: " + params.networkObj));
+    console.log(chalkError("NNT | *** LOAD NETWORK UNDEFINED: " + params.networkObj.networkId));
     throw new Error("NNT | LOAD NETWORK UNDEFINED");
   }
 
@@ -280,7 +286,6 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     console.log(chalkWarn("NNT | ... CONVERT+LOAD NETWORK FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
 
     const nnObj = await convertNetwork({networkObj: nn});
-    console.log("nnObj keys: " + Object.keys(nnObj));
 
     try{
 
