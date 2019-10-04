@@ -285,10 +285,11 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     console.log(chalkWarn("NNT | ... CONVERT+LOAD NETWORK FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
 
-    const nnObj = await convertNetwork({networkObj: nn});
 
     try{
 
+      const nnObj = await convertNetwork({networkObj: nn});
+  
       if (tcUtils.inputsLoaded(nnObj.inputsId)){
         delete nnObj.inputsObj; // save memory
       }
