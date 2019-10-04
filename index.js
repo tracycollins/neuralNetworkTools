@@ -188,18 +188,20 @@ NeuralNetworkTools.prototype.convertNetwork = async function(params){
       throw new Error("NO JSON NETWORK");
     }
 
-    if (nnObj.networkJson) {
+    if (!empty(nnObj.networkJson)) {
       console.log(chalkLog("NNT | JSON EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
       nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.networkJson);
       return nnObj;
     }
 
-    if (nnObj.network) {
+    if (!empty(nnObj.network)) {
       console.log(chalkLog("NNT | OLD JSON EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
       const newNetObj = objectRenameKeys(nnObj, {network: "networkJson"});
       newNetObj.networkRaw = neataptic.Network.fromJSON(newNetObj.networkJson);
       return newNetObj;
     }
+
+    throw new Error("NO VALID JSON NN: " + nnObj.networkId);
   }
   catch(err){
     throw err;
