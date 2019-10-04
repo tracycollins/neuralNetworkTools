@@ -1,6 +1,6 @@
 {
   "name": "@threeceelabs/neural-network-tools",
-  "version": "1.0.111",
+  "version": "1.0.112",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -28,6 +28,7 @@
     "hashmap": "^2.4.0",
     "mongoose": "^5.7.3",
     "neataptic": "^1.4.7",
+    "object-rename-keys": "^1.2.1",
     "object.pick": "^1.3.0",
     "random-item": "^3.0.0",
     "text-table": "^0.2.0"

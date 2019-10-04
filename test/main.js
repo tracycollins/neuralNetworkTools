@@ -28,7 +28,6 @@ else {
   DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
 }
 
-// const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
 const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility",hostname);
 
 const tcuChildName = Number("NNT_TEST_TCU");
@@ -58,14 +57,12 @@ function loadUsers(usersFolder){
 
     const userArray = [];
 
-    // const usersFileArray = await fsp.readdir(usersFolder);
     fsp.readdir(usersFolder)
     .then(function(usersFileArray){
 
       async.eachSeries(usersFileArray, function(file, cb){
 
         if (file.startsWith("user_") && file.endsWith(".json")) {
-          // const userId = file.replace(".json", "");
           console.log("USER LOAD: " + file);
 
           tcUtils.loadFileRetry({folder: testUserFolder, file: file})
@@ -198,6 +195,30 @@ function loadNetworks(networksFolder){
   });
 }
 
+function getNetworks(networkIdArray){
+  return new Promise(function(resolve, reject){
+
+    console.log("... GETTING NETWORKS | " + networkIdArray.length);
+    
+    async.eachSeries(networkIdArray, function(nnId, cb){
+
+      nnTools.getNetwork({networkId: nnId})
+      .then(function(nnObj){
+        cb();
+      })
+      .catch(function(err){
+        cb(err);
+      });
+
+    }, function(err){
+      if (err) { return reject(err); }
+      console.log("GOT " + nnTools.getNumberNetworks() + " NETWORKS");
+      resolve();
+    });
+
+  });
+}
+
 function convertDatum(params){
   return new Promise(function(resolve, reject){
 
@@ -295,7 +316,6 @@ async function main(){
 
     const networkIdArray = await loadNetworks(testNetworkFolder);
 
-
     const randomNnId = randomItem(networkIdArray);
     console.log("setPrimaryNeuralNetwork: " + randomNnId);
     await nnTools.setPrimaryNeuralNetwork(randomNnId);
@@ -309,6 +329,8 @@ async function main(){
     const statsObj = await nnTools.getNetworkStats();
     console.log("statsObj.bestNetwork\n" + jsonPrint(statsObj.bestNetwork));
     console.log("statsObj.currentBestNetwork\n" + jsonPrint(statsObj.currentBestNetwork));
+
+    await getNetworks(networkIdArray);
     return;
 }
 
