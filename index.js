@@ -1045,7 +1045,15 @@ NeuralNetworkTools.prototype.activate = function (params) {
           + " | " + nnId
           + " | " + e
         ));
-        cb(e);
+        
+        deleteNetwork({networkId: nnId})
+        .then(function(){
+          cb(e);
+        })
+        .catch(function(e2){
+          cb(e2);
+        });
+
       });
     }, function(err){
 
