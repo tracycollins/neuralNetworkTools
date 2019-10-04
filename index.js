@@ -6,6 +6,7 @@ const DEFAULT_BINARY_MODE = true;
 const neataptic = require("neataptic");
 const carrot = require("@liquid-carrot/carrot");
 const objectRenameKeys = require("object-rename-keys");
+const empty = require("is-empty");
 
 const path = require("path");
 const os = require("os");
@@ -181,7 +182,7 @@ NeuralNetworkTools.prototype.convertNetwork = async function(params){
 
   const nnObj = params.networkObj;
 
-  if (!nnObj.network && nnObj.networkRaw && nnObj.networkJson) {
+  if (empty(nnObj.network) && empty(nnObj.networkRaw) && empty(nnObj.networkJson)) {
     console.log(chalkError("NNT | *** NO OLD NET or RAW or JSON EXIST | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
     throw new Error("NO RAW OR JSON NETWORK");
   }
@@ -191,7 +192,7 @@ NeuralNetworkTools.prototype.convertNetwork = async function(params){
     return nnObj;
   }
 
-  if (!nnObj.networkRaw && !nnObj.networkJson && nnObj.network && nnObj.network.activate == undefined) {
+  if (empty(nnObj.networkRaw) && empty(nnObj.networkJson) && nnObj.network && nnObj.network.activate == undefined) {
 
     console.log(chalkWarn("NNT | OLD JSON NETWORK EXISTS | NO RAW | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
 
@@ -213,7 +214,7 @@ NeuralNetworkTools.prototype.convertNetwork = async function(params){
 
   }
 
-  if (!nnObj.networkJson && nnObj.network && nnObj.network.activate == undefined) {
+  if (empty(nnObj.networkJson) && nnObj.network && nnObj.network.activate == undefined) {
 
     console.log(chalkWarn("NNT | OLD JSON NETWORK EXISTS | NO NEW JSON | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
 
@@ -222,7 +223,7 @@ NeuralNetworkTools.prototype.convertNetwork = async function(params){
     return newNetObj;
   }
 
-  if (!nnObj.networkRaw && nnObj.network && nnObj.network.activate != undefined) {
+  if (empty(nnObj.networkRaw) && nnObj.network && nnObj.network.activate != undefined) {
 
     console.log(chalkWarn("NNT | OLD RAW NETWORK EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
 
