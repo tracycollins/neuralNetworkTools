@@ -181,6 +181,11 @@ NeuralNetworkTools.prototype.convertNetwork = async function(params){
 
   const nnObj = params.networkObj;
 
+  if (nnObj.networkRaw && nnObj.networkJson) {
+    console.log(chalkLog("NNT | RAW + JSON EXIST | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
+    return nnObj;
+  }
+
   if (!nnObj.networkRaw && !nnObj.networkJson && nnObj.network && nnObj.network.activate == undefined) {
 
     console.log(chalkWarn("NNT | OLD JSON NETWORK EXISTS | NO RAW | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
