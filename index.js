@@ -270,7 +270,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
       if (tcUtils.inputsLoaded(nnObj.inputsId)){
         delete nnObj.inputsObj; // save memory
       }
-      else if (nnObj.inputsObj && nnObj.inputsObj != undefined){
+      else if (!empty(nnObj.inputsObj)){
         await tcUtils.loadInputs({inputsObj: nnObj.inputsObj});
         delete nnObj.inputsObj; // save memory
       }
@@ -286,7 +286,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
         const inputsObj = await tcUtils.loadFileRetry({folder: configuration.inputsFolder, file: file});
 
-        if (!inputsObj) {
+        if (empty(inputsObj)) {
           console.log(chalkError("NNT | *** LOAD INPUTS ERROR"
             + " | NN ID: " + nnObj.networkId
             + " | INPUTS ID: " + nnObj.inputsId
