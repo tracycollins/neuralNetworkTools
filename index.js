@@ -181,27 +181,28 @@ NeuralNetworkTools.prototype.loadInputs = async function(params){
 NeuralNetworkTools.prototype.convertNetwork = async function(params){
 
   try{
+
     const nnObj = params.networkObj;
 
     if (empty(nnObj.network) && empty(nnObj.networkJson)) {
       console.log(chalkError("NNT | *** NO OLD NET or JSON EXIST | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
       throw new Error("NO JSON NETWORK");
     }
-
-    if (!empty(nnObj.networkJson)) {
+    else if (!empty(nnObj.networkJson)) {
       console.log(chalkLog("NNT | JSON EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
       nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.networkJson);
       return nnObj;
     }
-
-    if (!empty(nnObj.network)) {
+    else if (!empty(nnObj.network)) {
       console.log(chalkLog("NNT | OLD JSON EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
       const newNetObj = objectRenameKeys(nnObj, {network: "networkJson"});
       newNetObj.networkRaw = neataptic.Network.fromJSON(newNetObj.networkJson);
       return newNetObj;
     }
+    else{
+      throw new Error("NO VALID JSON NN: " + nnObj.networkId);
+    }
 
-    throw new Error("NO VALID JSON NN: " + nnObj.networkId);
   }
   catch(err){
     throw err;
