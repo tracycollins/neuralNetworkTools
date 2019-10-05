@@ -458,14 +458,15 @@ NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = async function(nnId){
     }
 
     await tcUtils.setPrimaryInputs({inputsId: nnObj.inputsId});
+
+    console.log(chalkLog("NNT | --> SET PRIMARY NN: " + primaryNeuralNetworkId));
+
+    return primaryNeuralNetworkId;
   }
   catch(err){
     return err;
   }
 
-  console.log(chalkLog("NNT | --> SET PRIMARY NN: " + primaryNeuralNetworkId));
-
-  return primaryNeuralNetworkId;
 }
 
 NeuralNetworkTools.prototype.getPrimaryNeuralNetwork = function(){
@@ -473,6 +474,7 @@ NeuralNetworkTools.prototype.getPrimaryNeuralNetwork = function(){
 }
 
 let previousPrintedNetworkObj = {};
+
 function outputNetworkInputText(params){
   if (params.truncated){
     console.log(chalkLog(
@@ -485,6 +487,7 @@ function outputNetworkInputText(params){
     + "\n" + params.hits + " / " + params.inputArraySize + " | HIT RATE: " + params.hitRate.toFixed(2) + "% | " + params.title
     + "\n" + params.text
   ));
+  return;
 }
 
 NeuralNetworkTools.prototype.printNetworkInput = function(params){
@@ -509,13 +512,6 @@ NeuralNetworkTools.prototype.printNetworkInput = function(params){
     let hits = 0;
     let hitRate = 0;
     const inputArraySize = inputArray.length;
-
-    // if (previousPrintedNetworkObj && (previousPrintedNetworkObj.inputsId == params.datum.inputsId)) {
-    //   previousPrintedNetworkObj.truncated = true;
-    //   previousPrintedNetworkObj.title = params.title;
-    //   outputNetworkInputText(previousPrintedNetworkObj);
-    //   return resolve();
-    // }
 
     previousPrintedNetworkObj.truncated = false;
 
@@ -734,7 +730,6 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
     const primaryNetwork = params.primaryNetwork || false; // 
     const verbose = params.verbose || false; //
     const sortByMetric = params.sortBy || "matchRate";
-    // const updateRank = params.updateRank || true;
 
     let networkOutput = {};
 
@@ -880,30 +875,10 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   const nnObj = networksHashMap.get(nnId);
   nnObj.meta.binaryMode = binaryMode;
 
-  // if (empty(nnObj.networkRaw)){
-
-  //   console.log(chalkError("NNT | *** NN RAW NETWORK UNDEFINED: " + nnId));
-
-  //   await deleteNetwork({networkId: nnId});
-  //   throw new Error("NN RAW NETWORK UNDEFINED: " + nnId);
-  // }
-
-  // if (nnObj.networkRaw.activate == undefined){
-
-  //   console.log(chalkAlert("NNT | NN RAW NETWORK ACTIVATE UNDEFINED"
-  //     + " | TECH: " + nnObj.networkTechnology 
-  //     + " | ID: " + nnObj.networkId 
-  //     + " | INPUTS: " + nnObj.inputsId 
-  //   ));
-
-  //   await deleteNetwork({networkId: nnObj.networkId});
-  //   throw new Error("NN RAW ACTIVATE UNDEFINED: " + nnObj.networkId);
-  // }
-
   let results = {};
 
   if (convertDatumFlag) {
-    // results = {emptyFlag: emptyFlag, datum: convertedDatum, inputHits: inputHits, inputMisses: inputMisses, inputHitRate: inputHitRate}
+
     results = await tcUtils.convertDatum({primaryInputsFlag: false, user: user, inputsId: nnObj.inputsId, binaryMode: binaryMode, verbose: verbose});
 
     if (!results || results == undefined) {
@@ -919,7 +894,6 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
         + " | INPUT HIT RATE: " + results.inputHitRate.toFixed(3) + "%"
       ));
     }
-
   }
   else if (!params.datum || params.datum == undefined){
     console.log("NNT | *** DATUM PARAM UNDEFINED");
@@ -966,7 +940,6 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     console.log(chalkError("NNT | *** NETWORK OUTPUT SIZE != 3  | " + nnId + " | outputRaw: " + outputRaw));
     return networkOutput;
   }
-
 
   const maxOutputIndex = await indexOfMax(outputRaw);
 
