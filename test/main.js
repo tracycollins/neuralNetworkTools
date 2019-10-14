@@ -1,13 +1,21 @@
 const BINARY_MODE = true;
-const CONVERT_DATUM = true;
-
+const MODULE_ID_PREFIX = "NNT";
 const fsp = require('fs').promises;
 const path = require("path");
+const chalk = require("chalk");
+const chalkNetwork = chalk.blue;
+const chalkBlueBold = chalk.blue.bold;
+const chalkTwitter = chalk.blue;
+const chalkBlue = chalk.blue;
+const chalkGreen = chalk.green;
+const chalkError = chalk.bold.red;
+const chalkAlert = chalk.red;
+const chalkWarn = chalk.yellow;
+const chalkLog = chalk.gray;
+const chalkInfo = chalk.black;
+
 const async = require("async");
 const randomItem = require("random-item");
-
-const mongoose = require("mongoose");
-mongoose.set("useFindAndModify", false);
 
 const os = require("os");
 let hostname = os.hostname();
@@ -19,6 +27,8 @@ hostname = hostname.replace(/\.fios-router\.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
+const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+
 let DROPBOX_ROOT_FOLDER;
 
 if (hostname === "google") {
@@ -28,6 +38,7 @@ else {
   DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
 }
 
+const configDefaultTestFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/test/testData");
 const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility",hostname);
 
 const tcuChildName = Number("NNT_TEST_TCU");
@@ -36,36 +47,68 @@ const tcUtils = new ThreeceeUtilities(tcuChildName);
 
 const jsonPrint = tcUtils.jsonPrint;
 
-const testNetworkFolder = path.join(configHostFolder, "test/testData/networks");
-const testUserFolder = path.join(configHostFolder, "test/testData/user/converted");
+const testNetworkFolder = path.join(configDefaultTestFolder, "networks");
+const testUserFolder = path.join(configDefaultTestFolder, "users/fromTrainingSet");
 
-const test_user_tobi = tcUtils.loadFileRetry({folder: testUserFolder, file: "user_10032112.json"});
-const test_user_hector = tcUtils.loadFileRetry({folder: testUserFolder, file: "user_10069612.json"});
+// const test_user_tobi = tcUtils.loadFile({folder: testUserFolder, file: "user_10032112.json"});
+// const test_user_hector = tcUtils.loadFile({folder: testUserFolder, file: "user_10069612.json"});
 
-const testInputsFolder = path.join(configHostFolder, "test/testData/inputs");
+const testInputsFolder = path.join(configDefaultTestFolder, "inputs");
 
 const testUsersArray = [];
-testUsersArray.push(test_user_tobi);
-testUsersArray.push(test_user_hector);
+// testUsersArray.push(test_user_tobi);
+// testUsersArray.push(test_user_hector);
 
 const NeuralNetworkTools = require("../index.js");
 const nnTools = new NeuralNetworkTools("TEST");
 
+async function connectDb(){
+
+  try {
+
+    console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
+
+    const db = await wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
+
+    db.on("error", async function(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
+      db.close();
+    });
+
+    db.on("close", async function(err){
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION CLOSED"));
+    });
+
+    db.on("disconnected", async function(){
+      console.log(chalkAlert(MODULE_ID_PREFIX + " | *** MONGO DB DISCONNECTED"));
+    });
+
+    console.log(chalk.green(MODULE_ID_PREFIX + " | MONGOOSE DEFAULT CONNECTION OPEN"));
+
+    return db;
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECT ERROR: " + err));
+    throw err;
+  }
+}
 
 function loadUsers(usersFolder){
   return new Promise(function(resolve, reject){
 
     const userArray = [];
 
+    // const usersFileArray = await fsp.readdir(usersFolder);
     fsp.readdir(usersFolder)
     .then(function(usersFileArray){
 
       async.eachSeries(usersFileArray, function(file, cb){
 
         if (file.startsWith("user_") && file.endsWith(".json")) {
+          // const userId = file.replace(".json", "");
           console.log("USER LOAD: " + file);
 
-          tcUtils.loadFileRetry({folder: testUserFolder, file: file})
+          tcUtils.loadFile({folder: testUserFolder, file: file})
           .then(function(user){
             userArray.push(user);
             cb();
@@ -93,62 +136,10 @@ function loadUsers(usersFolder){
   });
 }
 
-function loadInputs(inputsFolder){
-  return new Promise(function(resolve, reject){
-
-    console.log("... LOADING INPUTS | " + inputsFolder);
-
-    const inputsIdArray = [];
-    
-    fsp.readdir(inputsFolder)
-    .then(function(inputsFileArray){
-
-      async.eachSeries(inputsFileArray, function(file, cb){
-
-        if (file.startsWith("inputs_") && file.endsWith(".json")) {
-
-          const inputsId = file.replace(".json", "");
-
-          tcUtils.loadFileRetry({folder: inputsFolder, file: file})
-          .then(function(inputsObj){
-
-            inputsIdArray.push(inputsId);
-
-            nnTools.loadInputs({inputsObj: inputsObj})
-            .then(function(){
-              cb();
-            })
-            .catch(function(err){
-              cb(err);
-            });
-
-          })
-          .catch(function(e){
-            cb(e);
-          });
-
-        }
-        else{
-          console.log("... SKIPPING INPUTS LOAD: " + file);
-          cb();
-        }
-      }, async function(err){
-        if (err) { return reject(err); }
-        console.log("LOADED " + inputsIdArray.length + " INPUTS FROM " + inputsFolder);
-        resolve(inputsIdArray);
-      });
-    })
-    .catch(function(err){
-      return reject(err);
-    });
-
-  });
-}
-
 function loadNetworks(networksFolder){
   return new Promise(function(resolve, reject){
 
-    console.log("... LOADING NETWORKS | " + networksFolder);
+    console.log("... LOADING NETWORKS | " + testNetworkFolder);
 
     const networkIdArray = [];
     
@@ -159,8 +150,12 @@ function loadNetworks(networksFolder){
 
           const nnId = file.replace(".json", "");
 
-          tcUtils.loadFileRetry({folder: networksFolder, file: file})
+          tcUtils.loadFile({folder: testNetworkFolder, file: file})
           .then(function(nn){
+
+            if (!nn || nn === undefined) {
+              console.log(chalkError("NN NOT FOUND: " + file));
+            }
 
             networkIdArray.push(nnId);
 
@@ -169,8 +164,8 @@ function loadNetworks(networksFolder){
               cb();
             })
             .catch(function(err){
-              console.log("LOAD NN ERROR: " + err);
-              cb();
+              console.log(jsonPrint(err));
+              cb(err);
             });
 
           })
@@ -185,7 +180,7 @@ function loadNetworks(networksFolder){
         }
       }, async function(err){
         if (err) { return reject(err); }
-        console.log("LOADED " + nnTools.getNumberNetworks() + " NETWORKS FROM " + networksFolder);
+        console.log("FOUND " + nnTools.getNumberNetworks() + " NETWORKS IN " + networksFolder);
         resolve(networkIdArray);
       });
     })
@@ -196,143 +191,92 @@ function loadNetworks(networksFolder){
   });
 }
 
-function getNetworks(networkIdArray){
+function activateUsers(primaryNetworkId, userArray, binaryMode){
+
   return new Promise(function(resolve, reject){
 
-    console.log("... GETTING NETWORKS | " + networkIdArray.length);
-    
-    async.eachSeries(networkIdArray, function(nnId, cb){
+    async.eachSeries(userArray, function(user, cb){
 
-      nnTools.getNetwork({networkId: nnId})
-      .then(function(nnObj){
-        cb();
+      nnTools.activate({user: user, binaryMode: binaryMode, verbose: false})
+      .then(function(noutObj){
+
+        // noutObj = { user: user, networkOutput: networkOutput }
+
+        nnTools.updateNetworkStats({user: noutObj.user, networkOutput: noutObj.networkOutput})
+        .then(function(networkStats){
+
+          const title = "BEST | " + networkStats.networkId
+            + " | @" + noutObj.user.screenName 
+            + "\nBIN MODE: " + binaryMode 
+            + " | C M: " + networkStats.meta.category 
+            + " A: " + networkStats.meta.categoryAuto
+            + " | INPUT HIT RATE: " + noutObj.networkOutput[networkStats.networkId].inputHitRate.toFixed(3) + "%"
+            + " | M/MM/TOT: " + networkStats.meta.match + "/" + networkStats.meta.mismatch + "/" + networkStats.meta.total
+            + " | MR: " + networkStats.matchRate.toFixed(3) + "%"
+            + " | MATCH: " + networkStats.meta.matchFlag;
+
+          nnTools.printNetworkResults({title: title})
+          .then(function(){
+            cb();
+          })
+          .catch(function(e){
+            cb(e);
+          });
+
+        })
+        .catch(function(err){
+          console.log("NNT | ERROR: " + err);
+          cb();
+          // return cb(err);
+        });
+
       })
-      .catch(function(err){
-        cb(err);
+      .catch(async function(err){
+        console.log("NN *** ACTIVATE ERROR: " + err);
+        if (err.message.includes("ACTIVATE_UNDEFINED")){
+          const errParts = err.message.split(":");
+          const errNnId = errParts[1].trim();
+          console.log("ERR NN ID: " + errNnId);
+          await nnTools.deleteNetwork({networkId: errNnId});
+          return cb();
+        }
+        else {
+          return cb(err);
+        }
       });
-
     }, function(err){
       if (err) { return reject(err); }
-      console.log("GOT " + nnTools.getNumberNetworks() + " NETWORKS");
       resolve();
     });
 
   });
 }
 
-function convertDatum(params){
-  return new Promise(function(resolve, reject){
-
-    tcUtils.convertDatumOneNetwork({primaryInputsFlag: true, user: params.user, binaryMode: params.binaryMode}).
-    then(function(results){
-
-      if (results.emptyFlag) {
-        console.error("!!! EMPTY CONVERTED DATUM ... SKIPPING | @" + params.user.screenName);
-        return reject(new Error("EMPTY CONVERTED DATUM"));
-      }
-
-      for(const inputValue of results.datum.input){
-        if (typeof inputValue != "number") {
-          return reject(new Error("INPUT VALUE NOT TYPE NUMBER | @" + results.datum.screenName + " | INPUT TYPE: " + typeof inputValue));
-        }
-        if (inputValue < 0) {
-          return reject(new Error("INPUT VALUE LESS THAN ZERO | @" + results.datum.screenName + " | INPUT: " + inputValue));
-        }
-        if (inputValue > 1) {
-          return reject(new Error("INPUT VALUE GREATER THAN ONE | @" + results.datum.screenName + " | INPUT: " + inputValue));
-        }
-      }
-
-      for(const outputValue of results.datum.output){
-        if (typeof outputValue != "number") {
-          return reject(new Error("OUTPUT VALUE NOT TYPE NUMBER | @" + results.datum.screenName + " | OUTPUT TYPE: " + typeof outputValue));
-        }
-        if (outputValue < 0) {
-          return reject(new Error("OUTPUT VALUE LESS THAN ZERO | @" + results.datum.screenName + " | OUTPUT: " + outputValue));
-        }
-        if (outputValue > 1) {
-          return reject(new Error("OUTPUT VALUE GREATER THAN ONE | @" + results.datum.screenName + " | OUTPUT: " + outputValue));
-        }
-      }
-
-      const datum = {input: results.datum.input, output: results.datum.output};
-
-      resolve(datum);
-    }).
-    catch(function(err){
-      console.error("*** ERROR convertDatumOneNetwork: " + err);
-      return reject(err);
-    });
-  });
-}
-
-async function activateUsers(primaryNetworkId, userArray, binaryMode, convertDatumFlag){
-  for(const user of userArray) {
-
-    let params = {};
-
-    if (convertDatumFlag){
-      params = {user: user, convertDatumFlag: true, binaryMode: binaryMode, verbose: false};
-    }
-    else{
-      params.datum = await convertDatum({user: user, binaryMode: binaryMode});
-      params.user = {};
-      params.user.nodeId = user.nodeId;
-      params.user.screenName = user.screenName;
-      params.user.category = user.category;
-      params.user.categoryAuto = user.categoryAuto;
-      params.convertDatumFlag = false;
-      params.binaryMode = binaryMode;
-      params.verbose = false;
-    }
-
-    const noutObj = await nnTools.activate(params);
-
-    const networkStats = await nnTools.updateNetworkStats({user: noutObj.user, networkOutput: noutObj.networkOutput})
-
-    const title = "BEST | " + networkStats.networkId
-      + " | BIN: " + binaryMode 
-      + " | IHR: " + noutObj.networkOutput[networkStats.networkId].inputHitRate.toFixed(3) + "%"
-      + " | M/MM/TOT: " + networkStats.meta.match + "/" + networkStats.meta.mismatch + "/" + networkStats.meta.total
-      + " | MR: " + networkStats.matchRate.toFixed(2) + "%"
-      + " | MTCH: " + networkStats.meta.matchFlag
-      + " | C M: " + networkStats.meta.category + " A: " + networkStats.meta.categoryAuto
-      + " | @" + noutObj.user.screenName;
-
-    await nnTools.printNetworkResults({title: title});
-  }
-  return;
-}
-
 async function main(){
 
-    console.log("LOAD maxInputHashMap: " + testInputsFolder + "/maxInputHashMap.json");
-    const maxNormObj = await tcUtils.loadFileRetry({folder: testInputsFolder, file: "maxInputHashMap.json"});
+  await connectDb();
 
-    await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
-    await nnTools.setNormalization(maxNormObj.normalization);
+  console.log("LOAD maxInputHashMap: " + testInputsFolder + "/maxInputHashMap.json");
+  const maxNormObj = await tcUtils.loadFileRetry({folder: testInputsFolder, file: "maxInputHashMap.json"});
+  await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
+  await nnTools.setNormalization(maxNormObj.normalization);
 
-    const inputsIdArray = await loadInputs(testInputsFolder);
-    console.log("inputsIdArray.length: " + inputsIdArray.length);
+  const networkIdArray = await loadNetworks(testNetworkFolder);
 
-    const networkIdArray = await loadNetworks(testNetworkFolder);
+  const randomNnId = randomItem(networkIdArray);
+  console.log("setPrimaryNeuralNetwork: " + randomNnId);
+  await nnTools.setPrimaryNeuralNetwork(randomNnId);
 
-    const randomNnId = randomItem(networkIdArray);
-    console.log("setPrimaryNeuralNetwork: " + randomNnId);
-    await nnTools.setPrimaryNeuralNetwork(randomNnId);
+  const userArray = await loadUsers(testUserFolder);
 
-    const userArray = await loadUsers(testUserFolder);
+  console.log("userArray.length: " + userArray.length);
 
-    console.log("userArray.length: " + userArray.length);
+  await activateUsers(randomNnId, userArray, BINARY_MODE);
 
-    await activateUsers(randomNnId, userArray, BINARY_MODE, CONVERT_DATUM);
-
-    const statsObj = await nnTools.getNetworkStats();
-    console.log("statsObj.bestNetwork\n" + jsonPrint(statsObj.bestNetwork));
-    console.log("statsObj.currentBestNetwork\n" + jsonPrint(statsObj.currentBestNetwork));
-
-    await getNetworks(networkIdArray);
-    return;
+  const statsObj = await nnTools.getNetworkStats();
+  console.log("statsObj.bestNetwork\n" + jsonPrint(statsObj.bestNetwork));
+  console.log("statsObj.currentBestNetwork\n" + jsonPrint(statsObj.currentBestNetwork));
+  return;
 }
 
 main()
