@@ -836,7 +836,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   }
 
-  let convertedDatum;
+  let convertedDatum = {};
 
   if (convertDatumFlag) {
     convertedDatum = await tcUtils.convertDatum({user: params.user, inputsId: nnObj.inputsId, binaryMode: binaryMode, verbose: verbose});
@@ -847,6 +847,9 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     }
   }
   else {
+    convertedDatum.inputHits = params.datum.inputHits;
+    convertedDatum.inputMisses = params.datum.inputMisses;
+    convertedDatum.inputHitRate = params.datum.inputHitRate;
     convertedDatum.datum = {};
     convertedDatum.datum = params.datum;
   }
