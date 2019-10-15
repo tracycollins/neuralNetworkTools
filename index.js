@@ -847,6 +847,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     }
   }
   else {
+    convertedDatum.inputsId = nnObj.inputsId;
     convertedDatum.inputHits = params.datum.inputHits;
     convertedDatum.inputMisses = params.datum.inputMisses;
     convertedDatum.inputHitRate = params.datum.inputHitRate;
@@ -857,8 +858,8 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   if (verbose) {
     console.log(chalkLog("NNT | CONVERT DATUM"
       + " | @" + convertedDatum.datum.screenName
-      + " | INPUTS ID: " + convertedDatum.datum.inputsId
-      + " | H/M/TOT: " + convertedDatum.inputHits + "/" + convertedDatum.inputMisses + "/" + convertedDatum.datum.numInputs
+      + " | INPUTS ID: " + convertedDatum.inputsId
+      + " | H/M/TOT: " + convertedDatum.inputHits + "/" + convertedDatum.inputMisses + "/" + nnObj.numInputs
       + " | INPUT HIT RATE: " + convertedDatum.inputHitRate.toFixed(3) + "%"
     ));
   }
