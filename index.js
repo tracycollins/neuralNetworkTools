@@ -262,7 +262,16 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
       }
       else{
         console.log(chalkWarn("NNT | ... CONVERT+LOAD NETWORK FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
-        network = neataptic.Network.fromJSON(nn.network);
+
+        if (nn.networkJson && nn.networkJson !== undefined) {
+          network = neataptic.Network.fromJSON(nn.networkJson);
+        }
+        else if (nn.network && nn.network !== undefined) {
+          network = neataptic.Network.fromJSON(nn.network);
+        }
+        else{
+          console.log(chalkError("NNT | *** LOAD NETWORK FROM JSON ERROR | NO JSON??? | TECH: " + nn.networkTechnology + " | " + nn.networkId));
+        }
       }
     }
     else {
@@ -807,7 +816,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   nnObj.meta.binaryMode = binaryMode;
 
   if (!nnObj.network || (nnObj.network === undefined)){
-    console.log(chalkError("NNT | *** NN NETWORK UNDEFINED" + nnId));
+    console.log(chalkError("NNT | *** NN NETWORK UNDEFINED: " + nnId));
     await deleteNetwork(nnId);
     throw new Error("NN NETWORK UNDEFINED: " + nnId);
   }
