@@ -10,6 +10,8 @@ const HashMap = require("hashmap").HashMap;
 const defaults = require("object.defaults");
 const pick = require("object.pick");
 const table = require("text-table");
+const empty = require("is-empty");
+const objectRenameKeys = require("object-rename-keys");
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
@@ -790,6 +792,35 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
     });
   });
+}
+
+NeuralNetworkTools.prototype.convertNetwork = function(params){
+
+  return new Promise(function(resolve, reject){
+
+    const nnObj = params.networkObj;
+
+    if (empty(nnObj.network) && empty(nnObj.networkJson)) {
+      console.log(chalkError("NNT | *** NO OLD NET or JSON EXIST | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
+      reject(new Error("NO JSON NETWORK"));
+    }
+    else if (!empty(nnObj.networkJson)) {
+      console.log(chalkLog("NNT | JSON EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
+      nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.networkJson);
+      resolve(nnObj);
+    }
+    else if (!empty(nnObj.network)) {
+      console.log(chalkLog("NNT | OLD JSON EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
+      const newNetObj = objectRenameKeys(nnObj, {network: "networkJson"});
+      newNetObj.networkRaw = neataptic.Network.fromJSON(newNetObj.networkJson);
+      resolve(newNetObj);
+    }
+    else{
+      reject(new Error("NO VALID JSON NN: " + nnObj.networkId));
+    }
+
+  });
+
 }
 
 NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
