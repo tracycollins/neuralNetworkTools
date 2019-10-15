@@ -796,7 +796,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   // const activateParams = {
   //   user: datum.user, 
-  //   datum: datum, 
+  //   datum: datum, (user, input, output)
   //   convertDatumFlag: convertDatumFlag, 
   //   binaryMode: binaryMode, 
   //   verbose: configuration.verbose
@@ -847,7 +847,8 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     }
   }
   else {
-    convertedDatum = params.datum;
+    convertedDatum.datum = {};
+    convertedDatum.datum = params.datum;
   }
 
   if (verbose) {
