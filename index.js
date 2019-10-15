@@ -785,6 +785,15 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
 NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
+  // const activateParams = {
+  //   user: datum.user, 
+  //   datum: datum, 
+  //   convertDatumFlag: convertDatumFlag, 
+  //   binaryMode: binaryMode, 
+  //   verbose: configuration.verbose
+  // };
+
+  const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
   const verbose = configuration.verbose || params.verbose;
   const nnId = params.networkId || primaryNeuralNetworkId;
@@ -818,23 +827,30 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   }
 
-  const results = await tcUtils.convertDatum({user: params.user, inputsId: nnObj.inputsId, binaryMode: binaryMode, verbose: verbose});
+  let convertedDatum;
 
-  if (!results || results === undefined) {
-    console.log("NNT | *** CONVERT DATUM ERROR | NO RESULTS");
-    throw new Error("CONVERT DATUM ERROR | NO RESULTS")
+  if (convertDatumFlag) {
+    convertedDatum = await tcUtils.convertDatum({user: params.user, inputsId: nnObj.inputsId, binaryMode: binaryMode, verbose: verbose});
+
+    if (!convertedDatum || convertedDatum === undefined) {
+      console.log("NNT | *** CONVERT DATUM ERROR | NO RESULTS");
+      throw new Error("CONVERT DATUM ERROR | NO RESULTS")
+    }
+  }
+  else {
+    convertedDatum = params.datum;
   }
 
   if (verbose) {
     console.log(chalkLog("NNT | CONVERT DATUM"
-      + " | @" + results.datum.screenName
-      + " | INPUTS ID: " + results.datum.inputsId
-      + " | H/M/TOT: " + results.inputHits + "/" + results.inputMisses + "/" + results.datum.numInputs
-      + " | INPUT HIT RATE: " + results.inputHitRate.toFixed(3) + "%"
+      + " | @" + convertedDatum.datum.screenName
+      + " | INPUTS ID: " + convertedDatum.datum.inputsId
+      + " | H/M/TOT: " + convertedDatum.inputHits + "/" + convertedDatum.inputMisses + "/" + convertedDatum.datum.numInputs
+      + " | INPUT HIT RATE: " + convertedDatum.inputHitRate.toFixed(3) + "%"
     ));
   }
 
-  const outputRaw = nnObj.network.activate(results.datum.input);
+  const outputRaw = nnObj.network.activate(convertedDatum.datum.input);
 
   const networkOutput = {};
   networkOutput.nnId = nnId;
@@ -850,9 +866,9 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   networkOutput.output = [0,0,0];
   networkOutput.categoryAuto = "none";
   networkOutput.matchFlag = "MISS";
-  networkOutput.inputHits = results.inputHits;
-  networkOutput.inputMisses = results.inputMisses;
-  networkOutput.inputHitRate = results.inputHitRate;
+  networkOutput.inputHits = convertedDatum.inputHits;
+  networkOutput.inputMisses = convertedDatum.inputMisses;
+  networkOutput.inputHitRate = convertedDatum.inputHitRate;
 
   if (outputRaw.length !== 3) {
     console.log(chalkError("NNT | *** NETWORK OUTPUT SIZE !== 3  | " + nnId + " | outputRaw: " + outputRaw));
@@ -894,7 +910,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   if (verbose) {
     await printNetworkInput({
       title: title,
-      datum: results.datum
+      datum: convertedDatum.datum
     });
   }
 
@@ -914,8 +930,10 @@ NeuralNetworkTools.prototype.activate = function (params) {
     }
 
     const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
+    const convertDatumFlag = params.convertDatumFlag || false;
     const verbose = params.verbose || false;
     const user = params.user;
+    const datum = params.datum;
 
     if (!user.profileHistograms || (user.profileHistograms === undefined)) {
       console.log(chalkWarn("NNT | UNDEFINED USER PROFILE HISTOGRAMS | @" + user.screenName));
@@ -943,7 +961,14 @@ NeuralNetworkTools.prototype.activate = function (params) {
 
       networkOutput[nnId] = {};
 
-      activateSingleNetwork({networkId: nnId, user: user, binaryMode: binaryMode, verbose: verbose})
+      activateSingleNetwork({
+        networkId: nnId, 
+        user: user, 
+        datum: datum, 
+        binaryMode: binaryMode, 
+        convertDatumFlag: convertDatumFlag, 
+        verbose: verbose
+      })
       .then(function(output){
         networkOutput[nnId] = output;
         cb();
