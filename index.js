@@ -1,5 +1,19 @@
 const MODULE_ID_PREFIX = "NNT";
 const DEFAULT_BINARY_MODE = true;
+
+const os = require("os");
+let hostname = os.hostname();
+hostname = hostname.replace(/.tld/g, ""); // amtrak wifi
+hostname = hostname.replace(/.local/g, "");
+hostname = hostname.replace(/.home/g, "");
+hostname = hostname.replace(/.at.net/g, "");
+hostname = hostname.replace(/.fios-router.home/g, "");
+hostname = hostname.replace(/word0-instance-1/g, "google");
+hostname = hostname.replace(/word-1/g, "google");
+hostname = hostname.replace(/word/g, "google");
+
+const path = require("path");
+
 // const carrot = require("@liquid-carrot/carrot");
 const neataptic = require("neataptic");
 const async = require("async");
@@ -42,6 +56,19 @@ const statsObj = {};
 statsObj.networks = {};
 statsObj.bestNetwork = false;
 statsObj.currentBestNetwork = false;
+
+let DROPBOX_ROOT_FOLDER;
+
+if (hostname === "google") {
+  DROPBOX_ROOT_FOLDER = "/home/tc/Dropbox/Apps/wordAssociation";
+}
+else {
+  DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
+}
+
+const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
+const defaultInputsFolder = path.join(configDefaultFolder, "inputs");
+
 
 const NeuralNetworkTools = function(app_name){
   const self = this;
@@ -296,10 +323,21 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     try{
       let inputsObj = nn.inputsObj;
 
-      if (!inputsObj || inputsObj === undefined){
+      if (!inputsObj || inputsObj === undefined || empty(inputsObj)){
         console.log(chalkAlert("NNT | !!! NN INPUTS OBJ UNDEFINED | NN: " + nn.networkId + " | INPUTS ID: " + nn.inputsId));
 
         inputsObj = await wordAssoDb.NetworkInputs.findOne({inputsId: nn.inputsId});
+
+        if (!inputsObj || inputsObj === undefined) {
+
+          console.log(chalkAlert("NNT | !!! NN INPUTS OBJ NOT FOUND IN DB ... TRY FILE | NN: " + nn.inputsId));
+
+          inputsObj = await tcUtils.loadFileRetry({
+            folder: defaultInputsFolder, 
+            file: nn.inputsId + ".json",
+            resolveOnNotFound: false
+          });
+        }
         // throw new Error({message: "NN INPUTS OBJ UNDEFINED: " + nn.inputsId, inputsId: nn.inputsId});
       }
 
