@@ -933,7 +933,8 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     ));
   }
 
-  const outputRaw = nnObj.network.activate(convertedDatum.datum.input);
+  // const outputRaw = nnObj.network.activate(convertedDatum.datum.input);
+  const outputRaw = nnObj.network.noTraceActivate(convertedDatum.datum.input);
 
   const networkOutput = {};
   networkOutput.nnId = nnId;
