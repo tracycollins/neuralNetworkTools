@@ -1014,7 +1014,7 @@ NeuralNetworkTools.prototype.activate = function (params) {
     }
 
     const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
-    const convertDatumFlag = params.convertDatumFlag || false;
+    const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
     const verbose = params.verbose || false;
     const user = params.user;
     const datum = params.datum;
