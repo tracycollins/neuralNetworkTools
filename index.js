@@ -134,6 +134,7 @@ NeuralNetworkTools.prototype.verbose = function(v){
 NeuralNetworkTools.prototype.setBinaryMode = function(b){
   if (b === undefined) { return configuration.binaryMode; }
   configuration.binaryMode = b;
+  tcUtils.setBinaryMode(b);
   console.log(chalkAlert("NNT | --> SET BINARY MODE: " + configuration.binaryMode));
   return;
 }
