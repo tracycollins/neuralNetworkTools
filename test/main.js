@@ -207,7 +207,8 @@ function activateUsers(primaryNetworkId, userArray, binaryMode){
 
           const title = "BEST | " + networkStats.networkId
             + " | BIN: " + binaryMode 
-            + " | CAT M: " + networkStats.meta.category + " A: " + networkStats.meta.categoryAuto
+            + " | CAT M: " + networkStats.meta.category.charAt(0).toUpperCase()
+            + " A: " + networkStats.meta.categoryAuto.charAt(0).toUpperCase()
             + " | IHR: " + noutObj.networkOutput[networkStats.networkId].inputHitRate.toFixed(3) + "%"
             + " | M/MM/TOT: " + networkStats.meta.match + "/" + networkStats.meta.mismatch + "/" + networkStats.meta.total
             + " | MR: " + networkStats.matchRate.toFixed(3) + "%"
