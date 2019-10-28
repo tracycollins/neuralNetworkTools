@@ -565,13 +565,13 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
     statsObj.currentBestNetwork = defaults(statsObj.currentBestNetwork, networkDefaults);
 
     titleDefault = "BEST"
+      + " | BIN MODE: " + statsObj.currentBestNetwork.meta.binaryMode
       + " | " + statsObj.currentBestNetwork.networkId
       + " | " + statsObj.currentBestNetwork.inputsId
       + " | RANK: " + statsObj.currentBestNetwork.rank
       + " | TECH: " + statsObj.currentBestNetwork.networkTechnology
       + " | " + statsObj.currentBestNetwork.meta.match + "/" + statsObj.currentBestNetwork.meta.total
       + " | MR: " + statsObj.currentBestNetwork.matchRate.toFixed(2) + "%"
-      + " | BIN MODE: " + statsObj.currentBestNetwork.meta.binaryMode
       + " | OUT: " + statsObj.currentBestNetwork.meta.output
       + " | CM: " + statsObj.currentBestNetwork.meta.category
       + " | CA: " + statsObj.currentBestNetwork.meta.categoryAuto
@@ -1004,79 +1004,68 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
 const activateSingleNetwork = NeuralNetworkTools.prototype.activateSingleNetwork;
 
-NeuralNetworkTools.prototype.activate = function (params) {
+NeuralNetworkTools.prototype.activate = async function (params) {
 
-  return new Promise(function(resolve, reject){
+  if (networksHashMap.size === 0) {
+    console.log(chalkError("NNT | *** NO NETWORKS IN HASHMAP"));
+    throw new Error("NNT | *** NO NETWORKS IN HASHMAP");
+  }
 
+  const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
+  const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
+  const verbose = params.verbose || false;
+  const user = params.user;
+  const datum = params.datum;
 
-    if (networksHashMap.size === 0) {
-      console.log(chalkError("NNT | *** NO NETWORKS IN HASHMAP"));
-      return reject(new Error("NNT | *** NO NETWORKS IN HASHMAP"));
-    }
+  if (!user.profileHistograms || (user.profileHistograms === undefined)) {
+    console.log(chalkWarn("NNT | UNDEFINED USER PROFILE HISTOGRAMS | @" + user.screenName));
+    user.profileHistograms = {};
+  }
 
-    const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
-    const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
-    const verbose = params.verbose || false;
-    const user = params.user;
-    const datum = params.datum;
+  if (!user.tweetHistograms || (user.tweetHistograms === undefined)) {
+    console.log(chalkWarn("NNT | UNDEFINED USER TWEET HISTOGRAMS | @" + user.screenName + "\n" + jsonPrint(params)));
+    user.tweetHistograms = {};
+  }
 
-    if (!user.profileHistograms || (user.profileHistograms === undefined)) {
-      console.log(chalkWarn("NNT | UNDEFINED USER PROFILE HISTOGRAMS | @" + user.screenName));
-      user.profileHistograms = {};
-    }
+  if (!user.friends || (user.friends === undefined)) {
+    console.log(chalkWarn("NNT | UNDEFINED USER FRIENDS | @" + user.screenName));
+    user.friends = [];
+  }
 
-    if (!user.tweetHistograms || (user.tweetHistograms === undefined)) {
-      console.log(chalkWarn("NNT | UNDEFINED USER TWEET HISTOGRAMS | @" + user.screenName + "\n" + jsonPrint(params)));
-      user.tweetHistograms = {};
-    }
+  const networkOutput = {};
+  const nnIdArray = networksHashMap.keys();
 
-    if (!user.friends || (user.friends === undefined)) {
-      console.log(chalkWarn("NNT | UNDEFINED USER FRIENDS | @" + user.screenName));
-      user.friends = [];
-    }
+  try{
 
-    const networkOutput = {};
-    const nnIdArray = networksHashMap.keys();
-
-    async.each(nnIdArray, function(nnId, cb){
+    for(const nnId of nnIdArray){
 
       if (!networksHashMap.has(nnId)){
-        return reject(new Error("NNT | NET NOT IN HASHMAP | NN ID: " + nnId));
+        throw new Error("NNT | NET NOT IN HASHMAP | NN ID: " + nnId);
       }
 
       networkOutput[nnId] = {};
 
-      activateSingleNetwork({
+      networkOutput[nnId] = await activateSingleNetwork({
         networkId: nnId, 
         user: user, 
         datum: datum, 
         binaryMode: binaryMode, 
         convertDatumFlag: convertDatumFlag, 
         verbose: verbose
-      })
-      .then(function(output){
-        networkOutput[nnId] = output;
-        cb();
-      })
-      .catch(function(e){
-        console.log(chalkError("NNT | activateSingleNetwork | *** ACTIVATE NETWORK ERROR"
-          + " | " + nnId
-          + " | " + e
-        ));
-        cb(e);
       });
-    }, function(err){
 
-      if (err) {
-        console.log(chalkError("NNT | *** ACTIVATE NETWORK ERROR (async callback)"
-          + " | " + err
-        ));
-        return reject(err);
-      }
+    }
+  }
+  catch(err){
+    console.log(chalkError("NNT | activate | *** ACTIVATE NETWORK ERROR"
+      + " | " + err
+    ));
+    throw err;
+  }
 
-      resolve({ user: user, networkOutput: networkOutput });
-    });
-  });
+
+  return {user: user, networkOutput: networkOutput};
+
 };
 
 module.exports = NeuralNetworkTools;
