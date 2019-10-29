@@ -206,13 +206,14 @@ function activateUsers(primaryNetworkId, userArray, binaryMode){
         .then(function(networkStats){
 
           const title = "BEST | " + networkStats.networkId
-            + " | @" + noutObj.user.screenName 
             + " | BIN: " + binaryMode 
-            + " | CAT M: " + networkStats.meta.category + " A: " + networkStats.meta.categoryAuto
+            + " | CAT M: " + networkStats.meta.category.charAt(0).toUpperCase()
+            + " A: " + networkStats.meta.categoryAuto.charAt(0).toUpperCase()
             + " | IHR: " + noutObj.networkOutput[networkStats.networkId].inputHitRate.toFixed(3) + "%"
             + " | M/MM/TOT: " + networkStats.meta.match + "/" + networkStats.meta.mismatch + "/" + networkStats.meta.total
             + " | MR: " + networkStats.matchRate.toFixed(3) + "%"
-            + " | MATCH: " + networkStats.meta.matchFlag;
+            + " | MATCH: " + networkStats.meta.matchFlag
+            + " | @" + noutObj.user.screenName;
 
           nnTools.printNetworkResults({title: title})
           .then(function(){
