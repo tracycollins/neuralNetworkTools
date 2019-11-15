@@ -286,7 +286,26 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     if (nn.networkTechnology === "carrot"){
       console.log(chalkWarn("NNT | ... LOAD NETWORK RAW | TECH: " + nn.networkTechnology + " | " + nn.networkId));
-      network = nn.network;
+      // network = nn.network;
+    // }
+
+      if (params.networkIsRaw) {
+        console.log(chalkWarn("NNT | ... LOAD NETWORK RAW | TECH: " + nn.networkTechnology + " | " + nn.networkId));
+        network = nn.network;
+      }
+      else{
+        console.log(chalkWarn("NNT | ... CONVERT+LOAD NETWORK FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
+
+        if (nn.networkJson && nn.networkJson !== undefined) {
+          network = neataptic.Network.fromJSON(nn.networkJson);
+        }
+        else if (nn.network && nn.network !== undefined) {
+          network = neataptic.Network.fromJSON(nn.network);
+        }
+        else{
+          console.log(chalkError("NNT | *** LOAD NETWORK FROM JSON ERROR | NO JSON??? | TECH: " + nn.networkTechnology + " | " + nn.networkId));
+        }
+      }
     }
     else if (nn.networkTechnology === "neataptic"){
       if (params.networkIsRaw) {
