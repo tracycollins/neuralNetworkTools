@@ -17,7 +17,7 @@ hostname = hostname.replace(/word/g, "google");
 
 const path = require("path");
 
-// const carrot = require("@liquid-carrot/carrot");
+const carrot = require("@liquid-carrot/carrot");
 const neataptic = require("neataptic");
 const async = require("async");
 const util = require("util");
@@ -250,7 +250,6 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     statsObj.networks[nn.networkId] = {};
     statsObj.networks[nn.networkId] = pick(nn, networkPickArray);
-    // statsObj.networks[nn.networkId].meta = pick(nn.meta, networkMetaPickArray);
 
     if (!statsObj.bestNetwork 
       || (statsObj.bestNetwork === undefined)
@@ -258,7 +257,6 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     ) {
       statsObj.bestNetwork = {};
       statsObj.bestNetwork = pick(nn, networkPickArray);
-      // statsObj.bestNetwork.meta = pick(nn.meta, networkMetaPickArray);
     }
 
     if (!statsObj.currentBestNetwork 
@@ -267,27 +265,22 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     ) {
       statsObj.currentBestNetwork = {};
       statsObj.currentBestNetwork = pick(nn, networkPickArray);
-      // statsObj.currentBestNetwork.meta = pick(nn.meta, networkMetaPickArray);
     }
 
     if (params.isBestNetwork || (statsObj.bestNetwork.overallMatchRate < nn.overallMatchRate)) {
       printNetworkObj("NNT | --> LOAD BEST NETWORK", nn, chalk.green);
       statsObj.bestNetwork = pick(nn, networkPickArray);
-      // statsObj.bestNetwork.meta = pick(nn.meta, networkMetaPickArray);
     }
 
     if (statsObj.currentBestNetwork.overallMatchRate < nn.overallMatchRate){
       printNetworkObj("NNT | --> LOAD CURRENT BEST NETWORK", nn, chalk.green);
       statsObj.currentBestNetwork = pick(nn, networkPickArray);
-      // statsObj.currentBestNetwork.meta = pick(nn.meta, networkMetaPickArray);
     }
 
     let network;
 
     if (nn.networkTechnology === "carrot"){
       console.log(chalkWarn("NNT | ... LOAD NETWORK RAW | TECH: " + nn.networkTechnology + " | " + nn.networkId));
-      // network = nn.network;
-    // }
 
       if (params.networkIsRaw) {
         console.log(chalkWarn("NNT | ... LOAD NETWORK RAW | TECH: " + nn.networkTechnology + " | " + nn.networkId));
@@ -297,10 +290,10 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
         console.log(chalkWarn("NNT | ... CONVERT+LOAD NETWORK FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
 
         if (nn.networkJson && nn.networkJson !== undefined) {
-          network = neataptic.Network.fromJSON(nn.networkJson);
+          network = carrot.Network.fromJSON(nn.networkJson);
         }
         else if (nn.network && nn.network !== undefined) {
-          network = neataptic.Network.fromJSON(nn.network);
+          network = carrot.Network.fromJSON(nn.network);
         }
         else{
           console.log(chalkError("NNT | *** LOAD NETWORK FROM JSON ERROR | NO JSON??? | TECH: " + nn.networkTechnology + " | " + nn.networkId));
@@ -868,13 +861,25 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
     }
     else if (!empty(nnObj.networkJson)) {
       console.log(chalkLog("NNT | JSON EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
-      nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.networkJson);
+      if (nnObj.networkTechnology === "carrot") {
+        nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
+      }
+      else {
+        nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.networkJson);
+      }
       resolve(nnObj);
     }
     else if (!empty(nnObj.network)) {
       console.log(chalkLog("NNT | OLD JSON EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
       const newNetObj = objectRenameKeys(nnObj, {network: "networkJson"});
-      newNetObj.networkRaw = neataptic.Network.fromJSON(newNetObj.networkJson);
+
+      if (nnObj.networkTechnology === "carrot") {
+        newNetObj.networkRaw = carrot.Network.fromJSON(newNetObj.networkJson);
+      }
+      else {
+        newNetObj.networkRaw = neataptic.Network.fromJSON(newNetObj.networkJson);
+      }
+
       resolve(newNetObj);
     }
     else{
