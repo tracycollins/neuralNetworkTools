@@ -57,8 +57,8 @@ configuration.verbose = false;
 
 const statsObj = {};
 statsObj.networks = {};
-statsObj.bestNetwork = false;
-statsObj.currentBestNetwork = false;
+statsObj.bestNetwork = {};
+statsObj.currentBestNetwork = {};
 
 let DROPBOX_ROOT_FOLDER;
 
@@ -253,19 +253,11 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     statsObj.networks[nn.networkId] = {};
     statsObj.networks[nn.networkId] = pick(nn, networkPickArray);
 
-    // if (!statsObj.bestNetwork 
-    //   || (statsObj.bestNetwork === undefined)
-    //   || (statsObj.bestNetwork === {})
-    // ) {
     if (empty(statsObj.bestNetwork)) {
       statsObj.bestNetwork = {};
       statsObj.bestNetwork = pick(nn, networkPickArray);
     }
 
-    // if (!statsObj.currentBestNetwork 
-    //   || (statsObj.currentBestNetwork === undefined)
-    //   || (statsObj.currentBestNetwork === {})
-    // ) {
     if (empty(statsObj.currentBestNetwork)) {
       statsObj.currentBestNetwork = {};
       statsObj.currentBestNetwork = pick(nn, networkPickArray);
