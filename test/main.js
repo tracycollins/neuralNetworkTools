@@ -136,10 +136,34 @@ function loadUsers(usersFolder){
   });
 }
 
+async function loadNetworksDb(){
+  console.log("... LOADING DB NETWORKS");
+  try{
+    const networkIdArray = [];
+
+    const nnDocArray = await wordAssoDb.NeuralNetwork.find({networkTechnology: "carrot", "createdAt": {"$gt": new Date("2019-12-01T00:00:00.000Z")}});
+    console.log(chalkInfo(MODULE_ID_PREFIX + " | LOADED NETWORKS: " + nnDocArray.length));
+
+    for(const nnDoc of nnDocArray){
+      networkIdArray.push(nnDoc.networkId);
+
+      const nn = nnDoc.toObject();
+
+      await nnTools.loadNetwork({networkObj: nn});
+    }
+
+    return networkIdArray;
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD DB NETWORKS ERROR: " + err));
+    throw err;
+  }
+}
+
 function loadNetworks(networksFolder){
   return new Promise(function(resolve, reject){
 
-    console.log("... LOADING NETWORKS | " + testNetworkFolder);
+    console.log("... LOADING FILE NETWORKS | " + testNetworkFolder);
 
     const networkIdArray = [];
     
@@ -155,6 +179,11 @@ function loadNetworks(networksFolder){
 
             if (!nn || nn === undefined) {
               console.log(chalkError("NN NOT FOUND: " + file));
+            }
+
+            if (nn.networkTechnology !== "carrot"){
+              console.log("... SKIPPING NETWORK LOAD (NOT CARROT): " + nn.networkId);
+              return cb();
             }
 
             networkIdArray.push(nnId);
@@ -261,7 +290,8 @@ async function main(){
   await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
   await nnTools.setNormalization(maxNormObj.normalization);
 
-  const networkIdArray = await loadNetworks(testNetworkFolder);
+  // const networkIdArray = await loadNetworks(testNetworkFolder);
+  const networkIdArray = await loadNetworksDb();
 
   const randomNnId = randomItem(networkIdArray);
   console.log("setPrimaryNeuralNetwork: " + randomNnId);
