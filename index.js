@@ -967,7 +967,12 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
 
       }
       else {
-        nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.network);
+        if (!empty(nnObj.networkJson)) {
+          nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.networkJson);
+        }
+        else if (!empty(nnObj.network)) {
+          nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.network);
+        }
       }
 
       resolve(nnObj);
