@@ -293,7 +293,6 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
       else{
         console.log(chalkWarn("NNT | ... CONVERT+LOAD NETWORK FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
 
-        // if (nn.networkJson && nn.networkJson !== undefined) {
         if (!empty(nn.networkJson)) {
           
           // catch errors due to toJSON() and fromJSON() bugs in carrot
@@ -316,11 +315,6 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
               }
             });
 
-            // for(const node of nn.networkJson.nodes){
-            //   if (node.type === "input"){
-            //     nn.networkJson.input_nodes.push(node);
-            //   }
-            // }
           }
 
           if (!nn.networkJson.output_nodes) {
@@ -332,11 +326,6 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
               }
             });
 
-            // for(const node of nn.networkJson.nodes){
-            //   if (node.type === "output"){
-            //     nn.networkJson.output_nodes.push(node);
-            //   }
-            // }
           }
 
           if (nn.networkJson.input_nodes.length !== nn.networkJson.input_size){
@@ -355,7 +344,6 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
           network = carrot.Network.fromJSON(nn.networkJson);
         }
-        // else if (nn.network && nn.network !== undefined) {
         else if (!empty(nn.network)) {
           network = carrot.Network.fromJSON(nn.network);
         }
@@ -926,13 +914,70 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
       reject(new Error("NO JSON NETWORK"));
     }
     else if (!empty(nnObj.networkJson)) {
+
       console.log(chalkLog("NNT | JSON EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
+
       if (nnObj.networkTechnology === "carrot") {
-        nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
+
+        // nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
+
+        if (!empty(nnObj.networkJson)) {
+          
+          // catch errors due to toJSON() and fromJSON() bugs in carrot
+
+          if (nnObj.networkJson.input && !nnObj.networkJson.input_size) {
+            nnObj.networkJson.input_size = nnObj.networkJson.input;
+          }
+
+          if (nnObj.networkJson.output && !nnObj.networkJson.output_size) {
+            nnObj.networkJson.output_size = nnObj.networkJson.output;
+          }
+
+          if (!nnObj.networkJson.input_nodes) {
+
+            nnObj.networkJson.input_nodes = [];
+
+            nnObj.networkJson.nodes.forEach(function(node, index){
+              if (node.type === "input"){
+                nnObj.networkJson.input_nodes.push(index);
+              }
+            });
+
+          }
+
+          if (!nnObj.networkJson.output_nodes) {
+            nnObj.networkJson.output_nodes = [];
+
+            nnObj.networkJson.nodes.forEach(function(node, index){
+              if (node.type === "output"){
+                nnObj.networkJson.output_nodes.push(index);
+              }
+            });
+
+          }
+
+          if (nnObj.networkJson.input_nodes.length !== nnObj.networkJson.input_size){
+            // throw new Error("INPUT NODES LENGTH: " + nnObj.networkJson.input_nodes.length);
+            console.log(chalkError("NNT | *** INPUT NODES ERROR | " + nnObj.networkId + " | LENGTH: " + nnObj.networkJson.input_nodes.length));
+          }
+
+          if (nnObj.networkJson.input_nodes.length <= 1){
+            console.log(chalkError("NNT | *** INPUT NODES ERROR | " + nnObj.networkId + " | LENGTH: " + nnObj.networkJson.input_nodes.length));
+            throw new Error("INPUT NODES LENGTH: " + nnObj.networkJson.input_nodes.length);
+          }
+
+          if (nnObj.networkJson.output_nodes.length !== nnObj.networkJson.output_size){
+            // throw new Error("OUTPUT NODES LENGTH: " + nnObj.networkJson.output_nodes.length);
+          }
+
+          nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
+        }
+
       }
       else {
-        nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.networkJson);
+        nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.network);
       }
+
       resolve(nnObj);
     }
     else if (!empty(nnObj.network)) {
