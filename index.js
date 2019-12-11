@@ -290,10 +290,23 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
           // catch errors due to toJSON() and fromJSON() bugs in carrot
 
           if (nn.networkJson.input && !nn.networkJson.input_size) {
+            console.log(chalkAlert("NNT | !!! INPUT SIZE MISMATCH"
+              + " | nn.networkId: " + nn.networkId
+              + " | nn.inputsId: " + nn.inputsId
+              + " | nn.numInputs: " + nn.numInputs
+              + " | nn.networkJson.input: " + nn.networkJson.input
+              + " | nn.networkJson.input_size: " + nn.networkJson.input_size
+            ));
             nn.networkJson.input_size = nn.networkJson.input;
           }
 
           if (nn.networkJson.output && !nn.networkJson.output_size) {
+            console.log(chalkAlert("NNT | !!! OUTPUT SIZE MISMATCH"
+              + " | nn.networkId: " + nn.networkId
+              + " | nn.numOutputs: " + nn.numOutputs
+              + " | nn.networkJson.output: " + nn.networkJson.output
+              + " | nn.networkJson.output_size: " + nn.networkJson.output_size
+            ));
             nn.networkJson.output_size = nn.networkJson.output;
           }
 
@@ -321,8 +334,8 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
           }
 
           if (nn.networkJson.input_nodes.length !== nn.networkJson.input_size){
-            // throw new Error("INPUT NODES LENGTH: " + nn.networkJson.input_nodes.length);
             console.log(chalkError("NNT | *** INPUT NODES ERROR | " + nn.networkId + " | LENGTH: " + nn.networkJson.input_nodes.length));
+            throw new Error("INPUT NODES LENGTH: " + nn.networkJson.input_nodes.length);
           }
 
           if (nn.networkJson.input_nodes.length <= 1){
@@ -331,7 +344,8 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
           }
 
           if (nn.networkJson.output_nodes.length !== nn.networkJson.output_size){
-            // throw new Error("OUTPUT NODES LENGTH: " + nn.networkJson.output_nodes.length);
+            console.log(chalkError("NNT | *** OUTPUT NODES ERROR | " + nn.networkId + " | LENGTH: " + nn.networkJson.output_nodes.length));
+            throw new Error("OUTPUT NODES LENGTH: " + nn.networkJson.output_nodes.length);
           }
 
           network = carrot.Network.fromJSON(nn.networkJson);
