@@ -290,7 +290,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
           // catch errors due to toJSON() and fromJSON() bugs in carrot
 
           if (nn.networkJson.input && !nn.networkJson.input_size) {
-            console.log(chalkAlert("NNT | !!! INPUT SIZE MISMATCH"
+            console.log(chalkAlert("NNT | !!! INPUT SIZE UNDEFINED | SETTING TO nn.networkJson.input"
               + " | nn.networkId: " + nn.networkId
               + " | nn.inputsId: " + nn.inputsId
               + " | nn.numInputs: " + nn.numInputs
@@ -301,7 +301,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
           }
 
           if (nn.networkJson.output && !nn.networkJson.output_size) {
-            console.log(chalkAlert("NNT | !!! OUTPUT SIZE MISMATCH"
+            console.log(chalkAlert("NNT | !!! OUTPUT SIZE UNDEFINED | SETTING TO nn.networkJson.output"
               + " | nn.networkId: " + nn.networkId
               + " | nn.numOutputs: " + nn.numOutputs
               + " | nn.networkJson.output: " + nn.networkJson.output
