@@ -1026,6 +1026,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   //   verbose: configuration.verbose
   // };
 
+  const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : false;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
   const verbose = configuration.verbose || params.verbose;
@@ -1063,7 +1064,13 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   let convertedDatum = {};
 
   if (convertDatumFlag) {
-    convertedDatum = await tcUtils.convertDatum({user: params.user, inputsId: nnObj.inputsId, binaryMode: binaryMode, verbose: verbose});
+    convertedDatum = await tcUtils.convertDatum({
+      user: params.user, 
+      inputsId: nnObj.inputsId,
+      userProfileOnlyFlag: userProfileOnlyFlag,
+      binaryMode: binaryMode, 
+      verbose: verbose
+    });
 
     if (!convertedDatum || convertedDatum === undefined) {
       console.log("NNT | *** CONVERT DATUM ERROR | NO RESULTS");
@@ -1165,6 +1172,7 @@ NeuralNetworkTools.prototype.activate = async function (params) {
     throw new Error("NNT | *** NO NETWORKS IN HASHMAP");
   }
 
+  const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : false;
   const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const verbose = params.verbose || false;
@@ -1206,7 +1214,8 @@ NeuralNetworkTools.prototype.activate = async function (params) {
         networkId: nnId, 
         user: user, 
         datum: datum, 
-        binaryMode: binaryMode, 
+        binaryMode: binaryMode,
+        userProfileOnlyFlag: userProfileOnlyFlag,
         convertDatumFlag: convertDatumFlag, 
         verbose: verbose
       });

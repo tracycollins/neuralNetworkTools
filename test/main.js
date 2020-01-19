@@ -1,4 +1,6 @@
 const BINARY_MODE = true;
+const USER_PROFILE_ONLY_FLAG = true;
+
 const MODULE_ID_PREFIX = "NNT";
 const fsp = require('fs').promises;
 const path = require("path");
@@ -141,7 +143,11 @@ async function loadNetworksDb(){
   try{
     const networkIdArray = [];
 
-    const nnDocArray = await wordAssoDb.NeuralNetwork.find({networkTechnology: "carrot", "createdAt": {"$gt": new Date("2019-12-01T00:00:00.000Z")}});
+    const nnDocArray = await wordAssoDb.NeuralNetwork.find({
+      networkTechnology: "carrot",
+      successRate: {"$gt": 90},
+      "createdAt": {"$gt": new Date("2019-12-01T00:00:00.000Z")}
+    });
     console.log(chalkInfo(MODULE_ID_PREFIX + " | LOADED NETWORKS: " + nnDocArray.length));
 
     for(const nnDoc of nnDocArray){
@@ -226,7 +232,7 @@ function activateUsers(primaryNetworkId, userArray, binaryMode){
 
     async.eachSeries(userArray, function(user, cb){
 
-      nnTools.activate({user: user, binaryMode: binaryMode, convertDatumFlag: true, verbose: false})
+      nnTools.activate({user: user, userProfileOnlyFlag: USER_PROFILE_ONLY_FLAG, binaryMode: binaryMode, convertDatumFlag: true, verbose: false})
       .then(function(noutObj){
 
         // noutObj = { user: user, networkOutput: networkOutput }
@@ -235,6 +241,7 @@ function activateUsers(primaryNetworkId, userArray, binaryMode){
         .then(function(networkStats){
 
           const title = "BEST | " + networkStats.networkId
+            + " | PROFILE ONLY: " + USER_PROFILE_ONLY_FLAG 
             + " | BIN: " + binaryMode 
             + " | CAT M: " + networkStats.meta.category.charAt(0).toUpperCase()
             + " A: " + networkStats.meta.categoryAuto.charAt(0).toUpperCase()
