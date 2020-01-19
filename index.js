@@ -1,5 +1,6 @@
 const MODULE_ID_PREFIX = "NNT";
 const DEFAULT_BINARY_MODE = true;
+const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
 
 const os = require("os");
 let hostname = os.hostname();
@@ -52,6 +53,7 @@ const inputsHashMap = new HashMap();
 let primaryNeuralNetworkId;
 
 const configuration = {};
+configuration.userProfileOnlyFlag = DEFAULT_USER_PROFILE_ONLY_FLAG;
 configuration.binaryMode = DEFAULT_BINARY_MODE;
 configuration.verbose = false;
 
@@ -146,6 +148,18 @@ NeuralNetworkTools.prototype.getBinaryMode = function(){
   return configuration.binaryMode;
 }
 
+NeuralNetworkTools.prototype.setUserProfileOnlyFlag = function(f){
+  if (f === undefined) { return configuration.userProfileOnlyFlag; }
+  configuration.userProfileOnlyFlag = f;
+  tcUtils.setUserProfileOnlyFlag(f);
+  console.log(chalkAlert("NNT | --> SET USER PROFILE ONLY FLAG: " + configuration.userProfileOnlyFlag));
+  return;
+}
+
+NeuralNetworkTools.prototype.getUserProfileOnlyFlag = function(){
+  return configuration.userProfileOnlyFlag;
+}
+
 NeuralNetworkTools.prototype.setMaxInputHashMap = function(m){
   return new Promise(function(resolve){
     tcUtils.setMaxInputHashMap(m);
@@ -191,6 +205,7 @@ networkDefaults.meta = {};
 networkDefaults.meta.category = false;
 networkDefaults.meta.categoryAuto = false;
 networkDefaults.meta.binaryMode = configuration.binaryMode;
+networkDefaults.meta.userProfileOnlyFlag = configuration.userProfileOnlyFlag;
 networkDefaults.meta.output = [0,0,0];
 networkDefaults.meta.total = 0;
 networkDefaults.meta.match = 0;
@@ -639,6 +654,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
 
     titleDefault = "BEST"
       + " | BIN MODE: " + statsObj.currentBestNetwork.meta.binaryMode
+      + " | USER PROFILE ONLY: " + statsObj.currentBestNetwork.meta.userProfileOnlyFlag
       + " | " + statsObj.currentBestNetwork.networkId
       + " | " + statsObj.currentBestNetwork.inputsId
       + " | RANK: " + statsObj.currentBestNetwork.rank
@@ -676,6 +692,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
         nn.testCycleHistory.length,
         nn.meta.matchFlag,
         nn.meta.binaryMode,
+        nn.meta.userProfileOnlyFlag,
         nn.meta.output,
         nn.meta.total,
         nn.meta.match,
@@ -706,6 +723,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
         "TCH",
         "MFLAG",
         "BIN",
+        "UPOF",
         "OUTPUT",
         "TOT",
         " M",
@@ -717,7 +735,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
           "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
         + "\nNNT | " + params.title 
         + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------\n"
-        + table(statsTextArray, { align: ["l", "r", "r", "l", "l", "l", "r", "r", "r", "r", "r", "l", "l", "r", "r", "r", "r", "r"] })
+        + table(statsTextArray, { align: ["l", "r", "r", "l", "l", "l", "r", "r", "r", "r", "r", "l", "l", "l", "r", "r", "r", "r", "r"] })
         + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
       ));
 
@@ -1039,6 +1057,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   const nnObj = networksHashMap.get(nnId);
   nnObj.meta.binaryMode = binaryMode;
+  nnObj.meta.userProfileOnlyFlag = userProfileOnlyFlag;
 
   if (!nnObj.network || (nnObj.network === undefined)){
     console.log(chalkError("NNT | *** NN NETWORK UNDEFINED: " + nnId));
@@ -1106,6 +1125,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   networkOutput.user.category = params.user.category;
   networkOutput.user.categoryAuto = params.user.categoryAuto;
   networkOutput.binaryMode = binaryMode;
+  networkOutput.userProfileOnlyFlag = userProfileOnlyFlag;
   networkOutput.outputRaw = [];
   networkOutput.outputRaw = outputRaw;
   networkOutput.output = [];
@@ -1146,6 +1166,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   const title = nnObj.networkId
       + " | BINARY MODE: " + nnObj.meta.binaryMode 
+      + " | USER PROFILE ONLY: " + nnObj.meta.userProfileOnlyFlag 
       + " | INPUT: " + nnObj.inputsId 
       + " | INPUT H/M/RATE: " + networkOutput.inputHits + "/" + networkOutput.inputMisses + "/" + networkOutput.inputHitRate.toFixed(3)
       + " | @" + params.user.screenName 

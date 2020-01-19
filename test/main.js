@@ -232,7 +232,7 @@ function activateUsers(primaryNetworkId, userArray, binaryMode){
 
     async.eachSeries(userArray, function(user, cb){
 
-      nnTools.activate({user: user, userProfileOnlyFlag: USER_PROFILE_ONLY_FLAG, binaryMode: binaryMode, convertDatumFlag: true, verbose: false})
+      nnTools.activate({user: user, binaryMode: binaryMode, convertDatumFlag: true, verbose: false})
       .then(function(noutObj){
 
         // noutObj = { user: user, networkOutput: networkOutput }
@@ -296,6 +296,7 @@ async function main(){
   const maxNormObj = await tcUtils.loadFileRetry({folder: testInputsFolder, file: "maxInputHashMap.json"});
   await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
   await nnTools.setNormalization(maxNormObj.normalization);
+  await nnTools.setUserProfileOnlyFlag(true);
 
   // const networkIdArray = await loadNetworks(testNetworkFolder);
   const networkIdArray = await loadNetworksDb();
