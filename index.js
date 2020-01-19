@@ -654,7 +654,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
 
     titleDefault = "BEST"
       + " | BIN MODE: " + statsObj.currentBestNetwork.meta.binaryMode
-      + " | USER PROFILE ONLY: " + statsObj.currentBestNetwork.meta.userProfileOnlyFlag
+      + " | PROF ONLY: NN: " + statsObj.currentBestNetwork.meta.userProfileOnlyFlag + " - CONFIG: " + configuration.userProfileOnlyFlag
       + " | " + statsObj.currentBestNetwork.networkId
       + " | " + statsObj.currentBestNetwork.inputsId
       + " | RANK: " + statsObj.currentBestNetwork.rank
@@ -1044,7 +1044,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   //   verbose: configuration.verbose
   // };
 
-  const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : false;
+  const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
   const verbose = configuration.verbose || params.verbose;
@@ -1193,7 +1193,7 @@ NeuralNetworkTools.prototype.activate = async function (params) {
     throw new Error("NNT | *** NO NETWORKS IN HASHMAP");
   }
 
-  const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : false;
+  const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
   const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const verbose = params.verbose || false;
