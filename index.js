@@ -179,6 +179,7 @@ NeuralNetworkTools.prototype.getNumberNetworks = function(){
 const networkDefaults = {};
 
 networkDefaults.rank = Infinity;
+networkDefaults.previousRank = Infinity;
 networkDefaults.matchRate = 0;
 networkDefaults.overallMatchRate = 0;
 networkDefaults.successRate = 0;
@@ -216,14 +217,13 @@ const networkPickArray = [
   "output",
   "overallMatchRate",
   "rank",
+  "previousRank",
   "seedNetworkId",
   "seedNetworkRes",
   "successRate",
   "testCycleHistory",
   "testCycles",
 ];
-
-// const networkMetaPickArray = Object.keys(networkDefaults.meta);
 
 NeuralNetworkTools.prototype.loadInputs = async function(params){
   await tcUtils.loadInputs({inputsObj: params.inputsObj});
@@ -232,13 +232,11 @@ NeuralNetworkTools.prototype.loadInputs = async function(params){
 
 NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
-  // if (!params.networkObj || params.networkObj === undefined) {
   if (empty(params.networkObj)) {
     console.log(chalkError("NNT | *** LOAD NETWORK UNDEFINED: " + params.networkObj));
     throw new Error("NNT | LOAD NETWORK UNDEFINED");
   }
 
-  // if ((params.networkObj.network === undefined && params.networkObj.networkJson === undefined)) {
   if (empty(params.networkObj.network) && empty(params.networkObj.networkJson)) {
     console.log(chalkError("NNT | *** LOAD NETWORK JSON UNDEFINED: " + params.networkObj.networkId));
     throw new Error("NNT | LOAD NETWORK JSON UNDEFINED");
@@ -644,6 +642,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
       + " | " + statsObj.currentBestNetwork.networkId
       + " | " + statsObj.currentBestNetwork.inputsId
       + " | RANK: " + statsObj.currentBestNetwork.rank
+      + " | PREV RANK: " + statsObj.currentBestNetwork.previousRank
       + " | TECH: " + statsObj.currentBestNetwork.networkTechnology
       + " | " + statsObj.currentBestNetwork.meta.match + "/" + statsObj.currentBestNetwork.meta.total
       + " | MR: " + statsObj.currentBestNetwork.matchRate.toFixed(2) + "%"
@@ -666,6 +665,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
       statsTextArray[index] = [
         "NNT | ",
         nn.rank,
+        nn.previousRank,
         nn.networkTechnology,
         nn.networkId,
         nn.inputsId,
@@ -695,6 +695,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
       statsTextArray.unshift([
         "NNT | ",
         "RANK",
+        "PREV RANK",
         "TECH",
         "NNID",
         "INPUTSID",
@@ -716,7 +717,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
           "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
         + "\nNNT | " + params.title 
         + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------\n"
-        + table(statsTextArray, { align: ["l", "r", "l", "l", "l", "r", "r", "r", "r", "r", "l", "l", "r", "r", "r", "r", "r"] })
+        + table(statsTextArray, { align: ["l", "r", "r", "l", "l", "l", "r", "r", "r", "r", "r", "l", "l", "r", "r", "r", "r", "r"] })
         + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
       ));
 
@@ -741,6 +742,7 @@ function printNetworkObj(title, nn, format) {
 
   const chalkFormat = (format !== undefined) ? format : chalk.blue;
   const rank = (nn.rank !== undefined) ? nn.rank : Infinity;
+  const previousRank = (nn.previousRank !== undefined) ? nn.previousRank : Infinity;
   const overallMatchRate = nn.overallMatchRate || 0;
   const matchRate = nn.matchRate || 0;
   const successRate = nn.successRate || 0;
@@ -748,6 +750,7 @@ function printNetworkObj(title, nn, format) {
 
   console.log(chalkFormat(title
     + " | RK: " + rank
+    + " | PREV RK: " + previousRank
     + " | OR: " + overallMatchRate.toFixed(2) + "%"
     + " | MR: " + matchRate.toFixed(2) + "%"
     + " | SR: " + successRate.toFixed(2) + "%"
@@ -859,6 +862,7 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
       }
 
       nn.rank = statsObj.networks[nnId].rank;
+      nn.previousRank = statsObj.networks[nnId].previousRank;
       nn.matchRate = statsObj.networks[nnId].matchRate;
       nn.overallMatchRate = statsObj.networks[nnId].overallMatchRate;
       // nn.successRate = statsObj.networks[nnId].successRate;
