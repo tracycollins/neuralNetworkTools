@@ -314,6 +314,9 @@ async function main(){
   const statsObj = await nnTools.getNetworkStats();
   console.log("statsObj.bestNetwork\n" + jsonPrint(statsObj.bestNetwork));
   console.log("statsObj.currentBestNetwork\n" + jsonPrint(statsObj.currentBestNetwork));
+
+  await nnTools.deleteAllNetworks();
+  
   return;
 }
 

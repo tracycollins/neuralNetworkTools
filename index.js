@@ -462,6 +462,30 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
   }
 }
 
+NeuralNetworkTools.prototype.deleteAllNetworks = async function(){
+
+  try{
+
+    console.log(chalkError("NNT | XXX DELETE ALL NETWORKS"));
+
+    networksHashMap.clear();
+
+    statsObj.networks = {};
+    primaryNeuralNetworkId = false;
+    statsObj.bestNetwork = {};
+    statsObj.currentBestNetwork = {};
+
+    return;
+
+  }
+  catch(err){
+    console.log(chalkError("NNT | *** DELETE ALL NN ERROR"
+      + " | " + err
+    ));
+    throw err;
+  }
+}
+
 NeuralNetworkTools.prototype.deleteNetwork = async function(params){
 
   if (!params.networkId) {
