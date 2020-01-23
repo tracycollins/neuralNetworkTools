@@ -20,7 +20,7 @@
     "@liquid-carrot/carrot": "^0.3.18",
     "@threeceelabs/mongoose-twitter": "^1.0.279",
     "@threeceelabs/threecee-utilities": "^1.0.204",
-    "@threeceelabs/user-server-controller": "^1.0.486",
+    "@threeceelabs/user-server-controller": "^1.0.487",
     "async": "^3.1.0",
     "carrot": "0.0.1",
     "deep-copy": "^1.4.2",
