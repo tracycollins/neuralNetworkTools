@@ -410,13 +410,11 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     try{
       let inputsObj = nn.inputsObj;
 
-      // if (!inputsObj || inputsObj === undefined || empty(inputsObj)){
       if (empty(inputsObj)){
         console.log(chalkAlert("NNT | !!! NN INPUTS OBJ UNDEFINED | NN: " + nn.networkId + " | INPUTS ID: " + nn.inputsId));
 
         inputsObj = await wordAssoDb.NetworkInputs.findOne({inputsId: nn.inputsId});
 
-        // if (!inputsObj || inputsObj === undefined) {
         if (empty(inputsObj)){
 
           console.log(chalkAlert("NNT | !!! NN INPUTS OBJ NOT FOUND IN DB ... TRY FILE | NN: " + nn.inputsId));
@@ -427,7 +425,6 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
             resolveOnNotFound: false
           });
         }
-        // throw new Error({message: "NN INPUTS OBJ UNDEFINED: " + nn.inputsId, inputsId: nn.inputsId});
       }
 
       inputsHashMap.set(nn.inputsId, inputsObj);
@@ -603,13 +600,6 @@ NeuralNetworkTools.prototype.printNetworkInput = function(params){
     let hits = 0;
     let hitRate = 0;
     const inputArraySize = inputArray.length;
-
-    // if (previousPrintedNetworkObj && (previousPrintedNetworkObj.inputsId === params.datum.inputsId)) {
-    //   previousPrintedNetworkObj.truncated = true;
-    //   previousPrintedNetworkObj.title = params.title;
-    //   outputNetworkInputText(previousPrintedNetworkObj);
-    //   return resolve();
-    // }
 
     previousPrintedNetworkObj.truncated = false;
 

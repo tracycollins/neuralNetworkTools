@@ -18,6 +18,8 @@ const chalkInfo = chalk.black;
 
 const async = require("async");
 const randomItem = require("random-item");
+const _ = require("lodash");
+const shuffle = require("shuffle-array");
 
 const os = require("os");
 let hostname = os.hostname();
@@ -102,7 +104,11 @@ function loadUsers(usersFolder){
 
     // const usersFileArray = await fsp.readdir(usersFolder);
     fsp.readdir(usersFolder)
-    .then(function(usersFileArray){
+    .then(function(dirFileArray){
+
+      const fileArray = shuffle(dirFileArray);
+
+      const usersFileArray = fileArray.slice(0,100);
 
       async.eachSeries(usersFileArray, function(file, cb){
 
@@ -147,7 +153,8 @@ async function loadNetworksDb(){
       networkTechnology: "carrot",
       successRate: {"$gt": 90},
       "createdAt": {"$gt": new Date("2019-12-01T00:00:00.000Z")}
-    });
+    }).limit(10);
+
     console.log(chalkInfo(MODULE_ID_PREFIX + " | LOADED NETWORKS: " + nnDocArray.length));
 
     for(const nnDoc of nnDocArray){
