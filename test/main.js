@@ -31,7 +31,7 @@ hostname = hostname.replace(/\.fios-router\.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
-const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
 
 let DROPBOX_ROOT_FOLDER;
 
@@ -72,7 +72,7 @@ async function connectDb(){
 
     console.log(chalkBlueBold(MODULE_ID_PREFIX + " | CONNECT MONGO DB ..."));
 
-    const db = await wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
+    const db = await global.wordAssoDb.connect(MODULE_ID_PREFIX + "_" + process.pid);
 
     db.on("error", async function(err){
       console.log(chalkError(MODULE_ID_PREFIX + " | *** MONGO DB CONNECTION ERROR"));
@@ -149,7 +149,7 @@ async function loadNetworksDb(){
   try{
     const networkIdArray = [];
 
-    const nnDocArray = await wordAssoDb.NeuralNetwork.find({
+    const nnDocArray = await global.wordAssoDb.NeuralNetwork.find({
       networkTechnology: "carrot",
       successRate: {"$gt": 90},
       "createdAt": {"$gt": new Date("2019-12-01T00:00:00.000Z")}
