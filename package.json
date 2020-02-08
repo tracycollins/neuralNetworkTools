@@ -18,7 +18,7 @@
   "homepage": "https://github.com/tracycollins/neuralNetworkTools#readme",
   "dependencies": {
     "@liquid-carrot/carrot": "^0.3.18",
-    "@threeceelabs/mongoose-twitter": "^1.0.281",
+    "@threeceelabs/mongoose-twitter": "^1.0.282",
     "@threeceelabs/threecee-utilities": "^1.0.221",
     "@threeceelabs/user-server-controller": "^1.0.505",
     "async": "^3.1.1",
