@@ -253,10 +253,12 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
         console.log(chalkWarn(MODULE_ID_PREFIX + " | ... CONVERT+LOAD NETWORK FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
 
         if (!empty(nn.networkJson)) {
-          network = brain.NeuralNetwork.fromJSON(nn.networkJson);
+          network = new brain.NeuralNetwork();
+          network.fromJSON(nn.networkJson);
         }
         else if (!empty(nn.network)) {
-          network = brain.NeuralNetwork.fromJSON(nn.network);
+          network = new brain.NeuralNetwork();
+          network.fromJSON(nn.network);
         }
         else{
           console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD NETWORK FROM JSON ERROR | NO JSON??? | TECH: " + nn.networkTechnology + " | " + nn.networkId));
@@ -1061,9 +1063,11 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     throw new Error("NN NETWORK UNDEFINED: " + nnId);
   }
 
-  if (!nnObj.networkRawFlag || (nnObj.networkRawFlag === undefined) || (nnObj.network.activate === undefined)){
+  if (!nnObj.networkRawFlag || (nnObj.networkRawFlag === undefined) || 
+    ((nnObj.network.activate === undefined) && (nnObj.network.run === undefined))
+  ){
 
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | NN NETWORK ACTIVATE UNDEFINED"
+    console.log(chalkAlert(MODULE_ID_PREFIX + " | NN NETWORK ACTIVATE/RUN UNDEFINED"
       + " | TECH: " + nnObj.networkTechnology 
       + " | ID: " + nnObj.networkId 
       + " | INPUTS: " + nnObj.inputsId 
@@ -1110,7 +1114,14 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     ));
   }
 
-  const outputRaw = nnObj.network.activate(convertedDatum.datum.input);
+  let outputRaw;
+  
+  if (nnObj.networkTechnology === "brain"){
+    outputRaw = nnObj.network.run(convertedDatum.datum.input);
+  }
+  else{
+    outputRaw = nnObj.network.activate(convertedDatum.datum.input);
+  }
   // const outputRaw = nnObj.network.noTraceActivate(convertedDatum.datum.input);
 
   const networkOutput = {};
