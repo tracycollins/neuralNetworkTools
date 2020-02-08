@@ -1,6 +1,7 @@
 const MODULE_ID_PREFIX = "NNT";
 const DEFAULT_BINARY_MODE = true;
 const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
+const tcuChildName = MODULE_ID_PREFIX + "_TCU";
 
 const os = require("os");
 let hostname = os.hostname();
@@ -16,10 +17,11 @@ hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
-const path = require("path");
-
 const carrot = require("@liquid-carrot/carrot");
 const neataptic = require("neataptic");
+const brain = require("brain.js");
+
+const path = require("path");
 const async = require("async");
 const util = require("util");
 const _ = require("lodash");
@@ -30,10 +32,9 @@ const pick = require("object.pick");
 const table = require("text-table");
 const empty = require("is-empty");
 const objectRenameKeys = require("object-rename-keys");
+const networksHashMap = new HashMap();
+const inputsHashMap = new HashMap();
 
-// const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-
-const tcuChildName = MODULE_ID_PREFIX + "_TCU";
 const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities(tcuChildName);
 
@@ -45,10 +46,6 @@ const chalkWarn = chalk.yellow;
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
-// const chalkBlueBold = chalk.bold.blue;
-
-const networksHashMap = new HashMap();
-const inputsHashMap = new HashMap();
 
 let primaryNeuralNetworkId;
 
@@ -74,7 +71,6 @@ else {
 const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
 const defaultInputsFolder = path.join(configDefaultFolder, "inputs");
 
-
 const NeuralNetworkTools = function(app_name){
   const self = this;
   this.appname = app_name || "DEFAULT_APP_NAME";
@@ -83,7 +79,6 @@ const NeuralNetworkTools = function(app_name){
   EventEmitter.call(this);
 
   self.emit("ready", self.appname);
-
 };
 
 util.inherits(NeuralNetworkTools, EventEmitter);
@@ -247,7 +242,28 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     let network;
 
-    if (nn.networkTechnology === "carrot"){
+    if (nn.networkTechnology === "brain"){
+      console.log(chalkWarn(MODULE_ID_PREFIX + " | ... LOAD NETWORK RAW | TECH: " + nn.networkTechnology + " | " + nn.networkId));
+
+      if (params.networkIsRaw) {
+        console.log(chalkWarn(MODULE_ID_PREFIX + " | ... LOAD NETWORK RAW | TECH: " + nn.networkTechnology + " | " + nn.networkId));
+        network = nn.network;
+      }
+      else{
+        console.log(chalkWarn(MODULE_ID_PREFIX + " | ... CONVERT+LOAD NETWORK FROM JSON | TECH: " + nn.networkTechnology + " | " + nn.networkId));
+
+        if (!empty(nn.networkJson)) {
+          network = brain.NeuralNetwork.fromJSON(nn.networkJson);
+        }
+        else if (!empty(nn.network)) {
+          network = brain.NeuralNetwork.fromJSON(nn.network);
+        }
+        else{
+          console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD NETWORK FROM JSON ERROR | NO JSON??? | TECH: " + nn.networkTechnology + " | " + nn.networkId));
+        }
+      }
+    }
+    else if (nn.networkTechnology === "carrot"){
       console.log(chalkWarn(MODULE_ID_PREFIX + " | ... LOAD NETWORK RAW | TECH: " + nn.networkTechnology + " | " + nn.networkId));
 
       if (params.networkIsRaw) {
@@ -920,8 +936,6 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
 
       if (nnObj.networkTechnology === "carrot") {
 
-        // nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
-
         if (!empty(nnObj.networkJson)) {
           
           // catch errors due to toJSON() and fromJSON() bugs in carrot
@@ -973,7 +987,14 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
 
           nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
         }
-
+      }
+      else if (nnObj.networkTechnology === "brain") {
+        if (!empty(nnObj.networkJson)) {
+          nnObj.networkRaw = brain.NeuralNetwork.fromJSON(nnObj.networkJson);
+        }
+        else if (!empty(nnObj.network)) {
+          nnObj.networkRaw = brain.NeuralNetwork.fromJSON(nnObj.network);
+        }
       }
       else {
         if (!empty(nnObj.networkJson)) {
@@ -993,6 +1014,9 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
       if (nnObj.networkTechnology === "carrot") {
         newNetObj.networkRaw = carrot.Network.fromJSON(newNetObj.networkJson);
       }
+      else if (nnObj.networkTechnology === "brain") {
+        newNetObj.networkRaw = brain.NeuralNetwork.fromJSON(newNetObj.networkJson);
+      }
       else {
         newNetObj.networkRaw = neataptic.Network.fromJSON(newNetObj.networkJson);
       }
@@ -1004,7 +1028,6 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
     }
 
   });
-
 }
 
 NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
@@ -1226,7 +1249,6 @@ NeuralNetworkTools.prototype.activate = async function (params) {
 
 
   return {user: user, networkOutput: networkOutput};
-
 };
 
 module.exports = NeuralNetworkTools;
