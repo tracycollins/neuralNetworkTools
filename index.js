@@ -1173,10 +1173,15 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     ));
   }
 
-  let outputRaw;
+  let outputRaw = [];
   
   if (nnObj.networkTechnology === "brain"){
-    outputRaw = nnObj.network.run(convertedDatum.datum.input);
+    const outputRawBrain = nnObj.network.run(convertedDatum.datum.input);
+    // if (typeof outputRawBrain === "object"){
+      outputRaw[0] = outputRawBrain["0"];
+      outputRaw[1] = outputRawBrain["1"];
+      outputRaw[2] = outputRawBrain["2"];
+    // }
   }
   else{
     outputRaw = nnObj.network.activate(convertedDatum.datum.input);

@@ -941,7 +941,7 @@ async function main(){
 
   let network = new brain.NeuralNetwork();
 
-  const totalIterations = 10;
+  const totalIterations = 5;
 
   const trainingSet = await dataSetPrep({
     numInputs: inputsObj.meta.numInputs,
@@ -987,9 +987,7 @@ async function main(){
       + " | " + (sObj.iterationRate/1000.0).toFixed(1) + " spi"
       + " | I " + sObj.iteration + "/" + sObj.totalIterations
     ));
-
   };
-
 
   const trainingResults = await nnTools.streamTrainNetwork({
     iterations: totalIterations,
