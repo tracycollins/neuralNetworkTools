@@ -504,6 +504,16 @@ NeuralNetworkTools.prototype.deleteNetwork = async function(params){
 
 const deleteNetwork = NeuralNetworkTools.prototype.deleteNetwork;
 
+NeuralNetworkTools.prototype.setPrimaryInputs = async function(inputsId){
+  try{
+    await tcUtils.setPrimaryInputs({inputsId: inputsId});
+    return
+  }
+  catch(err){
+    throw err;
+  }
+}
+
 NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = async function(nnId){
 
   if (!nnId || nnId === undefined) {
@@ -528,7 +538,7 @@ NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = async function(nnId){
     await tcUtils.setPrimaryInputs({inputsId: nnObj.inputsId});
   }
   catch(err){
-    return err;
+    throw err;
   }
 
   console.log(chalkLog(MODULE_ID_PREFIX + " | --> SET PRIMARY NN: " + primaryNeuralNetworkId));
@@ -1029,6 +1039,52 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
       reject(new Error("NO VALID JSON NN: " + nnObj.networkId));
     }
 
+  });
+}
+
+NeuralNetworkTools.prototype.streamTrainNetwork = async function (params) {
+
+  return new Promise(function(resolve, reject){
+
+    const network = params.network;
+    const trainingSet = params.trainingSet;
+    const iterations = params.iterations || 5000;
+
+    const trainStream = new brain.TrainStream({
+
+      iterations: iterations,
+      neuralNetwork: network,
+      callbackPeriod: 1,
+      callback: function(data){
+        console.log("streamTrainNetwork : ", data);
+      },
+
+      floodCallback: function() {
+        console.log(chalkLog(MODULE_ID_PREFIX + " | STREAM TRAINING floodCallback"));
+        readInputs(trainStream, trainingSet);
+      },
+
+      doneTrainingCallback: function(stats) {
+        console.log(chalkLog(MODULE_ID_PREFIX + " | STREAM TRAINING DONE"
+          + " | " + params.networkId
+          + "\n" + jsonPrint(stats)
+        ));
+        resolve({network: network, stats: stats});
+      }
+
+    });
+
+    // kick it off
+    readInputs(trainStream, trainingSet);
+
+    function readInputs(stream, trainingSet) {
+      for (let i = 0; i < trainingSet.length; i++) {
+        const datum = {input: trainingSet[i].input, output: trainingSet[i].output};
+        stream.write(datum);
+      }
+      // let it know we've reached the end of the inputs
+      stream.endInputs();
+    }
   });
 }
 
