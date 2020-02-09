@@ -1050,17 +1050,20 @@ NeuralNetworkTools.prototype.streamTrainNetwork = async function (params) {
     const trainingSet = params.trainingSet;
     const iterations = params.iterations || 5000;
 
+    const defaultSchedule = function(data){
+      console.log(MODULE_ID_PREFIX +" streamTrainNetwork | ", data);
+    };
+
+    const schedule = params.schedule || defaultSchedule;
+
     const trainStream = new brain.TrainStream({
 
       iterations: iterations,
       neuralNetwork: network,
       callbackPeriod: 1,
-      callback: function(data){
-        console.log("streamTrainNetwork : ", data);
-      },
+      callback: schedule,
 
       floodCallback: function() {
-        console.log(chalkLog(MODULE_ID_PREFIX + " | STREAM TRAINING floodCallback"));
         readInputs(trainStream, trainingSet);
       },
 

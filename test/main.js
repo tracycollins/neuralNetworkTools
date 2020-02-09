@@ -364,7 +364,7 @@ function waitFileExists(params){
 
       if (exists) {
         clearInterval(existsInterval);
-        console.log(chalkGreenBold(MODULE_ID_PREFIX
+        console.log(chalk.green(MODULE_ID_PREFIX
           + " | FILE EXISTS"
           + " | MAX WAIT TIME: " + tcUtils.msToTime(maxWaitTime)
           + " | NOW: " + tcUtils.getTimeStamp()
@@ -941,6 +941,8 @@ async function main(){
 
   let network = new brain.NeuralNetwork();
 
+  const totalIterations = 10;
+
   const trainingSet = await dataSetPrep({
     numInputs: inputsObj.meta.numInputs,
     dataSetObj: trainingSetObj, 
@@ -948,8 +950,50 @@ async function main(){
     binaryMode: true
   });
 
+  const scheduleQueue = [];
+  const schedStartTime = moment().valueOf();
+
+  const schedule = function(schedParams){
+
+    const elapsedInt = moment().valueOf() - schedStartTime;
+    const iterationRate = elapsedInt/(schedParams.iterations+1);
+    const timeToComplete = iterationRate*(totalIterations - (schedParams.iterations+1));
+
+    const sObj = {
+      networkTechnology: "BRAIN",
+      binaryMode: false,
+      networkId: "nn_brain_test",
+      numInputs: inputsObj.meta.numInputs,
+      inputsId: inputsObj.inputsId,
+      evolveStart: schedStartTime,
+      evolveElapsed: elapsedInt,
+      totalIterations: totalIterations,
+      iteration: schedParams.iterations+1,
+      iterationRate: iterationRate,
+      timeToComplete: timeToComplete,
+      error: schedParams.error.toFixed(5) || Infinity,
+      // fitness: schedParams.fitness.toFixed(5) || -Infinity
+    };
+
+    console.log(chalkLog(MODULE_ID_PREFIX 
+      + " | " + sObj.networkId 
+      + " | " + sObj.networkTechnology.slice(0,1).toUpperCase()
+      + " | " + sObj.networkId
+      + " | " + sObj.inputsId
+      + " | ERR " + sObj.error
+      // + " | FIT " + fitness
+      + " | R " + tcUtils.msToTime(sObj.evolveElapsed)
+      + " | ETC " + tcUtils.msToTime(sObj.timeToComplete) + " " + moment().add(sObj.timeToComplete).format(compactDateTimeFormat)
+      + " | " + (sObj.iterationRate/1000.0).toFixed(1) + " spi"
+      + " | I " + sObj.iteration + "/" + sObj.totalIterations
+    ));
+
+  };
+
+
   const trainingResults = await nnTools.streamTrainNetwork({
-    iterations: 10,
+    iterations: totalIterations,
+    schedule: schedule,
     network: network, 
     trainingSet: trainingSet
   });
