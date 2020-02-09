@@ -809,10 +809,8 @@ function dataSetPrep(p){
         }
 
         tcUtils.convertDatumOneNetwork({
-          primaryInputsFlag: true, 
           user: user,
-          userProfileOnlyFlag: userProfileOnlyFlag,
-          binaryMode: binaryMode, 
+          userDescriptionOnlyFlag: true,
           verbose: params.verbose
         }).
         then(function(results){
@@ -941,10 +939,11 @@ async function main(){
 
   let network = new brain.NeuralNetwork();
 
-  const totalIterations = 5;
+  const totalIterations = 100;
 
   const trainingSet = await dataSetPrep({
-    numInputs: inputsObj.meta.numInputs,
+    // numInputs: inputsObj.meta.numInputs,
+    numInputs: 255,
     dataSetObj: trainingSetObj, 
     userProfileOnlyFlag: false,
     binaryMode: true
@@ -999,7 +998,8 @@ async function main(){
   network = trainingResults.network;
 
   const testSet = await dataSetPrep({
-    numInputs: inputsObj.meta.numInputs,
+    // numInputs: inputsObj.meta.numInputs,
+    numInputs: 255,
     dataSetObj: testSetObj, 
     userProfileOnlyFlag: false,
     binaryMode: true
