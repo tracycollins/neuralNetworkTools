@@ -3,6 +3,11 @@ const USER_PROFILE_ONLY_FLAG = true;
 
 const MODULE_ID_PREFIX = "NNT";
 
+const TOTAL_ITERATIONS = 400;
+
+const DEFAULT_USER_PROFILE_ONLY_INPUTS_ID = "inputs_25250101_000000_255_profilecharcodes";
+const DEFAULT_USER_PROFILE_ONLY_INPUTS_FILE = DEFAULT_USER_PROFILE_ONLY_INPUTS_ID + ".json";
+
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60*ONE_SECOND;
 const ONE_HOUR = 60*ONE_MINUTE;
@@ -79,7 +84,7 @@ const testInputsFolder = path.join(configDefaultTestFolder, "inputs");
 
 const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
 const userArchiveFolder = configDefaultFolder + "/trainingSets/users";
-const inputsFolder = configDefaultFolder + "/inputs";
+const defaultInputsFolder = configDefaultFolder + "/inputs";
 
 const defaultUserArchiveFlagFile = "usersZipUploadComplete_test.json";
 const trainingSetFile = "trainingSet_test.json";
@@ -798,6 +803,10 @@ function dataSetPrep(p){
 
     const shuffledData = _.shuffle(dataSetObj.data);
 
+    let totalHits = 0;
+    let totalMisses = 0;
+    let totalInputHitRate = 0;
+
     async.eachSeries(shuffledData, function(user, cb){
 
       try {
@@ -810,7 +819,9 @@ function dataSetPrep(p){
 
         tcUtils.convertDatumOneNetwork({
           user: user,
-          userDescriptionOnlyFlag: true,
+          inputsId: params.inputsId,
+          numInputs: params.numInputs,
+          userProfileCharCodesOnlyFlag: params.userProfileCharCodesOnlyFlag,
           verbose: params.verbose
         }).
         then(function(results){
@@ -875,11 +886,16 @@ function dataSetPrep(p){
             inputMisses: results.inputMisses,
             inputHitRate: results.inputHitRate
           });
-          // dataSet.push({user: results.user, datum: results.datum, stats: results.stats});
-          // dataSet.push(results);
+
+          totalMisses += results.inputMisses;
+          totalHits += results.inputHits;
+          totalInputHitRate = 100*(totalHits/(totalHits+totalMisses));
 
           if (dataConverted % 100 === 0){
-            console.log(chalkLog(MODULE_ID_PREFIX + " | DATA CONVERTED: " + dataConverted + "/" + dataSetObj.data.length));
+            console.log(chalkLog(MODULE_ID_PREFIX 
+              + " | HIT RATE: " + totalInputHitRate.toFixed(3) + "%"
+              + " | DATA CONVERTED: " + dataConverted + "/" + dataSetObj.data.length
+            ));
           }
 
           cb();
@@ -907,7 +923,8 @@ function dataSetPrep(p){
 
       console.log(chalkBlue(MODULE_ID_PREFIX + " | DATA SET PREP COMPLETE | DATA SET LENGTH: " + dataSet.length));
 
-      resolve(dataSet);
+      const stats = {totalHits: totalHits, totalMisses: totalMisses, totalInputHitRate: totalInputHitRate};
+      resolve({dataSet: dataSet, stats: stats});
 
     });
 
@@ -921,7 +938,8 @@ async function main(){
   console.log("LOAD maxInputHashMap: " + testInputsFolder + "/maxInputHashMap.json");
   console.log("LOAD " + userArchiveFolder + "/" + defaultUserArchiveFlagFile);
 
-  const inputsObj = await tcUtils.loadFileRetry({folder: inputsFolder, file: "inputs_20200103_230204_1756_google_15930.json"});
+  // const inputsObj = await tcUtils.loadFileRetry({folder: defaultInputsFolder, file: "inputs_20200103_230204_1756_google_15930.json"});
+  const inputsObj = await tcUtils.loadFileRetry({folder: defaultInputsFolder, file: DEFAULT_USER_PROFILE_ONLY_INPUTS_FILE});
 
   const archiveFlagObj = await tcUtils.loadFileRetry({folder: userArchiveFolder, file: defaultUserArchiveFlagFile});
 
@@ -939,11 +957,11 @@ async function main(){
 
   let network = new brain.NeuralNetwork();
 
-  const totalIterations = 100;
+  const totalIterations = TOTAL_ITERATIONS;
 
-  const trainingSet = await dataSetPrep({
-    // numInputs: inputsObj.meta.numInputs,
-    numInputs: 255,
+  const preppedTrainingSetObj = await dataSetPrep({
+    numInputs: inputsObj.meta.numInputs,
+    userProfileCharCodesOnlyFlag: inputsObj.meta.userProfileCharCodesOnlyFlag,
     dataSetObj: trainingSetObj, 
     userProfileOnlyFlag: false,
     binaryMode: true
@@ -992,14 +1010,14 @@ async function main(){
     iterations: totalIterations,
     schedule: schedule,
     network: network, 
-    trainingSet: trainingSet
+    trainingSet: preppedTrainingSetObj.dataSet
   });
 
   network = trainingResults.network;
 
-  const testSet = await dataSetPrep({
-    // numInputs: inputsObj.meta.numInputs,
-    numInputs: 255,
+  const preppedTestSetObj = await dataSetPrep({
+    numInputs: inputsObj.meta.numInputs,
+    userProfileCharCodesOnlyFlag: inputsObj.meta.userProfileCharCodesOnlyFlag,
     dataSetObj: testSetObj, 
     userProfileOnlyFlag: false,
     binaryMode: true
@@ -1008,11 +1026,11 @@ async function main(){
   let successRate = 0;
   let numPassed = 0;
 
-  for (let i=0; i < testSet.length; i++){
+  for (let i=0; i < preppedTestSetObj.dataSet.length; i++){
 
-    const outputRaw = network.run(testSet[i].input);
+    const outputRaw = network.run(preppedTestSetObj.dataSet[i].input);
     const nnOutputIndex = await tcUtils.indexOfMax(outputRaw);
-    const expectedOutputIndex = await tcUtils.indexOfMax(testSet[i].output);
+    const expectedOutputIndex = await tcUtils.indexOfMax(preppedTestSetObj.dataSet[i].output);
     const pass = (nnOutputIndex === expectedOutputIndex) ? "PASS" : "FAIL";
 
     if (pass === "PASS") { numPassed++; }
@@ -1022,10 +1040,10 @@ async function main(){
     console.log("testSet [" + i + "]"
       + " | SR: " + successRate.toFixed(3) + "%"
       + " | " + pass
-      + " | CAT: " + testSet[i].user.category.slice(0,1).toUpperCase()
+      + " | CAT: " + preppedTestSetObj.dataSet[i].user.category.slice(0,1).toUpperCase()
       + " | OUT: " + nnOutputIndex 
       + " | EXP: " + expectedOutputIndex 
-      + " | @" + testSet[i].user.screenName
+      + " | @" + preppedTestSetObj.dataSet[i].user.screenName
     );
   }
 
