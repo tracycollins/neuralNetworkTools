@@ -3,7 +3,7 @@ const USER_PROFILE_ONLY_FLAG = true;
 
 const MODULE_ID_PREFIX = "NNT";
 
-const TOTAL_ITERATIONS = 400;
+const TOTAL_ITERATIONS = 40;
 
 const DEFAULT_USER_PROFILE_ONLY_INPUTS_ID = "inputs_25250101_000000_255_profilecharcodes";
 const DEFAULT_USER_PROFILE_ONLY_INPUTS_FILE = DEFAULT_USER_PROFILE_ONLY_INPUTS_ID + ".json";
@@ -1006,9 +1006,16 @@ async function main(){
     ));
   };
 
-  const trainingResults = await nnTools.streamTrainNetwork({
+  const evolveOptions = {
+    error: 0.1,
+    learningRate: 0.1,
+    momentum: 0.1,
     iterations: totalIterations,
-    schedule: schedule,
+    schedule: schedule
+  };
+
+  const trainingResults = await nnTools.streamTrainNetwork({
+    options: evolveOptions,
     network: network, 
     trainingSet: preppedTrainingSetObj.dataSet
   });

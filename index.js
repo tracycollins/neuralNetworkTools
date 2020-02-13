@@ -3,6 +3,11 @@ const DEFAULT_BINARY_MODE = true;
 const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
 const tcuChildName = MODULE_ID_PREFIX + "_TCU";
 
+const DEFAULT_BRAIN_TRAIN_ERROR = 0.3;
+const DEFAULT_BRAIN_TRAIN_ITERATIONS = 1000;
+const DEFAULT_BRAIN_TRAIN_LEARNING_RATE = 0.3;
+const DEFAULT_BRAIN_TRAIN_MOMENTUM = 0.1;
+
 const os = require("os");
 let hostname = os.hostname();
 if (hostname.startsWith("mbp3")){
@@ -505,13 +510,7 @@ NeuralNetworkTools.prototype.deleteNetwork = async function(params){
 const deleteNetwork = NeuralNetworkTools.prototype.deleteNetwork;
 
 NeuralNetworkTools.prototype.setPrimaryInputs = async function(inputsId){
-  try{
-    await tcUtils.setPrimaryInputs({inputsId: inputsId});
-    return
-  }
-  catch(err){
-    throw err;
-  }
+  await tcUtils.setPrimaryInputs({inputsId: inputsId});
 }
 
 NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = async function(nnId){
@@ -534,12 +533,7 @@ NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = async function(nnId){
     return new Error(MODULE_ID_PREFIX + " | PRIMARY NETWORK INPUTS NOT IN HASHMAP: " + nnObj.inputsId);
   }
 
-  try{
-    await tcUtils.setPrimaryInputs({inputsId: nnObj.inputsId});
-  }
-  catch(err){
-    throw err;
-  }
+  await tcUtils.setPrimaryInputs({inputsId: nnObj.inputsId});
 
   console.log(chalkLog(MODULE_ID_PREFIX + " | --> SET PRIMARY NN: " + primaryNeuralNetworkId));
 
@@ -1044,24 +1038,29 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
 
 NeuralNetworkTools.prototype.streamTrainNetwork = async function (params) {
 
-  return new Promise(function(resolve, reject){
+  return new Promise(function(resolve){
 
     const network = params.network;
     const trainingSet = params.trainingSet;
-    const iterations = params.iterations || 5000;
 
-    const defaultSchedule = function(data){
+    const DEFAULT_BRAIN_TRAIN_SCHEDULE = function(data){
       console.log(MODULE_ID_PREFIX +" streamTrainNetwork | ", data);
     };
 
-    const schedule = params.schedule || defaultSchedule;
+    const errorThresh = params.options.error || DEFAULT_BRAIN_TRAIN_ERROR;
+    const iterations = params.options.iterations || DEFAULT_BRAIN_TRAIN_ITERATIONS;
+    const learningRate = params.options.learningRate || DEFAULT_BRAIN_TRAIN_LEARNING_RATE;
+    const momentum = params.options.momentum || DEFAULT_BRAIN_TRAIN_MOMENTUM;
+    const schedule = params.options.schedule || DEFAULT_BRAIN_TRAIN_SCHEDULE;
 
     const trainStream = new brain.TrainStream({
-
-      iterations: iterations,
-      neuralNetwork: network,
-      callbackPeriod: 1,
       callback: schedule,
+      callbackPeriod: 1,
+      errorThresh: errorThresh,
+      iterations: iterations,
+      learningRate: learningRate,
+      momentum: momentum,
+      neuralNetwork: network,
 
       floodCallback: function() {
         readInputs(trainStream, trainingSet);
