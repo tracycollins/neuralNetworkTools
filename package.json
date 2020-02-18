@@ -20,7 +20,7 @@
     "@liquid-carrot/carrot": "^0.3.18",
     "@threeceelabs/mongoose-twitter": "^1.0.294",
     "@threeceelabs/threecee-utilities": "^1.0.230",
-    "@threeceelabs/user-server-controller": "^1.0.507",
+    "@threeceelabs/user-server-controller": "^1.0.509",
     "async": "^3.1.1",
     "brain": "^1.0.0",
     "brain.js": "^2.0.0-alpha.12",
