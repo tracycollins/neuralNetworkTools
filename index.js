@@ -1102,7 +1102,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
-  const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
+  // const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
   const verbose = configuration.verbose || params.verbose;
   const nnId = params.networkId || primaryNeuralNetworkId;
 
@@ -1112,7 +1112,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   }
 
   const nnObj = networksHashMap.get(nnId);
-  nnObj.meta.binaryMode = binaryMode;
+  // nnObj.meta.binaryMode = binaryMode;
   nnObj.meta.userProfileOnlyFlag = userProfileOnlyFlag;
 
   if (!nnObj.network || (nnObj.network === undefined)){
@@ -1145,7 +1145,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
       user: params.user, 
       inputsId: nnObj.inputsId,
       userProfileOnlyFlag: userProfileOnlyFlag,
-      binaryMode: binaryMode, 
+      binaryMode: nnObj.binaryMode, 
       verbose: verbose
     });
 
@@ -1165,6 +1165,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   if (verbose) {
     console.log(chalkLog(MODULE_ID_PREFIX + " | CONVERT DATUM"
+      + " | BIN MODE" + nnObj.binaryMode
       + " | @" + convertedDatum.datum.screenName
       + " | INPUTS ID: " + convertedDatum.inputsId
       + " | H/M/TOT: " + convertedDatum.inputHits + "/" + convertedDatum.inputMisses + "/" + nnObj.numInputs
@@ -1194,7 +1195,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   networkOutput.user.screenName = params.user.screenName;
   networkOutput.user.category = params.user.category;
   networkOutput.user.categoryAuto = params.user.categoryAuto;
-  networkOutput.binaryMode = binaryMode;
+  // networkOutput.binaryMode = binaryMode;
   networkOutput.userProfileOnlyFlag = userProfileOnlyFlag;
   networkOutput.outputRaw = [];
   networkOutput.outputRaw = outputRaw;
@@ -1235,7 +1236,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   networkOutput.matchFlag = ((params.user.category !== "none") && (networkOutput.categoryAuto === params.user.category)) ? "MATCH" : "MISS";
 
   const title = nnObj.networkId
-      + " | BINARY MODE: " + nnObj.meta.binaryMode 
+      + " | BINARY MODE: " + nnObj.binaryMode 
       + " | USER PROFILE ONLY: " + nnObj.meta.userProfileOnlyFlag 
       + " | INPUT: " + nnObj.inputsId 
       + " | INPUT H/M/RATE: " + networkOutput.inputHits + "/" + networkOutput.inputMisses + "/" + networkOutput.inputHitRate.toFixed(3)
@@ -1264,7 +1265,7 @@ NeuralNetworkTools.prototype.activate = async function (params) {
   }
 
   const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
-  const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
+  // const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const verbose = params.verbose || false;
   const user = params.user;
@@ -1305,7 +1306,7 @@ NeuralNetworkTools.prototype.activate = async function (params) {
         networkId: nnId, 
         user: user, 
         datum: datum, 
-        binaryMode: binaryMode,
+        // binaryMode: binaryMode,
         userProfileOnlyFlag: userProfileOnlyFlag,
         convertDatumFlag: convertDatumFlag, 
         verbose: verbose
