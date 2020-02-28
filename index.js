@@ -45,6 +45,8 @@ const tcUtils = new ThreeceeUtilities(tcuChildName);
 
 const jsonPrint = tcUtils.jsonPrint;
 const indexOfMax = tcUtils.indexOfMax;
+const formatBoolean = tcUtils.formatBoolean;
+const formatCategory = tcUtils.formatCategory;
 
 const chalk = require("chalk");
 const chalkWarn = chalk.yellow;
@@ -648,19 +650,20 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
     statsObj.currentBestNetwork = defaults(statsObj.currentBestNetwork, networkDefaults);
 
     titleDefault = "BEST"
-      + " | BIN MODE: " + statsObj.currentBestNetwork.meta.binaryMode
-      + " | PROF ONLY: NN: " + statsObj.currentBestNetwork.meta.userProfileOnlyFlag + " - CONFIG: " + configuration.userProfileOnlyFlag
+      + " | TECH: " + statsObj.currentBestNetwork.networkTechnology.charAt(0).toUpperCase()
+      + " | BIN: " + formatBoolean(statsObj.currentBestNetwork.meta.binaryMode)
+      + " | PROF ONLY: NN: " + formatBoolean(statsObj.currentBestNetwork.meta.userProfileOnlyFlag)
+      + " - CONFIG: " + formatBoolean(configuration.userProfileOnlyFlag)
+      + " | RANK: " + statsObj.currentBestNetwork.rank
+      + " PREV: " + statsObj.currentBestNetwork.previousRank
       + " | " + statsObj.currentBestNetwork.networkId
       + " | " + statsObj.currentBestNetwork.inputsId
-      + " | RANK: " + statsObj.currentBestNetwork.rank
-      + " | PREV RANK: " + statsObj.currentBestNetwork.previousRank
-      + " | TECH: " + statsObj.currentBestNetwork.networkTechnology
       + " | " + statsObj.currentBestNetwork.meta.match + "/" + statsObj.currentBestNetwork.meta.total
       + " | MR: " + statsObj.currentBestNetwork.matchRate.toFixed(2) + "%"
       + " | OUT: " + statsObj.currentBestNetwork.meta.output
-      + " | CM: " + statsObj.currentBestNetwork.meta.category
-      + " | CA: " + statsObj.currentBestNetwork.meta.categoryAuto
-      + " | " + statsObj.currentBestNetwork.meta.matchFlag;
+      + " | CM: " + formatCategory(statsObj.currentBestNetwork.meta.category)
+      + " A: " + formatCategory(statsObj.currentBestNetwork.meta.categoryAuto)
+      + " | MATCH: " + formatBoolean(statsObj.currentBestNetwork.meta.matchFlag);
 
     if (!params.title) { params.title = titleDefault; }
 
@@ -858,7 +861,7 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
       if (verbose){
         console.log(chalkCategory(MODULE_ID_PREFIX + " | " + statsObj.networks[nnId].meta.matchFlag
           + " | @" + user.screenName
-          + " | CM: " + user.category + " | CA: " + networkOutput[nnId].categoryAuto
+          + " | CM: " + formatCategory(user.category) + " | CA: " + formatCategory(networkOutput[nnId].categoryAuto)
           + " | " + statsObj.networks[nnId].networkId
           + " | " + statsObj.networks[nnId].inputsId
           + " | SR: " + statsObj.networks[nnId].successRate.toFixed(2) 
@@ -1240,8 +1243,8 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
       + " | INPUT: " + nnObj.inputsId 
       + " | INPUT H/M/RATE: " + networkOutput.inputHits + "/" + networkOutput.inputMisses + "/" + networkOutput.inputHitRate.toFixed(3)
       + " | @" + params.user.screenName 
-      + " | C: " + params.user.category 
-      + " | A: " + networkOutput.categoryAuto
+      + " | C: " + formatCategory(params.user.category) 
+      + " | A: " + formatCategory(networkOutput.categoryAuto)
       + " | MATCH: " + networkOutput.matchFlag;
 
   if (verbose) {

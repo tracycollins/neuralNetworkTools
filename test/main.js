@@ -73,6 +73,7 @@ const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
 const tcUtils = new ThreeceeUtilities(tcuChildName);
 
 const jsonPrint = tcUtils.jsonPrint;
+const formatCategory = tcUtils.formatCategory;
 
 const testNetworkFolder = path.join(configDefaultTestFolder, "networks");
 const testUserFolder = path.join(configDefaultTestFolder, "users/fromTrainingSet");
@@ -281,18 +282,18 @@ function activateUsers(primaryNetworkId, userArray, binaryMode){
         nnTools.updateNetworkStats({user: noutObj.user, networkOutput: noutObj.networkOutput})
         .then(function(networkStats){
 
-          const title = "BEST | " + networkStats.networkId
-            + " | PROFILE ONLY: " + USER_PROFILE_ONLY_FLAG 
-            + " | BIN: " + binaryMode 
-            + " | CAT M: " + networkStats.meta.category.charAt(0).toUpperCase()
-            + " A: " + networkStats.meta.categoryAuto.charAt(0).toUpperCase()
-            + " | IHR: " + noutObj.networkOutput[networkStats.networkId].inputHitRate.toFixed(3) + "%"
-            + " | M/MM/TOT: " + networkStats.meta.match + "/" + networkStats.meta.mismatch + "/" + networkStats.meta.total
-            + " | MR: " + networkStats.matchRate.toFixed(3) + "%"
-            + " | MATCH: " + networkStats.meta.matchFlag
-            + " | @" + noutObj.user.screenName;
+          // const title = "BEST | " + networkStats.networkId
+          //   + " | PROFILE ONLY: " + USER_PROFILE_ONLY_FLAG 
+          //   + " | BIN: " + binaryMode 
+          //   + " | CAT M: " + networkStats.meta.category.charAt(0).toUpperCase()
+          //   + " A: " + networkStats.meta.categoryAuto.charAt(0).toUpperCase()
+          //   + " | IHR: " + noutObj.networkOutput[networkStats.networkId].inputHitRate.toFixed(3) + "%"
+          //   + " | M/MM/TOT: " + networkStats.meta.match + "/" + networkStats.meta.mismatch + "/" + networkStats.meta.total
+          //   + " | MR: " + networkStats.matchRate.toFixed(3) + "%"
+          //   + " | MATCH: " + networkStats.meta.matchFlag
+          //   + " | @" + noutObj.user.screenName;
 
-          nnTools.printNetworkResults({title: title})
+          nnTools.printNetworkResults()
           .then(function(){
             cb();
           })
@@ -606,7 +607,8 @@ function unzipUsersToArray(params){
                           + " | FLWRs: " + userObj.followersCount
                           + " | FRNDs: " + userObj.friendsCount
                           + " | FRNDs DB: " + userObj.friends.length
-                          + " | CAT M: " + userObj.category + " A: " + userObj.categoryAuto
+                          + " | CAT M: " + formatCategory(userObj.category) 
+                          + " A: " + formatCategory(userObj.categoryAuto)
                         ));
                       }
 
@@ -624,7 +626,8 @@ function unzipUsersToArray(params){
                         + " | " + userObj.name
                         + " | FLWRs: " + userObj.followersCount
                         + " | FRNDs: " + userObj.friendsCount
-                        + " | CAT M: " + userObj.category + " A: " + userObj.categoryAuto
+                        + " | CAT M: " + formatCategory(userObj.category) 
+                        + " A: " + formatCategory(userObj.categoryAuto)
                       ));                      
 
                       zipfile.readEntry();
@@ -696,7 +699,7 @@ function updateTrainingSet(){
         const trainingSetSize = parseInt(0.8 * trainingSetUsersHashMap[category].size);
         const testSetSize = parseInt(0.2 * trainingSetUsersHashMap[category].size);
 
-        console.log(chalkLog(MODULE_ID_PREFIX + " | TRAINING SET | " + category.toUpperCase()
+        console.log(chalkLog(MODULE_ID_PREFIX + " | TRAINING SET | " + formatCategory(category)
           + " | SIZE: " + trainingSetSize
           + " | TEST SIZE: " + testSetSize
         ));
@@ -1047,7 +1050,7 @@ async function main(){
     console.log("testSet [" + i + "]"
       + " | SR: " + successRate.toFixed(3) + "%"
       + " | " + pass
-      + " | CAT: " + preppedTestSetObj.dataSet[i].user.category.slice(0,1).toUpperCase()
+      + " | CAT: " + formatCategory(preppedTestSetObj.dataSet[i].user.category)
       + " | OUT: " + nnOutputIndex 
       + " | EXP: " + expectedOutputIndex 
       + " | @" + preppedTestSetObj.dataSet[i].user.screenName
@@ -1055,29 +1058,29 @@ async function main(){
   }
 
 
-  // const maxNormObj = await tcUtils.loadFileRetry({folder: testInputsFolder, file: "maxInputHashMap.json"});
-  // await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
-  // await nnTools.setNormalization(maxNormObj.normalization);
-  // await nnTools.setUserProfileOnlyFlag(true);
+  const maxNormObj = await tcUtils.loadFileRetry({folder: testInputsFolder, file: "maxInputHashMap.json"});
+  await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
+  await nnTools.setNormalization(maxNormObj.normalization);
+  await nnTools.setUserProfileOnlyFlag(true);
 
-  // // const networkIdArray = await loadNetworks(testNetworkFolder);
-  // const networkIdArray = await loadNetworksDb();
+  // const networkIdArray = await loadNetworks(testNetworkFolder);
+  const networkIdArray = await loadNetworksDb();
 
-  // const randomNnId = randomItem(networkIdArray);
-  // console.log("setPrimaryNeuralNetwork: " + randomNnId);
-  // await nnTools.setPrimaryNeuralNetwork(randomNnId);
+  const randomNnId = randomItem(networkIdArray);
+  console.log("setPrimaryNeuralNetwork: " + randomNnId);
+  await nnTools.setPrimaryNeuralNetwork(randomNnId);
 
-  // const userArray = await loadUsers(testUserFolder);
+  const userArray = await loadUsers(testUserFolder);
 
-  // console.log("userArray.length: " + userArray.length);
+  console.log("userArray.length: " + userArray.length);
 
-  // await activateUsers(randomNnId, userArray, BINARY_MODE);
+  await activateUsers(randomNnId, userArray, BINARY_MODE);
 
-  // const statsObj = await nnTools.getNetworkStats();
-  // console.log("statsObj.bestNetwork\n" + jsonPrint(statsObj.bestNetwork));
-  // console.log("statsObj.currentBestNetwork\n" + jsonPrint(statsObj.currentBestNetwork));
+  const statsObj = await nnTools.getNetworkStats();
+  console.log("statsObj.bestNetwork\n" + jsonPrint(statsObj.bestNetwork));
+  console.log("statsObj.currentBestNetwork\n" + jsonPrint(statsObj.currentBestNetwork));
 
-  // await nnTools.deleteAllNetworks();
+  await nnTools.deleteAllNetworks();
   
   return;
 }
