@@ -849,7 +849,11 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
       // statsObj.networks[nnId].meta[user.category] += 1;
       // statsObj.networks[nnId].meta.total += 1;
 
-      if(!empty(user.category) && user.category !== "none"){
+      if(!user.category || user.category === undefined || user.category === "none"){
+        user.category = "none";
+        statsObj.networks[nnId].meta.none += 1;
+      }
+      else{
 
         statsObj.networks[nnId].meta[user.category] += 1;
         statsObj.networks[nnId].meta.total += 1;
