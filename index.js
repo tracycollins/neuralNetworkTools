@@ -829,33 +829,41 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
       if (!statsObj.networks[nnId] || statsObj.networks[nnId] === undefined || statsObj.networks[nnId] === {}) {
         statsObj.networks[nnId] = {};
         statsObj.networks[nnId] = networkDefaults;
-        // statsObj.networks[nnId].meta = defaults(statsObj.networks[nnId].meta, networkDefaults.meta);
       }
 
       statsObj.networks[nnId] = pick(nn, networkPickArray);
       statsObj.networks[nnId].meta = nn.meta;
+      
       statsObj.networks[nnId].category = user.category;
       statsObj.networks[nnId].categoryAuto = arrayToCategory(networkOutput[nnId].output);
+      
       statsObj.networks[nnId].meta.category = user.category;
       statsObj.networks[nnId].meta.categoryAuto = statsObj.networks[nnId].categoryAuto;
+      statsObj.networks[nnId].meta.matchFlag = false;
 
       networkOutput[nnId].category = user.category;
       networkOutput[nnId].categoryAuto = statsObj.networks[nnId].categoryAuto;
 
       statsObj.networks[nnId].meta.output = [];
       statsObj.networks[nnId].meta.output = networkOutput[nnId].output;
-      statsObj.networks[nnId].meta[user.category] += 1;
-      statsObj.networks[nnId].meta.total += 1;
+      // statsObj.networks[nnId].meta[user.category] += 1;
+      // statsObj.networks[nnId].meta.total += 1;
 
-      if (networkOutput[nnId].categoryAuto == user.category) {
-        statsObj.networks[nnId].meta.match += 1;
-        statsObj.networks[nnId].meta.matchFlag = "MATCH";
-        chalkCategory = chalk.green;
-      }
-      else {
-        statsObj.networks[nnId].meta.mismatch += 1;
-        statsObj.networks[nnId].meta.matchFlag = "MISS";
-        chalkCategory = chalk.gray;
+      if(!empty(user.category) && user.category !== "none"){
+
+        statsObj.networks[nnId].meta[user.category] += 1;
+        statsObj.networks[nnId].meta.total += 1;
+
+        if (user.category === networkOutput[nnId].categoryAuto) {
+          statsObj.networks[nnId].meta.match += 1;
+          statsObj.networks[nnId].meta.matchFlag = "MATCH";
+          chalkCategory = chalk.green;
+        }
+        else {
+          statsObj.networks[nnId].meta.mismatch += 1;
+          statsObj.networks[nnId].meta.matchFlag = "MISS";
+          chalkCategory = chalk.gray;
+        }
       }
 
       if (verbose){
