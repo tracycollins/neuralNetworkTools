@@ -163,8 +163,8 @@ networkDefaults.testCycleHistory = [];
 
 networkDefaults.meta = {};
 
-networkDefaults.meta.category = false;
-networkDefaults.meta.categoryAuto = false;
+networkDefaults.meta.category = "none";
+networkDefaults.meta.categoryAuto = "none";
 networkDefaults.meta.binaryMode = configuration.binaryMode;
 networkDefaults.meta.userProfileOnlyFlag = configuration.userProfileOnlyFlag;
 networkDefaults.meta.output = [0,0,0];
@@ -846,8 +846,6 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
       statsObj.networks[nnId].meta.output = [];
       statsObj.networks[nnId].meta.output = networkOutput[nnId].output;
-      // statsObj.networks[nnId].meta[user.category] += 1;
-      // statsObj.networks[nnId].meta.total += 1;
 
       if(!user.category || user.category === undefined || user.category === "none"){
         user.category = "none";
@@ -893,7 +891,6 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
       nn.previousRank = statsObj.networks[nnId].previousRank;
       nn.matchRate = statsObj.networks[nnId].matchRate;
       nn.overallMatchRate = statsObj.networks[nnId].overallMatchRate;
-      // nn.successRate = statsObj.networks[nnId].successRate;
       nn.testCycleHistory = statsObj.networks[nnId].testCycleHistory;
       nn.testCycles = statsObj.networks[nnId].testCycles;
       nn.output = statsObj.networks[nnId].meta.output;
