@@ -1,5 +1,5 @@
 const MODULE_ID_PREFIX = "NNT";
-const DEFAULT_BINARY_MODE = true;
+const DEFAULT_BINARY_MODE = false;
 const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
 const tcuChildName = MODULE_ID_PREFIX + "_TCU";
 
@@ -1128,7 +1128,6 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
-  const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
   const verbose = configuration.verbose || params.verbose;
   const nnId = params.networkId || primaryNeuralNetworkId;
 
@@ -1138,8 +1137,6 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   }
 
   const nnObj = networksHashMap.get(nnId);
-  nnObj.meta.binaryMode = binaryMode;
-  nnObj.meta.userProfileOnlyFlag = userProfileOnlyFlag;
 
   if (!nnObj.network || (nnObj.network === undefined)){
     console.log(chalkError(MODULE_ID_PREFIX + " | *** NN NETWORK UNDEFINED: " + nnId));
@@ -1171,7 +1168,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
       user: params.user, 
       inputsId: nnObj.inputsId,
       userProfileOnlyFlag: userProfileOnlyFlag,
-      binaryMode: binaryMode, 
+      binaryMode: nnObj.binaryMode, 
       verbose: verbose
     });
 
@@ -1220,7 +1217,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   networkOutput.user.screenName = params.user.screenName;
   networkOutput.user.category = params.user.category;
   networkOutput.user.categoryAuto = params.user.categoryAuto;
-  networkOutput.binaryMode = binaryMode;
+  networkOutput.binaryMode = nnObj.binaryMode;
   networkOutput.userProfileOnlyFlag = userProfileOnlyFlag;
   networkOutput.outputRaw = [];
   networkOutput.outputRaw = outputRaw;
@@ -1261,8 +1258,8 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   networkOutput.matchFlag = ((params.user.category !== "none") && (networkOutput.categoryAuto === params.user.category)) ? "MATCH" : "MISS";
 
   const title = nnObj.networkId
-      + " | BINARY MODE: " + nnObj.meta.binaryMode 
-      + " | USER PROFILE ONLY: " + nnObj.meta.userProfileOnlyFlag 
+      + " | BINARY MODE: " + nnObj.binaryMode 
+      + " | USER PROFILE ONLY: " + userProfileOnlyFlag 
       + " | INPUT: " + nnObj.inputsId 
       + " | INPUT H/M/RATE: " + networkOutput.inputHits + "/" + networkOutput.inputMisses + "/" + networkOutput.inputHitRate.toFixed(3)
       + " | @" + params.user.screenName 
