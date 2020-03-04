@@ -185,14 +185,15 @@ async function loadNetworksDb(){
     const networkIdArray = [];
 
     const nnDocArray = await global.wordAssoDb.NeuralNetwork.find({
-      networkTechnology: "carrot",
-      successRate: {"$gt": 90},
-      "createdAt": {"$gt": new Date("2019-12-01T00:00:00.000Z")}
+      binaryMode: true,
+      successRate: {"$gt": 90}
+      // "createdAt": {"$gt": new Date("2019-12-01T00:00:00.000Z")}
     }).limit(10);
 
     console.log(chalkInfo(MODULE_ID_PREFIX + " | LOADED NETWORKS: " + nnDocArray.length));
 
     for(const nnDoc of nnDocArray){
+
       networkIdArray.push(nnDoc.networkId);
 
       const nn = nnDoc.toObject();

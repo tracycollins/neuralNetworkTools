@@ -153,6 +153,7 @@ NeuralNetworkTools.prototype.getNumberNetworks = function(){
 
 const networkDefaults = {};
 
+networkDefaults.binaryMode = configuration.binaryMode;
 networkDefaults.rank = Infinity;
 networkDefaults.previousRank = Infinity;
 networkDefaults.matchRate = 0;
@@ -182,6 +183,7 @@ networkDefaults.meta.negative = 0;
 
 const networkPickArray = [
   "inputsId",
+  "binaryMode",
   // "inputsObj",
   "matchRate",
   "matchFlag",
@@ -418,7 +420,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
       networksHashMap.set(nn.networkId, nn);
 
-      console.log(chalkLog(MODULE_ID_PREFIX + " | --> LOAD NN: " + nn.networkId + " | " + networksHashMap.size + " NNs"));
+      console.log(chalkLog(MODULE_ID_PREFIX + " | --> LOAD NN: " + nn.networkId + " | BIN: " + formatBoolean(nn.binaryMode) + " | " + networksHashMap.size + " NNs"));
       console.log(chalkLog(MODULE_ID_PREFIX + " | --> LOAD IN: " + nn.inputsId + " | " + inputsHashMap.size + " INPUT OBJs"));
 
       return nn.networkId;
@@ -651,7 +653,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
 
     titleDefault = "BEST"
       + " | TECH: " + statsObj.currentBestNetwork.networkTechnology.charAt(0).toUpperCase()
-      + " | BIN: " + formatBoolean(statsObj.currentBestNetwork.meta.binaryMode)
+      + " | BIN: " + formatBoolean(statsObj.currentBestNetwork.binaryMode)
       + " | PROF ONLY: NN: " + formatBoolean(statsObj.currentBestNetwork.meta.userProfileOnlyFlag)
       + " - CONFIG: " + formatBoolean(configuration.userProfileOnlyFlag)
       + " | RANK: " + statsObj.currentBestNetwork.rank
@@ -689,8 +691,8 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
         nn.testCycles,
         nn.testCycleHistory.length,
         nn.meta.matchFlag,
-        nn.meta.binaryMode,
-        nn.meta.userProfileOnlyFlag,
+        formatBoolean(nn.binaryMode),
+        formatBoolean(nn.meta.userProfileOnlyFlag),
         nn.meta.output,
         nn.meta.total,
         nn.meta.match,
@@ -765,6 +767,7 @@ function printNetworkObj(title, nn, format) {
   const testCycleHistory = nn.testCycleHistory || [];
 
   console.log(chalkFormat(title
+    + " | BIN: " + formatBoolean(nn.binaryMode)
     + " | RK: " + rank
     + " | PREV RK: " + previousRank
     + " | OR: " + overallMatchRate.toFixed(2) + "%"
@@ -1287,7 +1290,7 @@ NeuralNetworkTools.prototype.activate = async function (params) {
   }
 
   const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
-  const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
+  // const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const verbose = params.verbose || false;
   const user = params.user;
@@ -1328,7 +1331,7 @@ NeuralNetworkTools.prototype.activate = async function (params) {
         networkId: nnId, 
         user: user, 
         datum: datum, 
-        binaryMode: binaryMode,
+        // binaryMode: binaryMode,
         userProfileOnlyFlag: userProfileOnlyFlag,
         convertDatumFlag: convertDatumFlag, 
         verbose: verbose
