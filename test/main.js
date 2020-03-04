@@ -3,7 +3,7 @@ const USER_PROFILE_ONLY_FLAG = true;
 
 const MODULE_ID_PREFIX = "NNT";
 
-const TOTAL_ITERATIONS = 40;
+const TOTAL_ITERATIONS = 20;
 
 const DEFAULT_USER_PROFILE_ONLY_INPUTS_ID = "inputs_25250101_000000_255_profilecharcodes";
 const DEFAULT_USER_PROFILE_ONLY_INPUTS_FILE = DEFAULT_USER_PROFILE_ONLY_INPUTS_ID + ".json";
@@ -1038,7 +1038,12 @@ async function main(){
 
   for (let i=0; i < preppedTestSetObj.dataSet.length; i++){
 
-    const outputRaw = network.run(preppedTestSetObj.dataSet[i].input);
+    const outputObj = network.run(preppedTestSetObj.dataSet[i].input);
+    const outputRaw = [];
+    outputRaw.push(outputObj["0"]);
+    outputRaw.push(outputObj["1"]);
+    outputRaw.push(outputObj["2"]);
+    // console.log("outputRaw\n" + jsonPrint(outputRaw));
     const nnOutputIndex = await tcUtils.indexOfMax(outputRaw);
     const expectedOutputIndex = await tcUtils.indexOfMax(preppedTestSetObj.dataSet[i].output);
     const pass = (nnOutputIndex === expectedOutputIndex) ? "PASS" : "FAIL";
