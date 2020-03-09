@@ -748,13 +748,13 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
 
 const printNetworkInput = NeuralNetworkTools.prototype.printNetworkInput;
 
-function arrayToCategory(arr){
-  if (_.isEqual(arr, [0,0,0])) { return "none"; }
-  if (_.isEqual(arr, [1,0,0])) { return "left"; }
-  if (_.isEqual(arr, [0,1,0])) { return "neutral"; }
-  if (_.isEqual(arr, [0,0,1])) { return "right"; }
-  throw new Error("INVALID ARR arrayToCategory");
-}
+// function arrayToCategory(arr){
+//   if (_.isEqual(arr, [0,0,0])) { return "none"; }
+//   if (_.isEqual(arr, [1,0,0])) { return "left"; }
+//   if (_.isEqual(arr, [0,1,0])) { return "neutral"; }
+//   if (_.isEqual(arr, [0,0,1])) { return "right"; }
+//   throw new Error("INVALID ARR arrayToCategory");
+// }
 
 function printNetworkObj(title, nn, format) {
 
@@ -837,15 +837,12 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
       statsObj.networks[nnId] = pick(nn, networkPickArray);
       statsObj.networks[nnId].meta = nn.meta;
       
-      statsObj.networks[nnId].category = user.category;
-      statsObj.networks[nnId].categoryAuto = arrayToCategory(networkOutput[nnId].output);
+      // statsObj.networks[nnId].category = user.category;
+      // statsObj.networks[nnId].categoryAuto = networkOutput[nnId].categoryAuto;
       
-      statsObj.networks[nnId].meta.category = user.category;
-      statsObj.networks[nnId].meta.categoryAuto = statsObj.networks[nnId].categoryAuto;
+      // statsObj.networks[nnId].meta.category = user.category;
+      // statsObj.networks[nnId].meta.categoryAuto = networkOutput[nnId].categoryAuto;
       statsObj.networks[nnId].meta.matchFlag = false;
-
-      networkOutput[nnId].category = user.category;
-      networkOutput[nnId].categoryAuto = statsObj.networks[nnId].categoryAuto;
 
       statsObj.networks[nnId].meta.output = [];
       statsObj.networks[nnId].meta.output = networkOutput[nnId].output;
@@ -871,10 +868,15 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
         }
       }
 
+      networkOutput[nnId].category = user.category;
+      
+      statsObj.networks[nnId].meta.category = user.category;
+      statsObj.networks[nnId].meta.categoryAuto = networkOutput[nnId].categoryAuto;
+
       if (verbose){
         console.log(chalkCategory(MODULE_ID_PREFIX + " | " + statsObj.networks[nnId].meta.matchFlag
           + " | @" + user.screenName
-          + " | CM: " + formatCategory(user.category) + " | CA: " + formatCategory(networkOutput[nnId].categoryAuto)
+          + " | CM: " + formatCategory(user.category) + " | CA: " + formatCategory(statsObj.networks[nnId].meta.categoryAuto)
           + " | " + statsObj.networks[nnId].networkId
           + " | " + statsObj.networks[nnId].inputsId
           + " | SR: " + statsObj.networks[nnId].successRate.toFixed(2) 
