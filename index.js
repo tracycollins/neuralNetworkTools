@@ -1013,10 +1013,12 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
       }
       else if (nnObj.networkTechnology === "brain") {
         if (!empty(nnObj.networkJson)) {
-          nnObj.networkRaw = brain.NeuralNetwork.fromJSON(nnObj.networkJson);
+          nnObj.networkRaw = new brain.NeuralNetwork();
+          nnObj.networkRaw.fromJSON(nnObj.networkJson);
         }
         else if (!empty(nnObj.network)) {
-          nnObj.networkRaw = brain.NeuralNetwork.fromJSON(nnObj.network);
+          nnObj.networkRaw = new brain.NeuralNetwork();
+          nnObj.networkRaw.fromJSON(nnObj.network);
         }
       }
       else {
