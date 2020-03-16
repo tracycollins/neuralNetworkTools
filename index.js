@@ -1049,6 +1049,7 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
       resolve(newNetObj);
     }
     else{
+      console.log(chalkError(MODULE_ID_PREFIX + " | *** convertNetwork ERROR: NO VALID NETWORK JSON " + nnObj.networkId));
       reject(new Error("NO VALID JSON NN: " + nnObj.networkId));
     }
 
