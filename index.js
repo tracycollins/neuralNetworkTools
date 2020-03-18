@@ -95,7 +95,7 @@ NeuralNetworkTools.prototype.verbose = function(v){
   configuration.verbose = v;
   console.log(chalkAlert(MODULE_ID_PREFIX + " | --> SET VERBOSE: " + configuration.verbose));
   return;
-}
+};
 
 NeuralNetworkTools.prototype.setBinaryMode = function(b){
   if (b === undefined) { return configuration.binaryMode; }
@@ -103,11 +103,11 @@ NeuralNetworkTools.prototype.setBinaryMode = function(b){
   tcUtils.setBinaryMode(b);
   console.log(chalkAlert(MODULE_ID_PREFIX + " | --> SET BINARY MODE: " + configuration.binaryMode));
   return;
-}
+};
 
 NeuralNetworkTools.prototype.getBinaryMode = function(){
   return configuration.binaryMode;
-}
+};
 
 NeuralNetworkTools.prototype.setUserProfileOnlyFlag = function(f){
   if (f === undefined) { return configuration.userProfileOnlyFlag; }
@@ -115,11 +115,11 @@ NeuralNetworkTools.prototype.setUserProfileOnlyFlag = function(f){
   tcUtils.setUserProfileOnlyFlag(f);
   console.log(chalkAlert(MODULE_ID_PREFIX + " | --> SET USER PROFILE ONLY FLAG: " + configuration.userProfileOnlyFlag));
   return;
-}
+};
 
 NeuralNetworkTools.prototype.getUserProfileOnlyFlag = function(){
   return configuration.userProfileOnlyFlag;
-}
+};
 
 NeuralNetworkTools.prototype.setMaxInputHashMap = function(m){
   return new Promise(function(resolve){
@@ -127,11 +127,11 @@ NeuralNetworkTools.prototype.setMaxInputHashMap = function(m){
     console.log(chalkLog(MODULE_ID_PREFIX + " | --> SET MAX INPUT HASHMAP: " + Object.keys(tcUtils.getMaxInputHashMap())));
     resolve();
   });
-}
+};
 
 NeuralNetworkTools.prototype.getMaxInputHashMap = function(){
   return tcUtils.getMaxInputHashMap();
-}
+};
 
 NeuralNetworkTools.prototype.setNormalization = function(n){
   return new Promise(function(resolve){
@@ -139,17 +139,17 @@ NeuralNetworkTools.prototype.setNormalization = function(n){
     console.log(chalkLog(MODULE_ID_PREFIX + " | --> SET NORMALIZATION\n" + jsonPrint(tcUtils.getNormalization())));
     resolve();
   });
-}
+};
 
 NeuralNetworkTools.prototype.getNormalization = function(){
   const normalization = tcUtils.getNormalization();
   return normalization;
-}
+};
 
 NeuralNetworkTools.prototype.getNumberNetworks = function(){
   const numNetworks = networksHashMap.size;
   return numNetworks;
-}
+};
 
 const networkDefaults = {};
 
@@ -206,7 +206,7 @@ const networkPickArray = [
 NeuralNetworkTools.prototype.loadInputs = async function(params){
   await tcUtils.loadInputs({inputsObj: params.inputsObj});
   return;
-}
+};
 
 NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
@@ -443,7 +443,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     ));
     throw err;
   }
-}
+};
 
 NeuralNetworkTools.prototype.deleteAllNetworks = async function(){
 
@@ -467,7 +467,7 @@ NeuralNetworkTools.prototype.deleteAllNetworks = async function(){
     ));
     throw err;
   }
-}
+};
 
 NeuralNetworkTools.prototype.deleteNetwork = async function(params){
 
@@ -509,13 +509,13 @@ NeuralNetworkTools.prototype.deleteNetwork = async function(params){
     ));
     throw err;
   }
-}
+};
 
 const deleteNetwork = NeuralNetworkTools.prototype.deleteNetwork;
 
 NeuralNetworkTools.prototype.setPrimaryInputs = async function(inputsId){
   await tcUtils.setPrimaryInputs({inputsId: inputsId});
-}
+};
 
 NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = async function(nnId){
 
@@ -542,11 +542,11 @@ NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = async function(nnId){
   console.log(chalkLog(MODULE_ID_PREFIX + " | --> SET PRIMARY NN: " + primaryNeuralNetworkId));
 
   return primaryNeuralNetworkId;
-}
+};
 
 NeuralNetworkTools.prototype.getPrimaryNeuralNetwork = function(){
   return primaryNeuralNetworkId;
-}
+};
 
 let previousPrintedNetworkObj = {};
 function outputNetworkInputText(params){
@@ -637,7 +637,7 @@ NeuralNetworkTools.prototype.printNetworkInput = function(params){
     });
 
   });
-}
+};
 
 let titleDefault;
 
@@ -744,7 +744,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
     });
 
   });
-}
+};
 
 const printNetworkInput = NeuralNetworkTools.prototype.printNetworkInput;
 
@@ -756,7 +756,7 @@ const printNetworkInput = NeuralNetworkTools.prototype.printNetworkInput;
 //   throw new Error("INVALID ARR arrayToCategory");
 // }
 
-function printNetworkObj(title, nn, format) {
+NeuralNetworkTools.prototype.printNetworkObj = function(title, nn, format) {
 
   const chalkFormat = (format !== undefined) ? format : chalk.blue;
   const rank = (nn.rank !== undefined) ? nn.rank : Infinity;
@@ -781,13 +781,15 @@ function printNetworkObj(title, nn, format) {
   ));
 
   return;
-}
+};
+
+const printNetworkObj = NeuralNetworkTools.prototype.printNetworkObj;
 
 NeuralNetworkTools.prototype.getNetworkStats = function (){
   return new Promise(function(resolve){
     resolve(statsObj);
   });
-}
+};
 
 NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
@@ -941,7 +943,7 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
     });
   });
-}
+};
 
 NeuralNetworkTools.prototype.convertNetwork = function(params){
 
@@ -1054,7 +1056,7 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
     }
 
   });
-}
+};
 
 NeuralNetworkTools.prototype.streamTrainNetwork = async function (params) {
 
@@ -1122,7 +1124,7 @@ NeuralNetworkTools.prototype.streamTrainNetwork = async function (params) {
       stream.endInputs();
     }
   });
-}
+};
 
 NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
