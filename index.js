@@ -399,7 +399,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
       if (empty(inputsObj)){
         // (chalkAlert(MODULE_ID_PREFIX + " | !!! NN INPUTS OBJ UNDEFINED | NN: " + nn.networkId + " | INPUTS ID: " + nn.inputsId));
 
-        inputsObj = await global.wordAssoDb.NetworkInputs.findOne({inputsId: nn.inputsId});
+        inputsObj = await global.wordAssoDb.NetworkInputs.findOne({inputsId: nn.inputsId}).lean();
 
         if (empty(inputsObj)){
 
