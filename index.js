@@ -26,6 +26,7 @@ const carrot = require("@liquid-carrot/carrot");
 const neataptic = require("neataptic");
 const brain = require("brain.js");
 
+const deepcopy = require("deepcopy");
 const path = require("path");
 const async = require("async");
 const util = require("util");
@@ -36,7 +37,7 @@ const defaults = require("object.defaults");
 const pick = require("object.pick");
 const table = require("text-table");
 const empty = require("is-empty");
-const objectRenameKeys = require("object-rename-keys");
+// const objectRenameKeys = require("object-rename-keys");
 const networksHashMap = new HashMap();
 const inputsHashMap = new HashMap();
 
@@ -1036,19 +1037,23 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
     }
     else if (!empty(nnObj.network)) {
       console.log(chalkLog(MODULE_ID_PREFIX + " | OLD JSON EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
-      const newNetObj = objectRenameKeys(nnObj, {network: "networkJson"});
+      // const newNetObj = objectRenameKeys(nnObj, {network: "networkJson"});
+
+      nnObj.networkJson = {};
+      nnObj.networkJson = deepcopy(nnObj.network);
+      nnObj.network = {};
 
       if (nnObj.networkTechnology === "carrot") {
-        newNetObj.networkRaw = carrot.Network.fromJSON(newNetObj.networkJson);
+        nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
       }
       else if (nnObj.networkTechnology === "brain") {
-        newNetObj.networkRaw = brain.NeuralNetwork.fromJSON(newNetObj.networkJson);
+        nnObj.networkRaw = brain.NeuralNetwork.fromJSON(nnObj.networkJson);
       }
       else {
-        newNetObj.networkRaw = neataptic.Network.fromJSON(newNetObj.networkJson);
+        nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.networkJson);
       }
 
-      resolve(newNetObj);
+      resolve(nnObj);
     }
     else{
       console.log(chalkError(MODULE_ID_PREFIX + " | *** convertNetwork ERROR: NO VALID NETWORK JSON " + nnObj.networkId));
