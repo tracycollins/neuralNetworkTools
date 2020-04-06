@@ -158,6 +158,7 @@ networkDefaults.binaryMode = configuration.binaryMode;
 networkDefaults.rank = Infinity;
 networkDefaults.previousRank = Infinity;
 networkDefaults.matchRate = 0;
+networkDefaults.runtimeMatchRate = 0;
 networkDefaults.overallMatchRate = 0;
 networkDefaults.successRate = 0;
 networkDefaults.testCycles = 0;
@@ -183,11 +184,10 @@ networkDefaults.meta.positive = 0;
 networkDefaults.meta.negative = 0;
 
 const networkPickArray = [
-  "inputsId",
   "binaryMode",
-  // "inputsObj",
-  "matchRate",
+  "inputsId",
   "matchFlag",
+  "matchRate",
   "meta",
   "networkId",
   "networkTechnology",
@@ -195,13 +195,14 @@ const networkPickArray = [
   "numOutputs",
   "output",
   "overallMatchRate",
-  "rank",
   "previousRank",
+  "rank",
+  "runtimeMatchRate",
   "seedNetworkId",
   "seedNetworkRes",
   "successRate",
   "testCycleHistory",
-  "testCycles",
+  "testCycles"
 ];
 
 NeuralNetworkTools.prototype.loadInputs = async function(params){
@@ -240,13 +241,13 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
       statsObj.currentBestNetwork = pick(nn, networkPickArray);
     }
 
-    if (params.isBestNetwork || (statsObj.bestNetwork.overallMatchRate < nn.overallMatchRate)) {
-      printNetworkObj(MODULE_ID_PREFIX + " | --> LOAD BEST NETWORK", nn, chalk.green);
+    if (params.isBestNetwork || (statsObj.bestNetwork.runtimeMatchRate < nn.runtimeMatchRate)) {
+      printNetworkObj(MODULE_ID_PREFIX + " | --> LOAD BEST RUNTIME NETWORK", nn, chalk.green);
       statsObj.bestNetwork = pick(nn, networkPickArray);
     }
 
-    if (statsObj.currentBestNetwork.overallMatchRate < nn.overallMatchRate){
-      printNetworkObj(MODULE_ID_PREFIX + " | --> LOAD CURRENT BEST NETWORK", nn, chalk.green);
+    if (statsObj.currentBestNetwork.runtimeMatchRate < nn.runtimeMatchRate){
+      printNetworkObj(MODULE_ID_PREFIX + " | --> LOAD CURRENT BEST RUNTIME NETWORK", nn, chalk.green);
       statsObj.currentBestNetwork = pick(nn, networkPickArray);
     }
 
@@ -663,6 +664,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
       + " | " + statsObj.currentBestNetwork.inputsId
       + " | " + statsObj.currentBestNetwork.meta.match + "/" + statsObj.currentBestNetwork.meta.total
       + " | MR: " + statsObj.currentBestNetwork.matchRate.toFixed(2) + "%"
+      + " | RMR: " + statsObj.currentBestNetwork.runtimeMatchRate.toFixed(2) + "%"
       + " | OUT: " + statsObj.currentBestNetwork.meta.output
       + " | CM: " + formatCategory(statsObj.currentBestNetwork.meta.category)
       + " A: " + formatCategory(statsObj.currentBestNetwork.meta.categoryAuto)
@@ -687,6 +689,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
         nn.networkId,
         nn.inputsId,
         nn.numInputs,
+        nn.runtimeMatchRate.toFixed(2),
         nn.overallMatchRate.toFixed(2),
         nn.successRate.toFixed(2),
         nn.testCycles,
@@ -718,6 +721,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
         "NNID",
         "INPUTSID",
         "INPUTS",
+        "RMR",
         "OAMR",
         "SR",
         "TCs",
@@ -736,7 +740,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
           "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
         + "\nNNT | " + params.title 
         + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------\n"
-        + table(statsTextArray, { align: ["l", "r", "r", "l", "l", "l", "r", "r", "r", "r", "r", "l", "l", "l", "r", "r", "r", "r", "r"] })
+        + table(statsTextArray, { align: ["l", "r", "r", "l", "l", "l", "r", "r", "r", "r", "r", "r", "l", "l", "l", "r", "r", "r", "r", "r"] })
         + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
       ));
 
@@ -749,20 +753,13 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
 
 const printNetworkInput = NeuralNetworkTools.prototype.printNetworkInput;
 
-// function arrayToCategory(arr){
-//   if (_.isEqual(arr, [0,0,0])) { return "none"; }
-//   if (_.isEqual(arr, [1,0,0])) { return "left"; }
-//   if (_.isEqual(arr, [0,1,0])) { return "neutral"; }
-//   if (_.isEqual(arr, [0,0,1])) { return "right"; }
-//   throw new Error("INVALID ARR arrayToCategory");
-// }
-
 NeuralNetworkTools.prototype.printNetworkObj = function(title, nn, format) {
 
   const chalkFormat = (format !== undefined) ? format : chalk.blue;
   const rank = (nn.rank !== undefined) ? nn.rank : Infinity;
   const previousRank = (nn.previousRank !== undefined) ? nn.previousRank : Infinity;
   const overallMatchRate = nn.overallMatchRate || 0;
+  const runtimeMatchRate = nn.runtimeMatchRate || 0;
   const matchRate = nn.matchRate || 0;
   const successRate = nn.successRate || 0;
   const testCycleHistory = nn.testCycleHistory || [];
@@ -771,7 +768,8 @@ NeuralNetworkTools.prototype.printNetworkObj = function(title, nn, format) {
     + " | BIN: " + formatBoolean(nn.binaryMode)
     + " | RK: " + rank
     + " | PREV RK: " + previousRank
-    + " | OR: " + overallMatchRate.toFixed(2) + "%"
+    + " | OAMR: " + overallMatchRate.toFixed(2) + "%"
+    + " | RMR: " + runtimeMatchRate.toFixed(2) + "%"
     + " | MR: " + matchRate.toFixed(2) + "%"
     + " | SR: " + successRate.toFixed(2) + "%"
     + " | CR: " + tcUtils.getTimeStamp(nn.createdAt)
@@ -803,7 +801,6 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
     const primaryNetwork = params.primaryNetwork || false; // 
     const verbose = params.verbose || false; //
     const sortByMetric = params.sortBy || "matchRate";
-    // const updateRank = params.updateRank || true;
 
     let networkOutput = {};
 
@@ -839,12 +836,6 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
       statsObj.networks[nnId] = pick(nn, networkPickArray);
       statsObj.networks[nnId].meta = nn.meta;
-      
-      // statsObj.networks[nnId].category = user.category;
-      // statsObj.networks[nnId].categoryAuto = networkOutput[nnId].categoryAuto;
-      
-      // statsObj.networks[nnId].meta.category = user.category;
-      // statsObj.networks[nnId].meta.categoryAuto = networkOutput[nnId].categoryAuto;
       statsObj.networks[nnId].meta.matchFlag = false;
 
       statsObj.networks[nnId].meta.output = [];
@@ -883,8 +874,9 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
           + " | " + statsObj.networks[nnId].networkId
           + " | " + statsObj.networks[nnId].inputsId
           + " | SR: " + statsObj.networks[nnId].successRate.toFixed(2) 
+          + " | OAMR: " + statsObj.networks[nnId].overallMatchRate.toFixed(2) 
+          + " | RMR: " + statsObj.networks[nnId].runtimeMatchRate.toFixed(2) 
           + " | MR: " + statsObj.networks[nnId].matchRate.toFixed(2) 
-          + " | OR: " + statsObj.networks[nnId].overallMatchRate.toFixed(2) 
         ));
       }
 
@@ -898,6 +890,7 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
       nn.rank = statsObj.networks[nnId].rank;
       nn.previousRank = statsObj.networks[nnId].previousRank;
       nn.matchRate = statsObj.networks[nnId].matchRate;
+      nn.runtimeMatchRate = statsObj.networks[nnId].runtimeMatchRate;
       nn.overallMatchRate = statsObj.networks[nnId].overallMatchRate;
       nn.testCycleHistory = statsObj.networks[nnId].testCycleHistory;
       nn.testCycles = statsObj.networks[nnId].testCycles;
@@ -924,7 +917,9 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
           networksHashMap.set(nn.networkId, nn);
 
           if (index === 0){
-            if ((statsObj.currentBestNetwork.networkId !== nn.networkId) && (statsObj.currentBestNetwork.matchRate < nn.matchRate)) {
+            if ((statsObj.currentBestNetwork.networkId !== nn.networkId) 
+              && (statsObj.currentBestNetwork.matchRate < nn.matchRate)
+            ) {
               printNetworkObj(MODULE_ID_PREFIX + " | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green);
             }
             statsObj.currentBestNetwork = pick(nn, networkPickArray);
