@@ -280,7 +280,11 @@ function activateUsers(primaryNetworkId, userArray, binaryMode){
 
         // noutObj = { user: user, networkOutput: networkOutput }
 
-        nnTools.updateNetworkStats({user: noutObj.user, networkOutput: noutObj.networkOutput})
+        nnTools.updateNetworkStats({
+          user: noutObj.user, 
+          networkOutput: noutObj.networkOutput,
+          updateRuntimeMatchRate: true
+        })
         .then(function(networkStats){
 
           // const title = "BEST | " + networkStats.networkId

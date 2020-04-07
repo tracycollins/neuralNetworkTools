@@ -887,6 +887,10 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
         statsObj.networks[nnId].matchRate = 100.0 * statsObj.networks[nnId].meta.match / statsObj.networks[nnId].meta.total;
       }
 
+      if (params.updateRuntimeMatchRate) { 
+        statsObj.networks[nnId].runtimeMatchRate = statsObj.networks[nnId].matchRate; 
+      }
+
       nn.rank = statsObj.networks[nnId].rank;
       nn.previousRank = statsObj.networks[nnId].previousRank;
       nn.matchRate = statsObj.networks[nnId].matchRate;
@@ -923,7 +927,6 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
               printNetworkObj(MODULE_ID_PREFIX + " | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green);
             }
             statsObj.currentBestNetwork = pick(nn, networkPickArray);
-            // statsObj.currentBestNetwork.meta = pick(nn.meta, networkMetaPickArray);
           }
 
           cb1();
