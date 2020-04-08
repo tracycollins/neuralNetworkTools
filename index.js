@@ -37,7 +37,6 @@ const defaults = require("object.defaults");
 const pick = require("object.pick");
 const table = require("text-table");
 const empty = require("is-empty");
-// const objectRenameKeys = require("object-rename-keys");
 const networksHashMap = new HashMap();
 const inputsHashMap = new HashMap();
 
@@ -1230,6 +1229,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   networkOutput.user.screenName = params.user.screenName;
   networkOutput.user.category = (!params.user.category || params.user.category === "false" || params.user.category === undefined) ? "none" : params.user.category;
   networkOutput.user.categoryAuto = (!params.user.categoryAuto || params.user.categoryAuto === "false" || params.user.categoryAuto === undefined) ? "none" : params.user.categoryAuto;
+  networkOutput.user.categorizeNetwork = params.user.categorizeNetwork;
   networkOutput.binaryMode = nnObj.binaryMode;
   networkOutput.userProfileOnlyFlag = userProfileOnlyFlag;
   networkOutput.outputRaw = [];
