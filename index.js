@@ -1138,7 +1138,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   //   verbose: configuration.verbose
   // };
 
-  const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
+  let userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const verbose = configuration.verbose || params.verbose;
   const nnId = params.networkId || primaryNeuralNetworkId;
@@ -1172,6 +1172,8 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     throw new Error("ACTIVATE_UNDEFINED: " + nnObj.networkId);
 
   }
+
+  userProfileOnlyFlag = userProfileOnlyFlag || nnObj.meta.userProfileOnlyFlag
 
   let convertedDatum = {};
 
