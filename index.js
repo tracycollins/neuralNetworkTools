@@ -788,6 +788,49 @@ NeuralNetworkTools.prototype.getNetworkStats = function (){
   });
 };
 
+NeuralNetworkTools.prototype.updateNetworkRank = function (params){
+
+  return new Promise(function(resolve, reject){
+
+    const sortByMetric = params.sortByMetric || "matchRate";
+
+    const sortedNetworksArray = _.sortBy(networksHashMap.values(), [sortByMetric]);
+    _.reverse(sortedNetworksArray);
+
+    async.eachOfSeries(sortedNetworksArray, function(nn, index, cb){
+
+      nn.previousRank = nn.rank;
+      statsObj.networks[nn.networkId].previousRank = nn.rank;
+
+      nn.rank = index;
+      statsObj.networks[nn.networkId].rank = index;
+
+      networksHashMap.set(nn.networkId, nn);
+
+      if (index === 0){
+        if ((statsObj.currentBestNetwork.networkId !== nn.networkId) 
+          && (statsObj.currentBestNetwork.matchRate < nn.matchRate)
+        ) {
+          printNetworkObj(MODULE_ID_PREFIX + " | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green);
+        }
+        statsObj.currentBestNetwork = pick(nn, networkPickArray);
+      }
+
+      cb();
+
+    }, function(err){
+
+      if (err) {
+        return reject(err);
+      }
+
+      resolve(statsObj.currentBestNetwork);
+    });
+  });
+};
+
+const updateNetworkRank = NeuralNetworkTools.prototype.updateNetworkRank;
+
 NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
   return new Promise(function(resolve, reject){
@@ -909,38 +952,45 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
         return reject(err2);
       }
 
-        const sortedNetworksArray = _.sortBy(networksHashMap.values(), [sortByMetric]);
-        _.reverse(sortedNetworksArray);
-
-        async.eachOfSeries(sortedNetworksArray, function(nn, index, cb1){
-
-          nn.previousRank = nn.rank;
-          statsObj.networks[nn.networkId].previousRank = nn.rank;
-
-          nn.rank = index;
-          statsObj.networks[nn.networkId].rank = index;
-
-          networksHashMap.set(nn.networkId, nn);
-
-          if (index === 0){
-            if ((statsObj.currentBestNetwork.networkId !== nn.networkId) 
-              && (statsObj.currentBestNetwork.matchRate < nn.matchRate)
-            ) {
-              printNetworkObj(MODULE_ID_PREFIX + " | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green);
-            }
-            statsObj.currentBestNetwork = pick(nn, networkPickArray);
-          }
-
-          cb1();
-
-        }, function(err1){
-
-          if (err1) {
-            return reject(err1);
-          }
-
+        updateNetworkRank({sortByMetric: sortByMetric})
+        .then(function(){
           resolve(statsObj.currentBestNetwork);
+        })
+        .catch(function(err1){
+          return reject(err1);
         });
+        // const sortedNetworksArray = _.sortBy(networksHashMap.values(), [sortByMetric]);
+        // _.reverse(sortedNetworksArray);
+
+        // async.eachOfSeries(sortedNetworksArray, function(nn, index, cb1){
+
+        //   nn.previousRank = nn.rank;
+        //   statsObj.networks[nn.networkId].previousRank = nn.rank;
+
+        //   nn.rank = index;
+        //   statsObj.networks[nn.networkId].rank = index;
+
+        //   networksHashMap.set(nn.networkId, nn);
+
+        //   if (index === 0){
+        //     if ((statsObj.currentBestNetwork.networkId !== nn.networkId) 
+        //       && (statsObj.currentBestNetwork.matchRate < nn.matchRate)
+        //     ) {
+        //       printNetworkObj(MODULE_ID_PREFIX + " | +++ NEW CURRENT BEST NETWORK    | " + nn.meta.match + "/" + nn.meta.total, nn, chalk.green);
+        //     }
+        //     statsObj.currentBestNetwork = pick(nn, networkPickArray);
+        //   }
+
+        //   cb1();
+
+        // }, function(err1){
+
+        //   if (err1) {
+        //     return reject(err1);
+        //   }
+
+        //   resolve(statsObj.currentBestNetwork);
+        // });
 
     });
   });
