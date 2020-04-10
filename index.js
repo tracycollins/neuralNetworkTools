@@ -788,9 +788,11 @@ NeuralNetworkTools.prototype.getNetworkStats = function (){
   });
 };
 
-NeuralNetworkTools.prototype.updateNetworkRank = function (params){
+NeuralNetworkTools.prototype.updateNetworkRank = function (p){
 
   return new Promise(function(resolve, reject){
+
+    const params = p || {};
 
     const sortByMetric = params.sortByMetric || "matchRate";
 
