@@ -915,7 +915,11 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
         async.eachOfSeries(sortedNetworksArray, function(nn, index, cb1){
 
+          nn.previousRank = nn.rank;
+          statsObj.networks[nn.networkId].previousRank = nn.rank;
+
           nn.rank = index;
+          statsObj.networks[nn.networkId].rank = index;
 
           networksHashMap.set(nn.networkId, nn);
 
