@@ -652,22 +652,21 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
 
     statsObj.currentBestNetwork = defaults(statsObj.currentBestNetwork, networkDefaults);
 
-    titleDefault = "BEST"
-      + " | TECH: " + statsObj.currentBestNetwork.networkTechnology.charAt(0).toUpperCase()
-      + " | BIN: " + formatBoolean(statsObj.currentBestNetwork.binaryMode)
-      + " | PROF ONLY: NN: " + formatBoolean(statsObj.currentBestNetwork.meta.userProfileOnlyFlag)
-      + " - CONFIG: " + formatBoolean(configuration.userProfileOnlyFlag)
-      + " | RANK: " + statsObj.currentBestNetwork.rank
-      + " PREV: " + statsObj.currentBestNetwork.previousRank
+    titleDefault = "T: " + statsObj.currentBestNetwork.networkTechnology.charAt(0).toUpperCase()
+      + " | B: " + formatBoolean(statsObj.currentBestNetwork.binaryMode)
+      + " | PF ONLY: " + formatBoolean(statsObj.currentBestNetwork.meta.userProfileOnlyFlag)
+      + " - CFG: " + formatBoolean(configuration.userProfileOnlyFlag)
+      + " | RK: " + statsObj.currentBestNetwork.rank
+      + " PRK: " + statsObj.currentBestNetwork.previousRank
       + " | " + statsObj.currentBestNetwork.networkId
       + " | " + statsObj.currentBestNetwork.inputsId
       + " | " + statsObj.currentBestNetwork.meta.match + "/" + statsObj.currentBestNetwork.meta.total
       + " | MR: " + statsObj.currentBestNetwork.matchRate.toFixed(2) + "%"
       + " | RMR: " + statsObj.currentBestNetwork.runtimeMatchRate.toFixed(2) + "%"
-      + " | OUT: " + statsObj.currentBestNetwork.meta.output
+      // + " | OUT: " + statsObj.currentBestNetwork.meta.output
       + " | CM: " + formatCategory(statsObj.currentBestNetwork.meta.category)
       + " A: " + formatCategory(statsObj.currentBestNetwork.meta.categoryAuto)
-      + " | MATCH: " + formatBoolean(statsObj.currentBestNetwork.meta.matchFlag);
+      + " | MTCH: " + formatBoolean(statsObj.currentBestNetwork.meta.matchFlag);
 
     if (!params.title) { params.title = titleDefault; }
 
