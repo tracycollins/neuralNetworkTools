@@ -9,18 +9,22 @@ const DEFAULT_BRAIN_TRAIN_LEARNING_RATE = 0.3;
 const DEFAULT_BRAIN_TRAIN_MOMENTUM = 0.1;
 
 const os = require("os");
+
 let hostname = os.hostname();
-if (hostname.startsWith("mbp3")){
-  hostname = "mbp3";
+
+if (hostname.startsWith("cs-")){
+  hostname = "googleCloudSh";
 }
-hostname = hostname.replace(/.tld/g, ""); // amtrak wifi
-hostname = hostname.replace(/.local/g, "");
-hostname = hostname.replace(/.home/g, "");
-hostname = hostname.replace(/.at.net/g, "");
-hostname = hostname.replace(/.fios-router.home/g, "");
-hostname = hostname.replace(/word0-instance-1/g, "google");
-hostname = hostname.replace(/word-1/g, "google");
-hostname = hostname.replace(/word/g, "google");
+else{
+  hostname = hostname.replace(/\.example\.com/g, "");
+  hostname = hostname.replace(/\.local/g, "");
+  hostname = hostname.replace(/\.home/g, "");
+  hostname = hostname.replace(/\.at\.net/g, "");
+  hostname = hostname.replace(/\.fios-router\.home/g, "");
+  hostname = hostname.replace(/word0-instance-1/g, "google");
+  hostname = hostname.replace(/word-1/g, "google");
+  hostname = hostname.replace(/word/g, "google");
+}
 
 const carrot = require("@liquid-carrot/carrot");
 const neataptic = require("neataptic");
@@ -68,7 +72,7 @@ statsObj.currentBestNetwork = {};
 
 let DROPBOX_ROOT_FOLDER;
 
-if (hostname === "google") {
+if (hostname.startsWith("google")){
   DROPBOX_ROOT_FOLDER = "/home/tc/Dropbox/Apps/wordAssociation";
 }
 else {
