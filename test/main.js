@@ -6,7 +6,7 @@ const MODULE_ID_PREFIX = "NNT";
 const TOTAL_ITERATIONS = 20;
 
 const DEFAULT_USER_PROFILE_ONLY_INPUTS_ID = "inputs_25250101_000000_255_profilecharcodes";
-const DEFAULT_USER_PROFILE_ONLY_INPUTS_FILE = DEFAULT_USER_PROFILE_ONLY_INPUTS_ID + ".json";
+const c = DEFAULT_USER_PROFILE_ONLY_INPUTS_ID + ".json";
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60*ONE_SECOND;
@@ -955,15 +955,6 @@ async function main(){
 
   await nnTools.loadInputs({ inputsObj: inputsObj});
   await nnTools.setPrimaryInputs(inputsObj.inputsId);
-
-  // const network = new brain.NeuralNetwork({
-  //   inputSize: inputsObj.meta.numInputs,
-  //   // inputRange: numInputs,
-  //   hiddenLayers: [10],
-  //   outputSize: trainingSetObj.meta.numOutputs
-  // });
-
-  let network = new brain.NeuralNetwork();
 
   const totalIterations = TOTAL_ITERATIONS;
 
