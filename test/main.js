@@ -946,8 +946,8 @@ async function main(){
   console.log("LOAD maxInputHashMap: " + testInputsFolder + "/maxInputHashMap.json");
   console.log("LOAD " + userArchiveFolder + "/" + defaultUserArchiveFlagFile);
 
-  // const inputsObj = await tcUtils.loadFileRetry({folder: defaultInputsFolder, file: "inputs_20200103_230204_1756_google_15930.json"});
-  const inputsObj = await tcUtils.loadFileRetry({folder: defaultInputsFolder, file: DEFAULT_USER_PROFILE_ONLY_INPUTS_FILE});
+  const inputsObj = await tcUtils.loadFileRetry({folder: defaultInputsFolder, file: "inputs_20200103_230204_1756_google_15930.json"});
+  // const inputsObj = await tcUtils.loadFileRetry({folder: defaultInputsFolder, file: DEFAULT_USER_PROFILE_ONLY_INPUTS_FILE});
 
   const archiveFlagObj = await tcUtils.loadFileRetry({folder: userArchiveFolder, file: defaultUserArchiveFlagFile});
 
