@@ -946,7 +946,7 @@ async function main(){
   console.log("LOAD maxInputHashMap: " + testInputsFolder + "/maxInputHashMap.json");
   console.log("LOAD " + userArchiveFolder + "/" + defaultUserArchiveFlagFile);
 
-  const inputsObj = await tcUtils.loadFileRetry({folder: defaultInputsFolder, file: "inputs_20200103_230204_1756_google_15930.json"});
+  const inputsObj = await tcUtils.loadFileRetry({folder: defaultInputsFolder, file: "inputs_20200316_090216_1547_profile_google_27497.json"});
   // const inputsObj = await tcUtils.loadFileRetry({folder: defaultInputsFolder, file: DEFAULT_USER_PROFILE_ONLY_INPUTS_FILE});
 
   const archiveFlagObj = await tcUtils.loadFileRetry({folder: userArchiveFolder, file: defaultUserArchiveFlagFile});
@@ -959,6 +959,7 @@ async function main(){
   const totalIterations = TOTAL_ITERATIONS;
 
   const preppedTrainingSetObj = await dataSetPrep({
+    inputsId: inputsObj.inputsId,
     numInputs: inputsObj.meta.numInputs,
     userProfileCharCodesOnlyFlag: inputsObj.meta.userProfileCharCodesOnlyFlag,
     dataSetObj: trainingSetObj, 
@@ -976,9 +977,9 @@ async function main(){
     const timeToComplete = iterationRate*(totalIterations - (schedParams.iterations+1));
 
     const sObj = {
-      networkTechnology: "BRAIN",
+      networkTechnology: "neataptic",
       binaryMode: false,
-      networkId: "nn_brain_test",
+      networkId: "nn_test",
       numInputs: inputsObj.meta.numInputs,
       inputsId: inputsObj.inputsId,
       evolveStart: schedStartTime,
@@ -1022,6 +1023,7 @@ async function main(){
   network = trainingResults.network;
 
   const preppedTestSetObj = await dataSetPrep({
+    inputsId: inputsObj.inputsId,
     numInputs: inputsObj.meta.numInputs,
     userProfileCharCodesOnlyFlag: inputsObj.meta.userProfileCharCodesOnlyFlag,
     dataSetObj: testSetObj, 
