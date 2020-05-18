@@ -1,5 +1,6 @@
 const MODULE_ID_PREFIX = "NNT";
 const DEFAULT_BINARY_MODE = false;
+const DEFAULT_LOGSCALE_MODE = false;
 const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
 const tcuChildName = MODULE_ID_PREFIX + "_TCU";
 
@@ -58,6 +59,7 @@ let primaryNeuralNetworkId;
 const configuration = {};
 configuration.userProfileOnlyFlag = DEFAULT_USER_PROFILE_ONLY_FLAG;
 configuration.binaryMode = DEFAULT_BINARY_MODE;
+configuration.logScaleMode = DEFAULT_LOGSCALE_MODE;
 configuration.verbose = false;
 
 const statsObj = {};
@@ -108,6 +110,18 @@ NeuralNetworkTools.prototype.getBinaryMode = function(){
   return configuration.binaryMode;
 };
 
+NeuralNetworkTools.prototype.setLogScaleMode = function(s){
+  if (s === undefined) { return configuration.logScaleMode; }
+  configuration.logScaleMode = s;
+  tcUtils.setLogScaleMode(s);
+  console.log(chalkAlert(MODULE_ID_PREFIX + " | --> SET LOG SCALE MODE: " + configuration.logScaleMode));
+  return;
+};
+
+NeuralNetworkTools.prototype.getLogScaleMode = function(){
+  return configuration.logScaleMode;
+};
+
 NeuralNetworkTools.prototype.setUserProfileOnlyFlag = function(f){
   if (f === undefined) { return configuration.userProfileOnlyFlag; }
   configuration.userProfileOnlyFlag = f;
@@ -153,6 +167,7 @@ NeuralNetworkTools.prototype.getNumberNetworks = function(){
 const networkDefaults = {};
 
 networkDefaults.binaryMode = configuration.binaryMode;
+networkDefaults.logScaleMode = configuration.logScaleMode;
 networkDefaults.rank = Infinity;
 networkDefaults.previousRank = Infinity;
 networkDefaults.matchRate = 0;
@@ -167,6 +182,7 @@ networkDefaults.meta = {};
 networkDefaults.meta.category = "none";
 networkDefaults.meta.categoryAuto = "none";
 networkDefaults.meta.binaryMode = configuration.binaryMode;
+networkDefaults.meta.logScaleMode = configuration.logScaleMode;
 networkDefaults.meta.userProfileOnlyFlag = configuration.userProfileOnlyFlag;
 networkDefaults.meta.output = [0,0,0];
 networkDefaults.meta.total = 0;
@@ -183,6 +199,7 @@ networkDefaults.meta.negative = 0;
 
 const networkPickArray = [
   "binaryMode",
+  "logScaleMode",
   "inputsId",
   "matchFlag",
   "matchRate",
@@ -419,7 +436,12 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
       networksHashMap.set(nn.networkId, nn);
 
-      console.log(chalkLog(MODULE_ID_PREFIX + " | --> LOAD NN: " + nn.networkId + " | BIN: " + formatBoolean(nn.binaryMode) + " | " + networksHashMap.size + " NNs"));
+      console.log(chalkLog(MODULE_ID_PREFIX + " | --> LOAD NN: " + nn.networkId 
+        + " | BIN: " + formatBoolean(nn.binaryMode) 
+        + " | LOG SCALE: " + formatBoolean(nn.logScaleMode) 
+        + " | " + networksHashMap.size + " NNs"
+      ));
+      
       console.log(chalkLog(MODULE_ID_PREFIX + " | --> LOAD IN: " + nn.inputsId + " | " + inputsHashMap.size + " INPUT OBJs"));
 
       return nn.networkId;
@@ -652,6 +674,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
 
     titleDefault = "T: " + statsObj.currentBestNetwork.networkTechnology.charAt(0).toUpperCase()
       + " | B: " + formatBoolean(statsObj.currentBestNetwork.binaryMode)
+      + " | LSM: " + formatBoolean(statsObj.currentBestNetwork.logScaleMode)
       + " | PF ONLY: " + formatBoolean(statsObj.currentBestNetwork.meta.userProfileOnlyFlag)
       + " - CFG: " + formatBoolean(configuration.userProfileOnlyFlag)
       + " | RK: " + statsObj.currentBestNetwork.rank
@@ -692,6 +715,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
         nn.testCycleHistory.length,
         nn.meta.matchFlag,
         formatBoolean(nn.binaryMode),
+        formatBoolean(nn.logScaleMode),
         formatBoolean(nn.meta.userProfileOnlyFlag),
         nn.meta.output,
         nn.meta.total,
@@ -724,6 +748,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
         "TCH",
         "MFLAG",
         "BIN",
+        "LSM",
         "UPOF",
         "OUTPUT",
         "TOT",
@@ -736,7 +761,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
           "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
         + "\nNNT | " + params.title 
         + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------\n"
-        + table(statsTextArray, { align: ["l", "r", "r", "l", "l", "l", "r", "r", "r", "r", "r", "r", "l", "l", "l", "r", "r", "r", "r", "r"] })
+        + table(statsTextArray, { align: ["l", "r", "r", "l", "l", "l", "r", "r", "r", "r", "r", "r", "l", "l", "l", "l", "r", "r", "r", "r", "r"] })
         + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
       ));
 
@@ -1159,6 +1184,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   // };
 
   let userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
+  const logScaleMode = (params.logScaleMode !== undefined) ? params.logScaleMode : configuration.logScaleMode;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const verbose = configuration.verbose || params.verbose;
   const nnId = params.networkId || primaryNeuralNetworkId;
@@ -1193,6 +1219,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   }
 
+  nnObj.logScaleMode = nnObj.logScaleMode || logScaleMode;
   userProfileOnlyFlag = userProfileOnlyFlag || nnObj.meta.userProfileOnlyFlag
 
   let convertedDatum = {};
@@ -1203,6 +1230,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
       inputsId: nnObj.inputsId,
       userProfileOnlyFlag: userProfileOnlyFlag,
       binaryMode: nnObj.binaryMode, 
+      logScaleMode: nnObj.logScaleMode, 
       verbose: verbose
     });
 
@@ -1253,6 +1281,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   networkOutput.user.categoryAuto = (!params.user.categoryAuto || params.user.categoryAuto === "false" || params.user.categoryAuto === undefined) ? "none" : params.user.categoryAuto;
   networkOutput.user.categorizeNetwork = params.user.categorizeNetwork;
   networkOutput.binaryMode = nnObj.binaryMode;
+  networkOutput.logScaleMode = nnObj.logScaleMode;
   networkOutput.userProfileOnlyFlag = userProfileOnlyFlag;
   networkOutput.outputRaw = [];
   networkOutput.outputRaw = outputRaw;
@@ -1294,6 +1323,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   const title = nnObj.networkId
       + " | BINARY MODE: " + nnObj.binaryMode 
+      + " | LOG SCALE MODE: " + nnObj.logScaleMode 
       + " | USER PROFILE ONLY: " + userProfileOnlyFlag 
       + " | INPUT: " + nnObj.inputsId 
       + " | INPUT H/M/RATE: " + networkOutput.inputHits + "/" + networkOutput.inputMisses + "/" + networkOutput.inputHitRate.toFixed(3)
@@ -1322,7 +1352,7 @@ NeuralNetworkTools.prototype.activate = async function (params) {
   }
 
   const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
-  // const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
+  const logScaleMode = (params.logScaleMode !== undefined) ? params.logScaleMode : configuration.logScaleMode;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const verbose = params.verbose || false;
   const user = params.user;
@@ -1362,8 +1392,8 @@ NeuralNetworkTools.prototype.activate = async function (params) {
       networkOutput[nnId] = await activateSingleNetwork({
         networkId: nnId, 
         user: user, 
-        datum: datum, 
-        // binaryMode: binaryMode,
+        datum: datum,
+        logScaleMode: logScaleMode,
         userProfileOnlyFlag: userProfileOnlyFlag,
         convertDatumFlag: convertDatumFlag, 
         verbose: verbose
