@@ -1398,8 +1398,10 @@ NeuralNetworkTools.prototype.activate = async function (params) {
         convertDatumFlag: convertDatumFlag, 
         verbose: verbose
       });
-
     }
+
+    return {user: user, networkOutput: networkOutput};
+
   }
   catch(err){
     console.log(chalkError(MODULE_ID_PREFIX + " | activate | *** ACTIVATE NN ERROR"
@@ -1409,8 +1411,7 @@ NeuralNetworkTools.prototype.activate = async function (params) {
     throw err;
   }
 
-
-  return {user: user, networkOutput: networkOutput};
+  // return {user: user, networkOutput: networkOutput};
 };
 
 module.exports = NeuralNetworkTools;
