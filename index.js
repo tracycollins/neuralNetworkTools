@@ -286,7 +286,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
           network = new brain.NeuralNetwork();
           network.fromJSON(nn.network);
         }
-        else{
+        else{ 
           console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD NN FROM JSON ERROR | NO JSON??? | TECH: " + nn.networkTechnology + " | " + nn.networkId));
         }
       }
@@ -409,8 +409,8 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     nn.network = network;
     nn.networkRawFlag = true;
 
-
     try{
+
       let inputsObj = nn.inputsObj;
 
       if (empty(inputsObj)){
@@ -570,16 +570,18 @@ NeuralNetworkTools.prototype.getPrimaryNeuralNetwork = function(){
 };
 
 let previousPrintedNetworkObj = {};
+
 function outputNetworkInputText(params){
   if (params.truncated){
     console.log(chalkLog(
-      params.hits + " / " + params.inputArraySize + " | HIT RATE: " + params.hitRate.toFixed(2) + "% | " + params.title
+      params.hits + "/" + params.inputArraySize + " | HIT RATE: " + params.hitRate.toFixed(2) + "% | " + params.title
     ));
     return;
   }
   console.log(chalkLog(
     "______________________________________________________________________________________________________________________________________"
-    + "\n" + params.hits + " / " + params.inputArraySize + " | HIT RATE: " + params.hitRate.toFixed(2) + "% | " + params.title
+    + "\n" + params.hits + "/" + params.inputArraySize + " | HIT RATE: " + params.hitRate.toFixed(2) + "%"
+    + "\n" + params.title
     + "\n" + params.text
   ));
 }
@@ -884,9 +886,19 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 
     let chalkCategory = chalk.gray;
 
+    let nn;
+    let tempNetwork;
+
     async.eachSeries(nnIdArray, function(nnId, cb){
 
-      let nn = networksHashMap.get(nnId);
+      nn = networksHashMap.get(nnId);
+
+      if (!statsObj.networks[nnId] || statsObj.networks[nnId] === undefined || statsObj.networks[nnId] === {}) {
+        statsObj.networks[nnId] = {};
+        statsObj.networks[nnId] = networkDefaults;
+      }
+
+      tempNetwork = statsObj.networks[nnId];
 
       if (!nn || nn === undefined) {
         return reject(new Error(MODULE_ID_PREFIX + " | updateNetworkStats NN UNDEFINED | NN ID: " + nnId));
@@ -895,79 +907,76 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
       nn = defaults(nn, networkDefaults);
       nn.meta = defaults(nn.meta, networkDefaults.meta);
 
-      if (!statsObj.networks[nnId] || statsObj.networks[nnId] === undefined || statsObj.networks[nnId] === {}) {
-        statsObj.networks[nnId] = {};
-        statsObj.networks[nnId] = networkDefaults;
-      }
+      tempNetwork = pick(nn, networkPickArray);
+      tempNetwork.meta = nn.meta;
+      tempNetwork.meta.matchFlag = false;
 
-      statsObj.networks[nnId] = pick(nn, networkPickArray);
-      statsObj.networks[nnId].meta = nn.meta;
-      statsObj.networks[nnId].meta.matchFlag = false;
-
-      statsObj.networks[nnId].meta.output = [];
-      statsObj.networks[nnId].meta.output = networkOutput[nnId].output;
+      tempNetwork.meta.output = [];
+      tempNetwork.meta.output = networkOutput[nnId].output;
 
       if(!user.category || user.category === undefined || user.category === "false" || user.category === "none"){
         user.category = "none";
-        statsObj.networks[nnId].meta.none += 1;
+        tempNetwork.meta.none += 1;
       }
       else{
 
-        statsObj.networks[nnId].meta[user.category] += 1;
-        statsObj.networks[nnId].meta.total += 1;
+        tempNetwork.meta[user.category] += 1;
+        tempNetwork.meta.total += 1;
 
         if (user.category === networkOutput[nnId].categoryAuto) {
-          statsObj.networks[nnId].meta.match += 1;
-          statsObj.networks[nnId].meta.matchFlag = "MATCH";
+          tempNetwork.meta.match += 1;
+          tempNetwork.meta.matchFlag = "MATCH";
           chalkCategory = chalk.green;
         }
         else {
-          statsObj.networks[nnId].meta.mismatch += 1;
-          statsObj.networks[nnId].meta.matchFlag = "MISS";
+          tempNetwork.meta.mismatch += 1;
+          tempNetwork.meta.matchFlag = "MISS";
           chalkCategory = chalk.gray;
         }
       }
 
       networkOutput[nnId].category = user.category;
       
-      statsObj.networks[nnId].meta.category = user.category;
-      statsObj.networks[nnId].meta.categoryAuto = networkOutput[nnId].categoryAuto;
+      tempNetwork.meta.category = user.category;
+      tempNetwork.meta.categoryAuto = networkOutput[nnId].categoryAuto;
 
       if (verbose){
-        console.log(chalkCategory(MODULE_ID_PREFIX + " | " + statsObj.networks[nnId].meta.matchFlag
+        console.log(chalkCategory(MODULE_ID_PREFIX + " | " + tempNetwork.meta.matchFlag
           + " | @" + user.screenName
-          + " | CM: " + formatCategory(user.category) + " | CA: " + formatCategory(statsObj.networks[nnId].meta.categoryAuto)
-          + " | " + statsObj.networks[nnId].networkId
-          + " | " + statsObj.networks[nnId].inputsId
-          + " | SR: " + statsObj.networks[nnId].successRate.toFixed(2) 
-          + " | OAMR: " + statsObj.networks[nnId].overallMatchRate.toFixed(2) 
-          + " | RMR: " + statsObj.networks[nnId].runtimeMatchRate.toFixed(2) 
-          + " | MR: " + statsObj.networks[nnId].matchRate.toFixed(2) 
+          + " | CM: " + formatCategory(user.category) + " | CA: " + formatCategory(tempNetwork.meta.categoryAuto)
+          + " | " + tempNetwork.networkId
+          + " | " + tempNetwork.inputsId
+          + " | SR: " + tempNetwork.successRate.toFixed(2) 
+          + " | OAMR: " + tempNetwork.overallMatchRate.toFixed(2) 
+          + " | RMR: " + tempNetwork.runtimeMatchRate.toFixed(2) 
+          + " | MR: " + tempNetwork.matchRate.toFixed(2) 
         ));
       }
 
-      if (statsObj.networks[nnId].meta.total === 0) {
-        statsObj.networks[nnId].matchRate = 0;
+      if (tempNetwork.meta.total === 0) {
+        tempNetwork.matchRate = 0;
       }
       else {
-        statsObj.networks[nnId].matchRate = 100.0 * statsObj.networks[nnId].meta.match / statsObj.networks[nnId].meta.total;
+        tempNetwork.matchRate = 100.0 * tempNetwork.meta.match / tempNetwork.meta.total;
       }
 
       if (params.updateRuntimeMatchRate) { 
-        statsObj.networks[nnId].runtimeMatchRate = statsObj.networks[nnId].matchRate; 
+        tempNetwork.runtimeMatchRate = tempNetwork.matchRate; 
       }
 
-      nn.rank = statsObj.networks[nnId].rank;
-      nn.previousRank = statsObj.networks[nnId].previousRank;
-      nn.matchRate = statsObj.networks[nnId].matchRate;
-      nn.runtimeMatchRate = statsObj.networks[nnId].runtimeMatchRate;
-      nn.overallMatchRate = statsObj.networks[nnId].overallMatchRate;
-      nn.testCycleHistory = statsObj.networks[nnId].testCycleHistory;
-      nn.testCycles = statsObj.networks[nnId].testCycles;
-      nn.output = statsObj.networks[nnId].meta.output;
-      nn.meta = statsObj.networks[nnId].meta;
+      nn.rank = tempNetwork.rank;
+      nn.previousRank = tempNetwork.previousRank;
+      nn.matchRate = tempNetwork.matchRate;
+      nn.runtimeMatchRate = tempNetwork.runtimeMatchRate;
+      nn.overallMatchRate = tempNetwork.overallMatchRate;
+      nn.testCycleHistory = tempNetwork.testCycleHistory;
+      nn.testCycles = tempNetwork.testCycles;
+      nn.output = tempNetwork.meta.output;
+      nn.meta = tempNetwork.meta;
 
       networksHashMap.set(nnId, nn);
+
+      statsObj.networks[nnId] = tempNetwork;
 
       cb();
 
@@ -1298,7 +1307,6 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     return networkOutput;
   }
 
-
   const maxOutputIndex = await indexOfMax(outputRaw);
 
   switch (maxOutputIndex) {
@@ -1322,17 +1330,19 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   networkOutput.matchFlag = ((params.user.category !== "none") && (networkOutput.categoryAuto === params.user.category)) ? "MATCH" : "MISS";
 
   const title = nnObj.networkId
-      + " | BINARY MODE: " + nnObj.binaryMode 
-      + " | LOG SCALE MODE: " + nnObj.logScaleMode 
-      + " | USER PROFILE ONLY: " + userProfileOnlyFlag 
-      + " | INPUT: " + nnObj.inputsId 
-      + " | INPUT H/M/RATE: " + networkOutput.inputHits + "/" + networkOutput.inputMisses + "/" + networkOutput.inputHitRate.toFixed(3)
+      + " | BIN: " + nnObj.binaryMode 
+      + " | LOG: " + nnObj.logScaleMode 
+      + " | PROF ONLY: " + userProfileOnlyFlag 
+      + " | INP: " + nnObj.inputsId 
+      + " | H/M: " + networkOutput.inputHits + "/" + networkOutput.inputMisses
+      + " | R: " + networkOutput.inputHitRate.toFixed(3) + "%"
       + " | @" + params.user.screenName 
       + " | C: " + formatCategory(params.user.category) 
       + " | A: " + formatCategory(networkOutput.categoryAuto)
-      + " | MATCH: " + networkOutput.matchFlag;
+      + " | MTCH: " + networkOutput.matchFlag;
 
   if (verbose) {
+    console.log(convertedDatum.datum);
     await printNetworkInput({
       title: title,
       datum: convertedDatum.datum

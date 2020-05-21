@@ -65,6 +65,8 @@ else {
   DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
 }
 
+const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
+
 const configDefaultTestFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/test/testData");
 const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility",hostname);
 
@@ -76,16 +78,16 @@ const jsonPrint = tcUtils.jsonPrint;
 const formatCategory = tcUtils.formatCategory;
 
 const testNetworkFolder = path.join(configDefaultTestFolder, "networks");
-const testUserFolder = path.join(configDefaultTestFolder, "users/fromTrainingSet");
 
-// const test_user_tobi = tcUtils.loadFile({folder: testUserFolder, file: "user_10032112.json"});
-// const test_user_hector = tcUtils.loadFile({folder: testUserFolder, file: "user_10069612.json"});
+// const test_user_tobi = tcUtils.loadFile({folder: userDataFolder, file: "user_10032112.json"});
+// const test_user_hector = tcUtils.loadFile({folder: userDataFolder, file: "user_10069612.json"});
 
 const testInputsFolder = path.join(configDefaultTestFolder, "inputs");
 
-const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
+const trainingSetsFolder = configDefaultFolder + "/trainingSets";
 const userArchiveFolder = configDefaultFolder + "/trainingSets/users";
 const defaultInputsFolder = configDefaultFolder + "/inputs";
+const userDataFolder = path.join(configDefaultFolder, "trainingSets/users/data");
 
 const defaultUserArchiveFlagFile = "usersZipUploadComplete_test.json";
 const trainingSetFile = "trainingSet_test.json";
@@ -147,11 +149,11 @@ function loadUsers(usersFolder){
 
       async.eachSeries(usersFileArray, function(file, cb){
 
-        if (file.startsWith("user_") && file.endsWith(".json")) {
+        if (file.endsWith(".json")) {
           // const userId = file.replace(".json", "");
           console.log("USER LOAD: " + file);
 
-          tcUtils.loadFile({folder: testUserFolder, file: file})
+          tcUtils.loadFile({folder: userDataFolder, file: file})
           .then(function(user){
             userArray.push(user);
             cb();
@@ -275,7 +277,11 @@ function activateUsers(primaryNetworkId, userArray, binaryMode){
 
     async.eachSeries(userArray, function(user, cb){
 
-      nnTools.activate({user: user, binaryMode: binaryMode, convertDatumFlag: true, verbose: false})
+      nnTools.activate({
+        user: user, 
+        binaryMode: binaryMode, 
+        convertDatumFlag: true,
+        verbose: true})
       .then(function(noutObj){
 
         // noutObj = { user: user, networkOutput: networkOutput }
@@ -967,101 +973,101 @@ async function main(){
     binaryMode: true
   });
 
-  const scheduleQueue = [];
-  const schedStartTime = moment().valueOf();
+  // const scheduleQueue = [];
+  // const schedStartTime = moment().valueOf();
 
-  const schedule = function(schedParams){
+  // const schedule = function(schedParams){
 
-    const elapsedInt = moment().valueOf() - schedStartTime;
-    const iterationRate = elapsedInt/(schedParams.iterations+1);
-    const timeToComplete = iterationRate*(totalIterations - (schedParams.iterations+1));
+  //   const elapsedInt = moment().valueOf() - schedStartTime;
+  //   const iterationRate = elapsedInt/(schedParams.iterations+1);
+  //   const timeToComplete = iterationRate*(totalIterations - (schedParams.iterations+1));
 
-    const sObj = {
-      networkTechnology: "neataptic",
-      binaryMode: false,
-      networkId: "nn_test",
-      numInputs: inputsObj.meta.numInputs,
-      inputsId: inputsObj.inputsId,
-      evolveStart: schedStartTime,
-      evolveElapsed: elapsedInt,
-      totalIterations: totalIterations,
-      iteration: schedParams.iterations+1,
-      iterationRate: iterationRate,
-      timeToComplete: timeToComplete,
-      error: schedParams.error.toFixed(5) || Infinity,
-      // fitness: schedParams.fitness.toFixed(5) || -Infinity
-    };
+  //   const sObj = {
+  //     networkTechnology: "neataptic",
+  //     binaryMode: false,
+  //     networkId: "nn_test",
+  //     numInputs: inputsObj.meta.numInputs,
+  //     inputsId: inputsObj.inputsId,
+  //     evolveStart: schedStartTime,
+  //     evolveElapsed: elapsedInt,
+  //     totalIterations: totalIterations,
+  //     iteration: schedParams.iterations+1,
+  //     iterationRate: iterationRate,
+  //     timeToComplete: timeToComplete,
+  //     error: schedParams.error.toFixed(5) || Infinity,
+  //     // fitness: schedParams.fitness.toFixed(5) || -Infinity
+  //   };
 
-    console.log(chalkLog(MODULE_ID_PREFIX 
-      + " | " + sObj.networkId 
-      + " | " + sObj.networkTechnology.slice(0,1).toUpperCase()
-      + " | " + sObj.networkId
-      + " | " + sObj.inputsId
-      + " | ERR " + sObj.error
-      // + " | FIT " + fitness
-      + " | R " + tcUtils.msToTime(sObj.evolveElapsed)
-      + " | ETC " + tcUtils.msToTime(sObj.timeToComplete) + " " + moment().add(sObj.timeToComplete).format(compactDateTimeFormat)
-      + " | " + (sObj.iterationRate/1000.0).toFixed(1) + " spi"
-      + " | I " + sObj.iteration + "/" + sObj.totalIterations
-    ));
-  };
+  //   console.log(chalkLog(MODULE_ID_PREFIX 
+  //     + " | " + sObj.networkId 
+  //     + " | " + sObj.networkTechnology.slice(0,1).toUpperCase()
+  //     + " | " + sObj.networkId
+  //     + " | " + sObj.inputsId
+  //     + " | ERR " + sObj.error
+  //     // + " | FIT " + fitness
+  //     + " | R " + tcUtils.msToTime(sObj.evolveElapsed)
+  //     + " | ETC " + tcUtils.msToTime(sObj.timeToComplete) + " " + moment().add(sObj.timeToComplete).format(compactDateTimeFormat)
+  //     + " | " + (sObj.iterationRate/1000.0).toFixed(1) + " spi"
+  //     + " | I " + sObj.iteration + "/" + sObj.totalIterations
+  //   ));
+  // };
 
-  const evolveOptions = {
-    error: 0.1,
-    learningRate: 0.1,
-    momentum: 0.1,
-    iterations: totalIterations,
-    schedule: schedule
-  };
+  // const evolveOptions = {
+  //   error: 0.1,
+  //   learningRate: 0.1,
+  //   momentum: 0.1,
+  //   iterations: totalIterations,
+  //   schedule: schedule
+  // };
 
-  const trainingResults = await nnTools.streamTrainNetwork({
-    options: evolveOptions,
-    network: network, 
-    trainingSet: preppedTrainingSetObj.dataSet
-  });
+  // const trainingResults = await nnTools.streamTrainNetwork({
+  //   options: evolveOptions,
+  //   network: network, 
+  //   trainingSet: preppedTrainingSetObj.dataSet
+  // });
 
-  network = trainingResults.network;
+  // network = trainingResults.network;
 
-  const preppedTestSetObj = await dataSetPrep({
-    inputsId: inputsObj.inputsId,
-    numInputs: inputsObj.meta.numInputs,
-    userProfileCharCodesOnlyFlag: inputsObj.meta.userProfileCharCodesOnlyFlag,
-    dataSetObj: testSetObj, 
-    userProfileOnlyFlag: false,
-    binaryMode: true
-  });
+  // const preppedTestSetObj = await dataSetPrep({
+  //   inputsId: inputsObj.inputsId,
+  //   numInputs: inputsObj.meta.numInputs,
+  //   userProfileCharCodesOnlyFlag: inputsObj.meta.userProfileCharCodesOnlyFlag,
+  //   dataSetObj: testSetObj, 
+  //   userProfileOnlyFlag: false,
+  //   binaryMode: true
+  // });
 
-  let successRate = 0;
-  let numPassed = 0;
+  // let successRate = 0;
+  // let numPassed = 0;
 
-  for (let i=0; i < preppedTestSetObj.dataSet.length; i++){
+  // for (let i=0; i < preppedTestSetObj.dataSet.length; i++){
 
-    const outputObj = network.run(preppedTestSetObj.dataSet[i].input);
-    const outputRaw = [];
-    outputRaw.push(outputObj["0"]);
-    outputRaw.push(outputObj["1"]);
-    outputRaw.push(outputObj["2"]);
-    // console.log("outputRaw\n" + jsonPrint(outputRaw));
-    const nnOutputIndex = await tcUtils.indexOfMax(outputRaw);
-    const expectedOutputIndex = await tcUtils.indexOfMax(preppedTestSetObj.dataSet[i].output);
-    const pass = (nnOutputIndex === expectedOutputIndex) ? "PASS" : "FAIL";
+  //   const outputObj = network.run(preppedTestSetObj.dataSet[i].input);
+  //   const outputRaw = [];
+  //   outputRaw.push(outputObj["0"]);
+  //   outputRaw.push(outputObj["1"]);
+  //   outputRaw.push(outputObj["2"]);
+  //   // console.log("outputRaw\n" + jsonPrint(outputRaw));
+  //   const nnOutputIndex = await tcUtils.indexOfMax(outputRaw);
+  //   const expectedOutputIndex = await tcUtils.indexOfMax(preppedTestSetObj.dataSet[i].output);
+  //   const pass = (nnOutputIndex === expectedOutputIndex) ? "PASS" : "FAIL";
 
-    if (pass === "PASS") { numPassed++; }
+  //   if (pass === "PASS") { numPassed++; }
 
-    successRate = 100*(numPassed/(i+1));
+  //   successRate = 100*(numPassed/(i+1));
 
-    console.log("testSet [" + i + "]"
-      + " | SR: " + successRate.toFixed(3) + "%"
-      + " | " + pass
-      + " | CAT: " + formatCategory(preppedTestSetObj.dataSet[i].user.category)
-      + " | OUT: " + nnOutputIndex 
-      + " | EXP: " + expectedOutputIndex 
-      + " | @" + preppedTestSetObj.dataSet[i].user.screenName
-    );
-  }
+  //   console.log("testSet [" + i + "]"
+  //     + " | SR: " + successRate.toFixed(3) + "%"
+  //     + " | " + pass
+  //     + " | CAT: " + formatCategory(preppedTestSetObj.dataSet[i].user.category)
+  //     + " | OUT: " + nnOutputIndex 
+  //     + " | EXP: " + expectedOutputIndex 
+  //     + " | @" + preppedTestSetObj.dataSet[i].user.screenName
+  //   );
+  // }
 
 
-  const maxNormObj = await tcUtils.loadFileRetry({folder: testInputsFolder, file: "maxInputHashMap.json"});
+  const maxNormObj = await tcUtils.loadFileRetry({folder: trainingSetsFolder, file: "maxInputHashMap.json"});
   await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
   await nnTools.setNormalization(maxNormObj.normalization);
   await nnTools.setUserProfileOnlyFlag(true);
@@ -1073,7 +1079,7 @@ async function main(){
   console.log("setPrimaryNeuralNetwork: " + randomNnId);
   await nnTools.setPrimaryNeuralNetwork(randomNnId);
 
-  const userArray = await loadUsers(testUserFolder);
+  const userArray = await loadUsers(userDataFolder);
 
   console.log("userArray.length: " + userArray.length);
 
