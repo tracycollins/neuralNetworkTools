@@ -798,6 +798,7 @@ function dataSetPrep(p){
     const dataSetObj = params.dataSetObj;
 
     const binaryMode = true;
+    const logScaleMode = false;
     const userProfileOnlyFlag = false;
 
     const dataSet = [];
@@ -810,8 +811,9 @@ function dataSetPrep(p){
       + " | DATA SET preppedOptions"
       + " | DATA LENGTH: " + dataSetObj.data.length
       + " | INPUTS: " + params.numInputs
-      + " | USER PROFILE ONLY: " + userProfileOnlyFlag
-      + " | BIN MODE: " + binaryMode
+      + " | USER PROF ONLY: " + userProfileOnlyFlag
+      + " | BIN: " + binaryMode
+      + " | BIN: " + logScaleMode
       + "\nDATA SET META\n" + jsonPrint(dataSetObj.meta)
     ));
 
@@ -905,12 +907,12 @@ function dataSetPrep(p){
           totalHits += results.inputHits;
           totalInputHitRate = 100*(totalHits/(totalHits+totalMisses));
 
-          if (dataConverted % 100 === 0){
+          // if (dataConverted % 100 === 0){
             console.log(chalkLog(MODULE_ID_PREFIX 
               + " | HIT RATE: " + totalInputHitRate.toFixed(3) + "%"
               + " | DATA CONVERTED: " + dataConverted + "/" + dataSetObj.data.length
             ));
-          }
+          // }
 
           cb();
         }).
@@ -1070,7 +1072,7 @@ async function main(){
   const maxNormObj = await tcUtils.loadFileRetry({folder: trainingSetsFolder, file: "maxInputHashMap.json"});
   await nnTools.setMaxInputHashMap(maxNormObj.maxInputHashMap);
   await nnTools.setNormalization(maxNormObj.normalization);
-  await nnTools.setUserProfileOnlyFlag(true);
+  await nnTools.setUserProfileOnlyFlag(false);
 
   // const networkIdArray = await loadNetworks(testNetworkFolder);
   const networkIdArray = await loadNetworksDb();

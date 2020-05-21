@@ -237,6 +237,11 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     throw new Error(MODULE_ID_PREFIX + " | LOAD NN JSON UNDEFINED");
   }
 
+  if (!params.networkObj.inputsId || params.networkObj.inputsId === undefined) {
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD NN INPUTS ID UNDEFINED: " + params.networkObj.networkId));
+    throw new Error(MODULE_ID_PREFIX + " | LOAD NN INPUTS ID UNDEFINED");
+  }
+
   try{
 
     const nn = params.networkObj;
@@ -1270,16 +1275,13 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   
   if (nnObj.networkTechnology === "brain"){
     const outputRawBrain = nnObj.network.run(convertedDatum.datum.input);
-    // if (typeof outputRawBrain === "object"){
-      outputRaw[0] = outputRawBrain["0"];
-      outputRaw[1] = outputRawBrain["1"];
-      outputRaw[2] = outputRawBrain["2"];
-    // }
+    outputRaw[0] = outputRawBrain["0"];
+    outputRaw[1] = outputRawBrain["1"];
+    outputRaw[2] = outputRawBrain["2"];
   }
   else{
     outputRaw = nnObj.network.activate(convertedDatum.datum.input);
   }
-  // const outputRaw = nnObj.network.noTraceActivate(convertedDatum.datum.input);
 
   const networkOutput = {};
   networkOutput.nnId = nnId;
@@ -1342,7 +1344,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
       + " | MTCH: " + networkOutput.matchFlag;
 
   if (verbose) {
-    console.log(convertedDatum.datum);
+    // console.log(convertedDatum.datum);
     await printNetworkInput({
       title: title,
       datum: convertedDatum.datum
