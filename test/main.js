@@ -1,4 +1,5 @@
-const BINARY_MODE = true;
+const BINARY_MODE = false;
+const LOG_SCALE_MODE = false;
 const USER_PROFILE_ONLY_FLAG = true;
 
 const MODULE_ID_PREFIX = "NNT";
@@ -182,7 +183,9 @@ function loadUsers(usersFolder){
 }
 
 async function loadNetworksDb(){
+
   console.log("... LOADING DB NETWORKS");
+
   try{
     const networkIdArray = [];
 
@@ -199,6 +202,12 @@ async function loadNetworksDb(){
       networkIdArray.push(nnDoc.networkId);
 
       const nn = nnDoc.toObject();
+
+      nn.logScaleMode = (Math.random() > 0.5);
+      if (nn.logScaleMode){
+        nn.binaryMode = false;
+        console.log(chalkAlert(MODULE_ID_PREFIX + " | LOG SCALE MODE | " + nn.networkId + " | LSM: " + nn.logScaleMode));
+      }
 
       await nnTools.loadNetwork({networkObj: nn});
     }
@@ -271,17 +280,19 @@ function loadNetworks(networksFolder){
   });
 }
 
-function activateUsers(primaryNetworkId, userArray, binaryMode){
+function activateUsers(params){
 
   return new Promise(function(resolve, reject){
 
-    async.eachSeries(userArray, function(user, cb){
+    async.eachSeries(params.userArray, function(user, cb){
 
       nnTools.activate({
         user: user, 
-        binaryMode: binaryMode, 
+        // binaryMode: params.binaryMode, 
+        // logScaleMode: params.logScaleMode, 
         convertDatumFlag: true,
-        verbose: true})
+        verbose: true
+      })
       .then(function(noutObj){
 
         // noutObj = { user: user, networkOutput: networkOutput }
@@ -797,9 +808,9 @@ function dataSetPrep(p){
     const params = p || {};
     const dataSetObj = params.dataSetObj;
 
-    const binaryMode = true;
-    const logScaleMode = false;
-    const userProfileOnlyFlag = false;
+    const binaryMode = params.binaryMode || false;;
+    const logScaleMode = params.logScaleMode || false;
+    const userProfileOnlyFlag = params.userProfileOnlyFlag || false;
 
     const dataSet = [];
 
@@ -813,7 +824,7 @@ function dataSetPrep(p){
       + " | INPUTS: " + params.numInputs
       + " | USER PROF ONLY: " + userProfileOnlyFlag
       + " | BIN: " + binaryMode
-      + " | BIN: " + logScaleMode
+      + " | LSM: " + logScaleMode
       + "\nDATA SET META\n" + jsonPrint(dataSetObj.meta)
     ));
 
@@ -972,7 +983,8 @@ async function main(){
     userProfileCharCodesOnlyFlag: inputsObj.meta.userProfileCharCodesOnlyFlag,
     dataSetObj: trainingSetObj, 
     userProfileOnlyFlag: false,
-    binaryMode: true
+    binaryMode: false,
+    logScaleMode: true
   });
 
   // const scheduleQueue = [];
@@ -1078,14 +1090,18 @@ async function main(){
   const networkIdArray = await loadNetworksDb();
 
   const randomNnId = randomItem(networkIdArray);
+
   console.log("setPrimaryNeuralNetwork: " + randomNnId);
+
   await nnTools.setPrimaryNeuralNetwork(randomNnId);
 
   const userArray = await loadUsers(userDataFolder);
 
   console.log("userArray.length: " + userArray.length);
 
-  await activateUsers(randomNnId, userArray, BINARY_MODE);
+  await activateUsers({
+    userArray: userArray
+  });
 
   const statsObj = await nnTools.getNetworkStats();
   console.log("statsObj.bestNetwork\n" + jsonPrint(statsObj.bestNetwork));

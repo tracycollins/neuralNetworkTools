@@ -1272,6 +1272,18 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   }
 
   let outputRaw = [];
+
+  const allZero = convertedDatum.datum.input.every((value) => value === 0);
+
+  if (allZero) {
+    console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! ALL ZERO INPUT | activateSingleNetwork"
+      + " | NN: " + nnObj.networkId
+      + " | @" + convertedDatum.datum.screenName
+      + " | INPUTS ID: " + convertedDatum.inputsId
+      + " | H/M/TOT: " + convertedDatum.inputHits + "/" + convertedDatum.inputMisses + "/" + nnObj.numInputs
+      + " | INPUT HIT RATE: " + convertedDatum.inputHitRate.toFixed(3) + "%"
+    ));
+  }
   
   if (nnObj.networkTechnology === "brain"){
     const outputRawBrain = nnObj.network.run(convertedDatum.datum.input);
@@ -1349,9 +1361,13 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
       title: title,
       datum: convertedDatum.datum
     });
+
+    return networkOutput;
+  }
+  else{
+    return networkOutput;
   }
 
-  return networkOutput;
 };
 
 const activateSingleNetwork = NeuralNetworkTools.prototype.activateSingleNetwork;
