@@ -831,8 +831,8 @@ NeuralNetworkTools.prototype.updateNetworkRank = function (p){
 
     async.eachOfSeries(sortedNetworksArray, function(nn, index, cb){
 
-      nn.previousRank = nn.rank;
-      statsObj.networks[nn.networkId].previousRank = nn.rank;
+      // nn.previousRank = nn.rank;
+      statsObj.networks[nn.networkId].previousRank = nn.previousRank;
 
       nn.rank = index;
       statsObj.networks[nn.networkId].rank = index;
@@ -1367,7 +1367,6 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   else{
     return networkOutput;
   }
-
 };
 
 const activateSingleNetwork = NeuralNetworkTools.prototype.activateSingleNetwork;
