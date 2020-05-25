@@ -858,7 +858,6 @@ async function loadUserDataFile(params){
     console.log(chalkError(MODULE_ID_PREFIX + " | *** USER ARCHIVE READ ERROR: " + err));
     throw new Error("USER ARCHIVE READ ERROR");
   }
-
 }
 
 function loadUserDataFolders(params){
@@ -939,9 +938,7 @@ function loadUserDataFolders(params){
     });
 
   });
-
 }
-
 
 function dataSetPrep(p){
 
