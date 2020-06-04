@@ -134,17 +134,17 @@ NeuralNetworkTools.prototype.getUserProfileOnlyFlag = function(){
   return configuration.userProfileOnlyFlag;
 };
 
-NeuralNetworkTools.prototype.setMaxInputHashMap = function(m){
-  return new Promise(function(resolve){
-    tcUtils.setMaxInputHashMap(m);
-    console.log(chalkLog(MODULE_ID_PREFIX + " | --> SET MAX INPUT HASHMAP: " + Object.keys(tcUtils.getMaxInputHashMap())));
-    resolve();
-  });
-};
+// NeuralNetworkTools.prototype.setMaxInputHashMap = function(m){
+//   return new Promise(function(resolve){
+//     tcUtils.setMaxInputHashMap(m);
+//     console.log(chalkLog(MODULE_ID_PREFIX + " | --> SET MAX INPUT HASHMAP: " + Object.keys(tcUtils.getMaxInputHashMap())));
+//     resolve();
+//   });
+// };
 
-NeuralNetworkTools.prototype.getMaxInputHashMap = function(){
-  return tcUtils.getMaxInputHashMap();
-};
+// NeuralNetworkTools.prototype.getMaxInputHashMap = function(){
+//   return tcUtils.getMaxInputHashMap();
+// };
 
 NeuralNetworkTools.prototype.setNormalization = function(n){
   return new Promise(function(resolve){
