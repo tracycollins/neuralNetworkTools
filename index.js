@@ -1,6 +1,6 @@
 const MODULE_ID_PREFIX = "NNT";
 const DEFAULT_BINARY_MODE = false;
-const DEFAULT_LOGSCALE_MODE = false;
+// const DEFAULT_LOGSCALE_MODE = false;
 const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
 const tcuChildName = MODULE_ID_PREFIX + "_TCU";
 
@@ -59,7 +59,7 @@ let primaryNeuralNetworkId;
 const configuration = {};
 configuration.userProfileOnlyFlag = DEFAULT_USER_PROFILE_ONLY_FLAG;
 configuration.binaryMode = DEFAULT_BINARY_MODE;
-configuration.logScaleMode = DEFAULT_LOGSCALE_MODE;
+// configuration.logScaleMode = DEFAULT_LOGSCALE_MODE;
 configuration.verbose = false;
 
 const statsObj = {};
@@ -110,17 +110,17 @@ NeuralNetworkTools.prototype.getBinaryMode = function(){
   return configuration.binaryMode;
 };
 
-NeuralNetworkTools.prototype.setLogScaleMode = function(s){
-  if (s === undefined) { return configuration.logScaleMode; }
-  configuration.logScaleMode = s;
-  tcUtils.setLogScaleMode(s);
-  console.log(chalkAlert(MODULE_ID_PREFIX + " | --> SET LOG SCALE MODE: " + configuration.logScaleMode));
-  return;
-};
+// NeuralNetworkTools.prototype.setLogScaleMode = function(s){
+//   if (s === undefined) { return configuration.logScaleMode; }
+//   configuration.logScaleMode = s;
+//   tcUtils.setLogScaleMode(s);
+//   console.log(chalkAlert(MODULE_ID_PREFIX + " | --> SET LOG SCALE MODE: " + configuration.logScaleMode));
+//   return;
+// };
 
-NeuralNetworkTools.prototype.getLogScaleMode = function(){
-  return configuration.logScaleMode;
-};
+// NeuralNetworkTools.prototype.getLogScaleMode = function(){
+//   return configuration.logScaleMode;
+// };
 
 NeuralNetworkTools.prototype.setUserProfileOnlyFlag = function(f){
   if (f === undefined) { return configuration.userProfileOnlyFlag; }
@@ -167,7 +167,8 @@ NeuralNetworkTools.prototype.getNumberNetworks = function(){
 const networkDefaults = {};
 
 networkDefaults.binaryMode = configuration.binaryMode;
-networkDefaults.logScaleMode = configuration.logScaleMode;
+// networkDefaults.userProfileOnlyFlag = configuration.userProfileOnlyFlag;
+// networkDefaults.logScaleMode = configuration.logScaleMode;
 networkDefaults.rank = Infinity;
 networkDefaults.previousRank = Infinity;
 networkDefaults.matchRate = 0;
@@ -182,7 +183,7 @@ networkDefaults.meta = {};
 networkDefaults.meta.category = "none";
 networkDefaults.meta.categoryAuto = "none";
 networkDefaults.meta.binaryMode = configuration.binaryMode;
-networkDefaults.meta.logScaleMode = configuration.logScaleMode;
+// networkDefaults.meta.logScaleMode = configuration.logScaleMode;
 networkDefaults.meta.userProfileOnlyFlag = configuration.userProfileOnlyFlag;
 networkDefaults.meta.output = [0,0,0];
 networkDefaults.meta.total = 0;
@@ -199,7 +200,7 @@ networkDefaults.meta.negative = 0;
 
 const networkPickArray = [
   "binaryMode",
-  "logScaleMode",
+  // "logScaleMode",
   "inputsId",
   "matchFlag",
   "matchRate",
@@ -443,7 +444,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
       console.log(chalkLog(MODULE_ID_PREFIX + " | --> LOAD NN: " + nn.networkId 
         + " | BIN: " + formatBoolean(nn.binaryMode) 
-        + " | LOG SCALE: " + formatBoolean(nn.logScaleMode) 
+        // + " | LOG SCALE: " + formatBoolean(nn.logScaleMode) 
         + " | " + networksHashMap.size + " NNs"
       ));
       
@@ -681,7 +682,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
 
     titleDefault = "T: " + statsObj.currentBestNetwork.networkTechnology.charAt(0).toUpperCase()
       + " | B: " + formatBoolean(statsObj.currentBestNetwork.binaryMode)
-      + " | LSM: " + formatBoolean(statsObj.currentBestNetwork.logScaleMode)
+      // + " | LSM: " + formatBoolean(statsObj.currentBestNetwork.logScaleMode)
       + " | PF ONLY: " + formatBoolean(statsObj.currentBestNetwork.meta.userProfileOnlyFlag)
       + " - CFG: " + formatBoolean(configuration.userProfileOnlyFlag)
       + " | RK: " + statsObj.currentBestNetwork.rank
@@ -722,7 +723,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
         nn.testCycleHistory.length,
         nn.meta.matchFlag,
         formatBoolean(nn.binaryMode),
-        formatBoolean(nn.logScaleMode),
+        // formatBoolean(nn.logScaleMode),
         formatBoolean(nn.meta.userProfileOnlyFlag),
         nn.meta.output,
         nn.meta.total,
@@ -755,7 +756,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
         "TCH",
         "MFLAG",
         "BIN",
-        "LSM",
+        // "LSM",
         "UPOF",
         "OUTPUT",
         "TOT",
@@ -768,7 +769,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
           "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
         + "\nNNT | " + params.title 
         + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------\n"
-        + table(statsTextArray, { align: ["l", "r", "r", "l", "l", "l", "r", "r", "r", "r", "r", "r", "l", "l", "l", "l", "r", "r", "r", "r", "r"] })
+        + table(statsTextArray, { align: ["l", "r", "r", "l", "l", "l", "r", "r", "r", "r", "r", "r", "l", "l", "l", "r", "r", "r", "r", "r"] })
         + "\nNNT | -------------------------------------------------------------------------------------------------------------------------------------------------"
       ));
 
@@ -1197,8 +1198,9 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   //   verbose: configuration.verbose
   // };
 
-  let userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
-  const logScaleMode = (params.logScaleMode !== undefined) ? params.logScaleMode : configuration.logScaleMode;
+  const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
+  const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
+  // const logScaleMode = (params.logScaleMode !== undefined) ? params.logScaleMode : configuration.logScaleMode;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const verbose = configuration.verbose || params.verbose;
   const nnId = params.networkId || primaryNeuralNetworkId;
@@ -1233,8 +1235,10 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   }
 
-  nnObj.logScaleMode = nnObj.logScaleMode || logScaleMode;
-  userProfileOnlyFlag = userProfileOnlyFlag || nnObj.meta.userProfileOnlyFlag
+  nnObj.binaryMode = nnObj.binaryMode || binaryMode;
+  // nnObj.logScaleMode = nnObj.logScaleMode || logScaleMode;
+  nnObj.meta.userProfileOnlyFlag = (nnObj.meta.userProfileOnlyFlag !== undefined)
+    ? nnObj.meta.userProfileOnlyFlag : userProfileOnlyFlag;
 
   let convertedDatum = {};
 
@@ -1242,9 +1246,9 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     convertedDatum = await tcUtils.convertDatum({
       user: params.user, 
       inputsId: nnObj.inputsId,
-      userProfileOnlyFlag: userProfileOnlyFlag,
+      userProfileOnlyFlag: nnObj.meta.userProfileOnlyFlag,
       binaryMode: nnObj.binaryMode, 
-      logScaleMode: nnObj.logScaleMode, 
+      // logScaleMode: nnObj.logScaleMode, 
       verbose: verbose
     });
 
@@ -1304,7 +1308,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   networkOutput.user.categoryAuto = (!params.user.categoryAuto || params.user.categoryAuto === "false" || params.user.categoryAuto === undefined) ? "none" : params.user.categoryAuto;
   networkOutput.user.categorizeNetwork = params.user.categorizeNetwork;
   networkOutput.binaryMode = nnObj.binaryMode;
-  networkOutput.logScaleMode = nnObj.logScaleMode;
+  // networkOutput.logScaleMode = nnObj.logScaleMode;
   networkOutput.userProfileOnlyFlag = userProfileOnlyFlag;
   networkOutput.outputRaw = [];
   networkOutput.outputRaw = outputRaw;
@@ -1345,7 +1349,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   const title = nnObj.networkId
       + " | BIN: " + nnObj.binaryMode 
-      + " | LOG: " + nnObj.logScaleMode 
+      // + " | LOG: " + nnObj.logScaleMode 
       + " | PROF ONLY: " + userProfileOnlyFlag 
       + " | INP: " + nnObj.inputsId 
       + " | H/M: " + networkOutput.inputHits + "/" + networkOutput.inputMisses
@@ -1379,7 +1383,8 @@ NeuralNetworkTools.prototype.activate = async function (params) {
   }
 
   const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
-  const logScaleMode = (params.logScaleMode !== undefined) ? params.logScaleMode : configuration.logScaleMode;
+  const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
+  // const logScaleMode = (params.logScaleMode !== undefined) ? params.logScaleMode : configuration.logScaleMode;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const verbose = params.verbose || false;
   const user = params.user;
@@ -1420,7 +1425,8 @@ NeuralNetworkTools.prototype.activate = async function (params) {
         networkId: nnId, 
         user: user, 
         datum: datum,
-        logScaleMode: logScaleMode,
+        binaryMode: binaryMode,
+        // logScaleMode: logScaleMode,
         userProfileOnlyFlag: userProfileOnlyFlag,
         convertDatumFlag: convertDatumFlag, 
         verbose: verbose
