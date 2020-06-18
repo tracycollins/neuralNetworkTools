@@ -9,6 +9,8 @@ const DEFAULT_BRAIN_TRAIN_ITERATIONS = 1000;
 const DEFAULT_BRAIN_TRAIN_LEARNING_RATE = 0.3;
 const DEFAULT_BRAIN_TRAIN_MOMENTUM = 0.1;
 
+const debug = require("debug")(MODULE_ID_PREFIX);
+
 const os = require("os");
 
 let hostname = os.hostname();
@@ -1277,7 +1279,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   const allZero = convertedDatum.datum.input.every((value) => value === 0);
 
   if (allZero) {
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! ALL ZERO INPUT | activateSingleNetwork"
+    debug(chalkAlert(MODULE_ID_PREFIX + " | !!! ALL ZERO INPUT | activateSingleNetwork"
       + " | NN: " + nnObj.networkId
       + " | @" + convertedDatum.datum.screenName
       + " | INPUTS ID: " + convertedDatum.inputsId
@@ -1298,6 +1300,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   const networkOutput = {};
   networkOutput.nnId = nnId;
+  networkOutput.networkId = nnId;
   networkOutput.user = {};
   networkOutput.user.nodeId = params.user.nodeId;
   networkOutput.user.screenName = params.user.screenName;
@@ -1387,25 +1390,31 @@ NeuralNetworkTools.prototype.activate = async function (params) {
   const datum = params.datum;
 
   if (!user.profileHistograms || (user.profileHistograms === undefined)) {
-    // debug(chalkWarn(MODULE_ID_PREFIX + " | UNDEFINED USER PROFILE HISTOGRAMS | @" + user.screenName));
     user.profileHistograms = {};
   }
 
   if (!user.tweetHistograms || (user.tweetHistograms === undefined)) {
-    // debug(chalkWarn(MODULE_ID_PREFIX + " | UNDEFINED USER TWEET HISTOGRAMS | @" + user.screenName + "\n" + jsonPrint(params)));
     user.tweetHistograms = {};
   }
 
   if (!user.friends || (user.friends === undefined)) {
-    // debug(chalkWarn(MODULE_ID_PREFIX + " | UNDEFINED USER FRIENDS | @" + user.screenName));
     user.friends = [];
   }
 
-  const networkOutput = {};
   const nnIdArray = networksHashMap.keys();
   let currentNetworkId;
 
   try{
+
+    const promiseArray = [];
+    const activateParams = {};
+
+    activateParams.userProfileOnlyFlag = userProfileOnlyFlag;
+    activateParams.binaryMode = binaryMode;
+    activateParams.convertDatumFlag = convertDatumFlag;
+    activateParams.verbose = verbose;
+    activateParams.user = user;
+    activateParams.datum = datum;
 
     for(const nnId of nnIdArray){
 
@@ -1415,18 +1424,27 @@ NeuralNetworkTools.prototype.activate = async function (params) {
         throw new Error(MODULE_ID_PREFIX + " | NET NOT IN HASHMAP | NN ID: " + nnId);
       }
 
-      networkOutput[nnId] = {};
+      activateParams.networkId = nnId;
+      promiseArray.push(activateSingleNetwork(activateParams));
 
-      networkOutput[nnId] = await activateSingleNetwork({
-        networkId: nnId, 
-        user: user, 
-        datum: datum,
-        binaryMode: binaryMode,
-        userProfileOnlyFlag: userProfileOnlyFlag,
-        convertDatumFlag: convertDatumFlag, 
-        verbose: verbose
-      });
+      // networkOutput[nnId] = await activateSingleNetwork({
+      //   networkId: nnId, 
+      //   user: user, 
+      //   datum: datum,
+      //   binaryMode: binaryMode,
+      //   userProfileOnlyFlag: userProfileOnlyFlag,
+      //   convertDatumFlag: convertDatumFlag, 
+      //   verbose: verbose
+      // });
+
     }
+
+    const resultsArray = await Promise.all(promiseArray); // results is array of networkOutputs
+
+    const networkOutput = resultsArray.reduce((nnOutHashMap, nnOut) => {
+      nnOutHashMap[nnOut.networkId] = nnOut;
+      return nnOutHashMap;
+    }, {});
 
     return {user: user, networkOutput: networkOutput};
 

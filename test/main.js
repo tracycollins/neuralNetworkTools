@@ -1199,164 +1199,164 @@ function updateTrainingSet(p){
   });
 }
 
-function dataSetPrep(params, dataSetObj){
+// function dataSetPrep(params, dataSetObj){
 
-  return new Promise(function(resolve, reject){
+//   return new Promise(function(resolve, reject){
 
-    const userProfileCharCodesOnlyFlag = (params.userProfileCharCodesOnlyFlag !== undefined) ? params.userProfileCharCodesOnlyFlag : false;
-    const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
-    const logScaleMode = (params.logScaleMode !== undefined) ? params.logScaleMode : configuration.logScaleMode;
-    const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
+//     const userProfileCharCodesOnlyFlag = (params.userProfileCharCodesOnlyFlag !== undefined) ? params.userProfileCharCodesOnlyFlag : false;
+//     const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
+//     const logScaleMode = (params.logScaleMode !== undefined) ? params.logScaleMode : configuration.logScaleMode;
+//     const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
 
-    const dataSet = [];
+//     const dataSet = [];
 
-    let dataConverted = 0;
+//     let dataConverted = 0;
 
-    const numCharInputs = configuration.userCharCountScreenName 
-      + configuration.userCharCountName 
-      + configuration.userCharCountDescription 
-      + configuration.userCharCountLocation;
+//     const numCharInputs = configuration.userCharCountScreenName 
+//       + configuration.userCharCountName 
+//       + configuration.userCharCountDescription 
+//       + configuration.userCharCountLocation;
 
-    if (userProfileCharCodesOnlyFlag){
-      dataSetObj.meta.numInputs = numCharInputs;
-      childNetworkObj.numInputs = numCharInputs;
-    }
-    else{
-      dataSetObj.meta.numInputs = childNetworkObj.numInputs;
-    }
+//     if (userProfileCharCodesOnlyFlag){
+//       dataSetObj.meta.numInputs = numCharInputs;
+//       childNetworkObj.numInputs = numCharInputs;
+//     }
+//     else{
+//       dataSetObj.meta.numInputs = childNetworkObj.numInputs;
+//     }
 
-    console.log(chalkBlue(MODULE_ID_PREFIX
-      + " | DATA SET preppedOptions"
-      + " | DATA LENGTH: " + dataSetObj.data.length
-      + " | INPUTS: " + dataSetObj.meta.numInputs
-      + " | USER PROFILE ONLY: " + userProfileOnlyFlag
-      + " | BIN MODE: " + binaryMode
-      + " | LOG SCALE MODE: " + logScaleMode
-      + "\nDATA SET META\n" + jsonPrint(dataSetObj.meta)
-    ));
+//     console.log(chalkBlue(MODULE_ID_PREFIX
+//       + " | DATA SET preppedOptions"
+//       + " | DATA LENGTH: " + dataSetObj.data.length
+//       + " | INPUTS: " + dataSetObj.meta.numInputs
+//       + " | USER PROFILE ONLY: " + userProfileOnlyFlag
+//       + " | BIN MODE: " + binaryMode
+//       + " | LOG SCALE MODE: " + logScaleMode
+//       + "\nDATA SET META\n" + jsonPrint(dataSetObj.meta)
+//     ));
 
-    const shuffledData = _.shuffle(dataSetObj.data);
+//     const shuffledData = _.shuffle(dataSetObj.data);
 
-    // async.eachSeries(shuffledData, async function(user){
-    async.eachLimit(shuffledData, 20, async function(user){
+//     // async.eachSeries(shuffledData, async function(user){
+//     async.eachLimit(shuffledData, 20, async function(user){
 
-      try {
+//       try {
 
-        if (!userProfileCharCodesOnlyFlag
-          && (!user.profileHistograms || user.profileHistograms === undefined || user.profileHistograms === {}) 
-          && (!user.tweetHistograms || user.tweetHistograms === undefined || user.tweetHistograms === {}))
-        {
-          console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! EMPTY USER HISTOGRAMS ... SKIPPING | @" + user.screenName));
-          return;
-        }
+//         if (!userProfileCharCodesOnlyFlag
+//           && (!user.profileHistograms || user.profileHistograms === undefined || user.profileHistograms === {}) 
+//           && (!user.tweetHistograms || user.tweetHistograms === undefined || user.tweetHistograms === {}))
+//         {
+//           console.log(chalkAlert(MODULE_ID_PREFIX + " | !!! EMPTY USER HISTOGRAMS ... SKIPPING | @" + user.screenName));
+//           return;
+//         }
 
-        const results = await tcUtils.convertDatumOneNetwork({
-          primaryInputsFlag: true, 
-          user: user,
-          inputsId: params.inputsId,
-          userProfileCharCodesOnlyFlag: userProfileCharCodesOnlyFlag,
-          userProfileOnlyFlag: userProfileOnlyFlag,
-          binaryMode: binaryMode, 
-          logScaleMode: logScaleMode, 
-          verbose: params.verbose
-        });
+//         const results = await tcUtils.convertDatumOneNetwork({
+//           primaryInputsFlag: true, 
+//           user: user,
+//           inputsId: params.inputsId,
+//           userProfileCharCodesOnlyFlag: userProfileCharCodesOnlyFlag,
+//           userProfileOnlyFlag: userProfileOnlyFlag,
+//           binaryMode: binaryMode, 
+//           logScaleMode: logScaleMode, 
+//           verbose: params.verbose
+//         });
 
 
-       if (results.emptyFlag) {
-          debug(chalkAlert(MODULE_ID_PREFIX + " | !!! EMPTY CONVERTED DATUM ... SKIPPING | @" + user.screenName));
-          return;
-        }
+//        if (results.emptyFlag) {
+//           debug(chalkAlert(MODULE_ID_PREFIX + " | !!! EMPTY CONVERTED DATUM ... SKIPPING | @" + user.screenName));
+//           return;
+//         }
 
-        dataConverted += 1;
+//         dataConverted += 1;
 
-        if (results.datum.input.length !== childNetworkObj.numInputs) { 
-          console.log(chalkError(MODULE_ID_PREFIX
-            + " | *** ERROR DATA SET PREP ERROR" 
-            + " | INPUT NUMBER MISMATCH" 
-            + " | INPUTS NUM IN: " + childNetworkObj.numInputs
-            + " | DATUM NUM IN: " + results.datum.input.length
-          ));
-          throw new Error("INPUT NUMBER MISMATCH");
-        }
+//         if (results.datum.input.length !== childNetworkObj.numInputs) { 
+//           console.log(chalkError(MODULE_ID_PREFIX
+//             + " | *** ERROR DATA SET PREP ERROR" 
+//             + " | INPUT NUMBER MISMATCH" 
+//             + " | INPUTS NUM IN: " + childNetworkObj.numInputs
+//             + " | DATUM NUM IN: " + results.datum.input.length
+//           ));
+//           throw new Error("INPUT NUMBER MISMATCH");
+//         }
 
-        if (results.datum.output.length !== 3) { 
-          console.log(chalkError(MODULE_ID_PREFIX
-            + " | *** ERROR DATA SET PREP ERROR" 
-            + " | OUTPUT NUMBER MISMATCH" 
-            + " | OUTPUTS NUM IN: " + childNetworkObj.numOutputs
-            + " | DATUM NUM IN: " + results.datum.output.length
-          ));
-          throw new Error("OUTPUT NUMBER MISMATCH");
-        }
+//         if (results.datum.output.length !== 3) { 
+//           console.log(chalkError(MODULE_ID_PREFIX
+//             + " | *** ERROR DATA SET PREP ERROR" 
+//             + " | OUTPUT NUMBER MISMATCH" 
+//             + " | OUTPUTS NUM IN: " + childNetworkObj.numOutputs
+//             + " | DATUM NUM IN: " + results.datum.output.length
+//           ));
+//           throw new Error("OUTPUT NUMBER MISMATCH");
+//         }
 
-        for(const inputValue of results.datum.input){
-          if (typeof inputValue !== "number") {
-            console.log(chalkAlert("INPUT VALUE NOT TYPE NUMBER | @" + results.user.screenName + " | INPUT TYPE: " + typeof inputValue));
-            return;
-          }
-          if (inputValue < 0) {
-            console.log(chalkAlert("INPUT VALUE LESS THAN ZERO | @" + results.user.screenName + " | INPUT: " + inputValue));
-            return;
-          }
-          if (inputValue > 1) {
-            console.log(chalkAlert("INPUT VALUE GREATER THAN ONE | @" + results.user.screenName + " | INPUT: " + inputValue));
-            return;
-          }
-        }
+//         for(const inputValue of results.datum.input){
+//           if (typeof inputValue !== "number") {
+//             console.log(chalkAlert("INPUT VALUE NOT TYPE NUMBER | @" + results.user.screenName + " | INPUT TYPE: " + typeof inputValue));
+//             return;
+//           }
+//           if (inputValue < 0) {
+//             console.log(chalkAlert("INPUT VALUE LESS THAN ZERO | @" + results.user.screenName + " | INPUT: " + inputValue));
+//             return;
+//           }
+//           if (inputValue > 1) {
+//             console.log(chalkAlert("INPUT VALUE GREATER THAN ONE | @" + results.user.screenName + " | INPUT: " + inputValue));
+//             return;
+//           }
+//         }
 
-        for(const outputValue of results.datum.output){
-          if (typeof outputValue !== "number") {
-            console.log(chalkAlert("OUTPUT VALUE NOT TYPE NUMBER | @" + results.user.screenName + " | OUTPUT TYPE: " + typeof outputValue));
-            return;
-          }
-          if (outputValue < 0) {
-            console.log(chalkAlert("OUTPUT VALUE LESS THAN ZERO | @" + results.user.screenName + " | OUTPUT: " + outputValue));
-            return;
-          }
-          if (outputValue > 1) {
-            console.log(chalkAlert("OUTPUT VALUE GREATER THAN ONE | @" + results.user.screenName + " | OUTPUT: " + outputValue));
-            return;
-          }
-        }
+//         for(const outputValue of results.datum.output){
+//           if (typeof outputValue !== "number") {
+//             console.log(chalkAlert("OUTPUT VALUE NOT TYPE NUMBER | @" + results.user.screenName + " | OUTPUT TYPE: " + typeof outputValue));
+//             return;
+//           }
+//           if (outputValue < 0) {
+//             console.log(chalkAlert("OUTPUT VALUE LESS THAN ZERO | @" + results.user.screenName + " | OUTPUT: " + outputValue));
+//             return;
+//           }
+//           if (outputValue > 1) {
+//             console.log(chalkAlert("OUTPUT VALUE GREATER THAN ONE | @" + results.user.screenName + " | OUTPUT: " + outputValue));
+//             return;
+//           }
+//         }
 
-        dataSet.push({
-          user: results.user, 
-          screenName: user.screenName, 
-          name: results.datum.name, 
-          input: results.datum.input, 
-          output: results.datum.output,
-          inputHits: results.inputHits,
-          inputMisses: results.inputMisses,
-          inputHitRate: results.inputHitRate
-        });
+//         dataSet.push({
+//           user: results.user, 
+//           screenName: user.screenName, 
+//           name: results.datum.name, 
+//           input: results.datum.input, 
+//           output: results.datum.output,
+//           inputHits: results.inputHits,
+//           inputMisses: results.inputMisses,
+//           inputHitRate: results.inputHitRate
+//         });
 
-        if (configuration.verbose || (dataConverted % 1000 === 0) || configuration.testMode && (dataConverted % 100 === 0)){
-          console.log(chalkLog(MODULE_ID_PREFIX + " | DATA CONVERTED: " + dataConverted + "/" + dataSetObj.data.length));
-        }
+//         if (configuration.verbose || (dataConverted % 1000 === 0) || configuration.testMode && (dataConverted % 100 === 0)){
+//           console.log(chalkLog(MODULE_ID_PREFIX + " | DATA CONVERTED: " + dataConverted + "/" + dataSetObj.data.length));
+//         }
 
-      }
-      catch(err){
-        console.log(chalkError(MODULE_ID_PREFIX
-          + " | *** ERROR DATA SET PREP: " + err 
-        ));
-        return reject(err);
-      }
+//       }
+//       catch(err){
+//         console.log(chalkError(MODULE_ID_PREFIX
+//           + " | *** ERROR DATA SET PREP: " + err 
+//         ));
+//         return reject(err);
+//       }
 
-    }, function(err){
+//     }, function(err){
 
-      if (err) {
-        console.log(chalkError(MODULE_ID_PREFIX + " | *** DATA SET PREP ERROR: " + err));
-        return reject(err);
-      }
+//       if (err) {
+//         console.log(chalkError(MODULE_ID_PREFIX + " | *** DATA SET PREP ERROR: " + err));
+//         return reject(err);
+//       }
 
-      console.log(chalkBlue(MODULE_ID_PREFIX + " | DATA SET PREP COMPLETE | DATA SET LENGTH: " + dataSet.length));
+//       console.log(chalkBlue(MODULE_ID_PREFIX + " | DATA SET PREP COMPLETE | DATA SET LENGTH: " + dataSet.length));
 
-      resolve(dataSet);
+//       resolve(dataSet);
 
-    });
+//     });
 
-  });
-}
+//   });
+// }
 
 // async function main(){
 
