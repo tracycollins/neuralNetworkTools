@@ -1200,7 +1200,6 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
   const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
-  // const logScaleMode = (params.logScaleMode !== undefined) ? params.logScaleMode : configuration.logScaleMode;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const verbose = configuration.verbose || params.verbose;
   const nnId = params.networkId || primaryNeuralNetworkId;
@@ -1236,7 +1235,6 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   }
 
   nnObj.binaryMode = nnObj.binaryMode || binaryMode;
-  // nnObj.logScaleMode = nnObj.logScaleMode || logScaleMode;
   nnObj.meta.userProfileOnlyFlag = (nnObj.meta.userProfileOnlyFlag !== undefined)
     ? nnObj.meta.userProfileOnlyFlag : userProfileOnlyFlag;
 
@@ -1248,7 +1246,6 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
       inputsId: nnObj.inputsId,
       userProfileOnlyFlag: nnObj.meta.userProfileOnlyFlag,
       binaryMode: nnObj.binaryMode, 
-      // logScaleMode: nnObj.logScaleMode, 
       verbose: verbose
     });
 
@@ -1347,20 +1344,20 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   networkOutput.matchFlag = ((params.user.category !== "none") && (networkOutput.categoryAuto === params.user.category)) ? "MATCH" : "MISS";
 
-  const title = nnObj.networkId
-      + " | BIN: " + nnObj.binaryMode 
-      // + " | LOG: " + nnObj.logScaleMode 
-      + " | PROF ONLY: " + userProfileOnlyFlag 
-      + " | INP: " + nnObj.inputsId 
-      + " | H/M: " + networkOutput.inputHits + "/" + networkOutput.inputMisses
-      + " | R: " + networkOutput.inputHitRate.toFixed(3) + "%"
-      + " | @" + params.user.screenName 
-      + " | C: " + formatCategory(params.user.category) 
-      + " | A: " + formatCategory(networkOutput.categoryAuto)
-      + " | MTCH: " + networkOutput.matchFlag;
-
   if (verbose) {
-    // console.log(convertedDatum.datum);
+
+    const title = nnObj.networkId
+        + " | BIN: " + nnObj.binaryMode 
+        // + " | LOG: " + nnObj.logScaleMode 
+        + " | PROF ONLY: " + userProfileOnlyFlag 
+        + " | INP: " + nnObj.inputsId 
+        + " | H/M: " + networkOutput.inputHits + "/" + networkOutput.inputMisses
+        + " | R: " + networkOutput.inputHitRate.toFixed(3) + "%"
+        + " | @" + params.user.screenName 
+        + " | C: " + formatCategory(params.user.category) 
+        + " | A: " + formatCategory(networkOutput.categoryAuto)
+        + " | MTCH: " + networkOutput.matchFlag;
+
     await printNetworkInput({
       title: title,
       datum: convertedDatum.datum
@@ -1384,24 +1381,23 @@ NeuralNetworkTools.prototype.activate = async function (params) {
 
   const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
   const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
-  // const logScaleMode = (params.logScaleMode !== undefined) ? params.logScaleMode : configuration.logScaleMode;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const verbose = params.verbose || false;
   const user = params.user;
   const datum = params.datum;
 
   if (!user.profileHistograms || (user.profileHistograms === undefined)) {
-    console.log(chalkWarn(MODULE_ID_PREFIX + " | UNDEFINED USER PROFILE HISTOGRAMS | @" + user.screenName));
+    // debug(chalkWarn(MODULE_ID_PREFIX + " | UNDEFINED USER PROFILE HISTOGRAMS | @" + user.screenName));
     user.profileHistograms = {};
   }
 
   if (!user.tweetHistograms || (user.tweetHistograms === undefined)) {
-    console.log(chalkWarn(MODULE_ID_PREFIX + " | UNDEFINED USER TWEET HISTOGRAMS | @" + user.screenName + "\n" + jsonPrint(params)));
+    // debug(chalkWarn(MODULE_ID_PREFIX + " | UNDEFINED USER TWEET HISTOGRAMS | @" + user.screenName + "\n" + jsonPrint(params)));
     user.tweetHistograms = {};
   }
 
   if (!user.friends || (user.friends === undefined)) {
-    console.log(chalkWarn(MODULE_ID_PREFIX + " | UNDEFINED USER FRIENDS | @" + user.screenName));
+    // debug(chalkWarn(MODULE_ID_PREFIX + " | UNDEFINED USER FRIENDS | @" + user.screenName));
     user.friends = [];
   }
 
@@ -1426,7 +1422,6 @@ NeuralNetworkTools.prototype.activate = async function (params) {
         user: user, 
         datum: datum,
         binaryMode: binaryMode,
-        // logScaleMode: logScaleMode,
         userProfileOnlyFlag: userProfileOnlyFlag,
         convertDatumFlag: convertDatumFlag, 
         verbose: verbose
@@ -1443,8 +1438,6 @@ NeuralNetworkTools.prototype.activate = async function (params) {
     ));
     throw err;
   }
-
-  // return {user: user, networkOutput: networkOutput};
 };
 
 module.exports = NeuralNetworkTools;
