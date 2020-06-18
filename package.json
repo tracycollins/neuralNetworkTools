@@ -19,7 +19,7 @@
   "dependencies": {
     "@liquid-carrot/carrot": "^0.3.18",
     "@threeceelabs/mongoose-twitter": "^1.0.326",
-    "@threeceelabs/threecee-utilities": "^1.0.365",
+    "@threeceelabs/threecee-utilities": "^1.0.366",
     "@threeceelabs/user-server-controller": "^1.0.525",
     "async": "^3.2.0",
     "brain": "^1.0.0",
