@@ -25,6 +25,7 @@ hostname = hostname.replace(/word-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
 const carrot = require("@liquid-carrot/carrot");
+// const carrot = require("carrot");
 const neataptic = require("neataptic");
 const brain = require("brain.js");
 
