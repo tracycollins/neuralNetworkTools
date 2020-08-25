@@ -23,7 +23,7 @@
     "@threeceelabs/user-server-controller": "^1.0.526",
     "async": "^3.2.0",
     "brain": "^1.0.0",
-    "brain.js": "^2.0.0-beta.1",
+    "brain.js": "^2.0.0-beta.2",
     "deepcopy": "^2.1.0",
     "hashmap": "^2.4.0",
     "is-empty": "^1.2.0",
