@@ -193,7 +193,8 @@ async function loadNetworksDb(){
 
     const nnDocArray = await global.wordAssoDb.NeuralNetwork.find({
       // binaryMode: true,
-      successRate: {"$gt": 80}
+      successRate: {"$gt": 80},
+      networkTechnology: "carrot"
       // "createdAt": {"$gt": new Date("2019-12-01T00:00:00.000Z")}
     }).limit(100);
 
