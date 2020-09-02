@@ -451,6 +451,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
       networksHashMap.set(nn.networkId, nn);
 
       console.log(chalkLog(MODULE_ID_PREFIX + " | --> LOAD NN: " + nn.networkId 
+        + " | TECH: " + nn.networkTechnology 
         + " | BIN: " + formatBoolean(nn.binaryMode) 
         // + " | LOG SCALE: " + formatBoolean(nn.logScaleMode) 
         + " | " + networksHashMap.size + " NNs"
@@ -802,6 +803,7 @@ NeuralNetworkTools.prototype.printNetworkObj = function(title, nn, format) {
   const testCycleHistory = nn.testCycleHistory || [];
 
   console.log(chalkFormat(title
+    + " | TECH: " + nn.networkTechnology 
     + " | BIN: " + formatBoolean(nn.binaryMode)
     + " | RK: " + rank
     + " | PREV RK: " + previousRank
@@ -1076,8 +1078,8 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
             // throw new Error("OUTPUT NODES LENGTH: " + nnObj.networkJson.output_nodes.length);
           }
 
-          // nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
-          nnObj.networkRaw = carrot.fromJSON(nnObj.networkJson);
+          nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
+          // nnObj.networkRaw = carrot.fromJSON(nnObj.networkJson);
         }
       }
       else if (nnObj.networkTechnology === "brain") {
@@ -1110,8 +1112,8 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
       nnObj.network = {};
 
       if (nnObj.networkTechnology === "carrot") {
-        // nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
-        nnObj.networkRaw = carrot.fromJSON(nnObj.networkJson);
+        nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
+        // nnObj.networkRaw = carrot.fromJSON(nnObj.networkJson);
       }
       else if (nnObj.networkTechnology === "brain") {
         nnObj.networkRaw = brain.NeuralNetwork.fromJSON(nnObj.networkJson);
@@ -1358,6 +1360,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   if (verbose) {
 
     const title = nnObj.networkId
+        + " | TECH: " + nnObj.networkTechnology 
         + " | BIN: " + nnObj.binaryMode 
         // + " | LOG: " + nnObj.logScaleMode 
         + " | PROF ONLY: " + userProfileOnlyFlag 
