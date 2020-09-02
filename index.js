@@ -302,7 +302,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     }
     else if (nn.networkTechnology === "carrot"){
 
-      let { Network } = require("@liquid-carrot/carrot/src/index.js");
+      // const { Network } = require("@liquid-carrot/carrot/src/index.js");
 
       console.log(chalkWarn(MODULE_ID_PREFIX + " | ... LOAD NN RAW | TECH: " + nn.networkTechnology + " | " + nn.networkId));
 
@@ -376,12 +376,12 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
             throw new Error("OUTPUT NODES LENGTH: " + nn.networkJson.output_nodes.length);
           }
 
-          // network = carrot.Network.fromJSON(nn.networkJson);
-          network = Network.fromJSON(nn.networkJson);
+          network = carrot.Network.fromJSON(nn.networkJson);
+          // network = Network.fromJSON(nn.networkJson);
         }
         else if (!empty(nn.network)) {
-          // network = carrot.Network.fromJSON(nn.network);
-          network = Network.fromJSON(nn.network);
+          network = carrot.Network.fromJSON(nn.network);
+          // network = Network.fromJSON(nn.network);
         }
         else{
           console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD NN FROM JSON ERROR | NO JSON??? | TECH: " + nn.networkTechnology + " | " + nn.networkId));
