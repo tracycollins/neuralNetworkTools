@@ -27,7 +27,7 @@
     "deepcopy": "^2.1.0",
     "hashmap": "^2.4.0",
     "is-empty": "^1.2.0",
-    "mongoose": "^5.10.11",
+    "mongoose": "^5.10.13",
     "neataptic": "^1.4.7",
     "object-rename-keys": "^1.2.1",
     "object.pick": "^1.3.0",
