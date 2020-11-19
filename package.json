@@ -19,7 +19,7 @@
   "dependencies": {
     "@liquid-carrot/carrot": "^0.3.20",
     "@threeceelabs/mongoose-twitter": "^1.0.334",
-    "@threeceelabs/threecee-utilities": "^1.0.400",
+    "@threeceelabs/threecee-utilities": "^1.0.401",
     "@threeceelabs/user-server-controller": "^1.0.527",
     "async": "^3.2.0",
     "brain": "^1.0.0",
@@ -27,7 +27,7 @@
     "deepcopy": "^2.1.0",
     "hashmap": "^2.4.0",
     "is-empty": "^1.2.0",
-    "mongoose": "^5.10.13",
+    "mongoose": "^5.10.15",
     "neataptic": "^1.4.7",
     "object-rename-keys": "^1.2.1",
     "object.pick": "^1.3.0",
