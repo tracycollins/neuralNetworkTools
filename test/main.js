@@ -1541,20 +1541,32 @@ function categoryToArray(category){
 
 const notZero = (element) => element !== 0;
 
+function* data() {
+ for (let i = 0; i < 100; i++) {
+   // Generate one sample at a time.
+   yield tf.randomNormal([784]);
+ }
+}
+
+function* labels() {
+ for (let i = 0; i < 100; i++) {
+   // Generate one sample at a time.
+   yield tf.randomUniform([3]);
+ }
+}
+
 async function main(){
 
   await connectDb();
-  // await nnTools.setUserProfileOnlyFlag(false);
 
-  // const networkIdArray = await loadNetworksDb();
+  const inputsObj = await tcUtils.loadFileRetry({folder: defaultInputsFolder, file: "inputs_20201218_052234_1560_all_macpro2_20762.json"});
 
-  // const randomNnId = randomItem(networkIdArray);
+  console.log({inputsObj})
 
-  // console.log("setPrimaryNeuralNetwork: " + randomNnId);
+  await nnTools.loadInputs({ inputsObj: inputsObj});
+  await nnTools.setPrimaryInputs(inputsObj.inputsId);
 
-  // await nnTools.setPrimaryNeuralNetwork(randomNnId);
-
-  const cursor = await global.wordAssoDb.User
+  const cursorTrain = await global.wordAssoDb.User
     .find({categorized: true, friends: { $exists: true, $ne: [] }})
     .lean()
     .limit(100)
@@ -1568,65 +1580,30 @@ async function main(){
   trainingSet.data = [];
   trainingSet.labels = [];
 
-  const userIds = [
-    "25073877",
-    "620571475",
-    "20545835",
-    "292929271",
-    "435331179",
-    "807095",
-    "22203756",
-    "1367531",
-    "813286",
-    "1249982359",
-    "11134252",
-    "49698134",
-    "822215679726100480",
-    "1917731",
-    "14344823",
-    "770781940341288960",
-    "32871086",
-    "1209936918",
-    "939091",
-    "30354991",
-    "138203134",
-    "1339835893",
-    "759251",
-    "457984599",
-    "783792992",
-    "15764644",
-  ]
-
   const network = tensorflow.sequential();
-  network.add(tensorflow.layers.dense({inputShape: [userIds.length], units: 32, activation: 'relu'}));
+  network.add(tensorflow.layers.dense({inputShape: [inputsObj.meta.numInputs], units: 32, activation: 'relu'}));
   network.add(tensorflow.layers.dense({units: 3, activation: 'softmax'}));
 
-  await cursor.eachAsync(async function(user){
+  await cursorTrain.eachAsync(async function(user){
 
     if (!user) {
-      cursor.close();
+      cursorTrain.close();
     }
 
     console.log("USER | " + tcUtils.userText({user: user}));
 
+    const results = await tcUtils.convertDatumOneNetwork({
+      user: user,
+      inputsId: inputsObj.inputsId,
+      numInputs: inputsObj.numInputs,
+      userProfileCharCodesOnlyFlag: false,
+      verbose: true
+    })
+
     const label = categoryToArray(user.category);
-    const datum = [];
 
-    for(const userId of userIds){
-      const bit = user.friends.includes(userId) ? 1 : 0;
-      datum.push(bit)
-    }
-
-    console.log("VALID: " + tcUtils.formatBoolean(datum.some(notZero)) + " | DATUM: " + datum + " | LABEL: " + label);
-
-    trainingSet.data.push(datum);
+    trainingSet.data.push(results.datum.input);
     trainingSet.labels.push(label);
-
-    // const noutObj = await nnTools.activate({
-    //   user: user, 
-    //   convertDatumFlag: true,
-    //   verbose: true
-    // });
 
   });
     
@@ -1645,10 +1622,69 @@ async function main(){
     }
   );
 
-  console.log({results})
+  console.log({results});
 
-  // await nnTools.deleteAllNetworks();
-  
+  const nnId = "nn_test_tensorflow";
+  const savePath = `file://${nnId}`;
+  const tensorflowModelPath = `file://${nnId}/model.json`;
+
+  const saveResults = await network.save(savePath)
+  console.log({saveResults})
+
+  const nn = new global.wordAssoDb.NeuralNetwork({
+    networkId: nnId,
+    networkTechnology: "tensorflow",
+    tensorflowModelPath: tensorflowModelPath,
+    binaryMode: true,
+    network: network,
+    numInputs: inputsObj.meta.numInputs,
+    numOutputs: 3,
+    inputsId: inputsObj.inputsId,
+    inputsObj: inputsObj
+  })
+
+  console.log({nn})
+
+  await nnTools.loadNetwork({networkObj: nn})
+
+  const cursorTest = await global.wordAssoDb.User
+    .find({categorized: true, friends: { $exists: true, $ne: [] }})
+    .skip(500)
+    .lean()
+    .limit(20)
+    .cursor();
+
+  await cursorTest.eachAsync(async function(user){
+
+    if (!user) {
+      cursorTest.close();
+    }
+
+    console.log("TEST | " + tcUtils.userText({user: user}));
+
+    // const results = await tcUtils.convertDatumOneNetwork({
+    //   user: user,
+    //   inputsId: inputsObj.inputsId,
+    //   numInputs: inputsObj.numInputs,
+    //   userProfileCharCodesOnlyFlag: false,
+    //   verbose: true
+    // })
+
+    const label = categoryToArray(user.category);
+
+    // const prediction = network.predict([tensorflow.tensor(results.datum.input, [1, results.datum.input.length])]).arraySync();
+    const result = await nnTools.activateSingleNetwork({
+      networkId: nn.networkId,
+      userProfileOnlyFlag: false,
+      binaryMode: true,
+      convertDatumFlag: true,
+      verbose: true,
+      user: user
+    });
+
+    console.log(result)
+  });
+
   return;
 }
 

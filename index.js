@@ -284,7 +284,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
       console.log(chalkWarn(MODULE_ID_PREFIX 
         + " | ... LOAD NN FROM JSON FILE | TECH: " + nn.networkTechnology 
-        + " | " + nn.networkId 
+        + " | " + nn.networkId
         + " | PATH: " + nn.tensorflowModelPath
       ));
 
@@ -1278,10 +1278,10 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   }
 
   if (!nnObj.networkRawFlag || (nnObj.networkRawFlag === undefined) || 
-    ((nnObj.network.activate === undefined) && (nnObj.network.run === undefined))
+    ((nnObj.network.activate === undefined) && (nnObj.network.run === undefined) && (nnObj.network.predict === undefined))
   ){
 
-    console.log(chalkAlert(MODULE_ID_PREFIX + " | NN ACTIVATE/RUN UNDEFINED"
+    console.log(chalkAlert(MODULE_ID_PREFIX + " | NN ACTIVATE/RUN/PREDICT UNDEFINED"
       + " | TECH: " + nnObj.networkTechnology 
       + " | ID: " + nnObj.networkId 
       + " | INPUTS: " + nnObj.inputsId 
@@ -1295,8 +1295,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   }
 
   nnObj.binaryMode = nnObj.binaryMode || binaryMode;
-  nnObj.meta.userProfileOnlyFlag = (nnObj.meta.userProfileOnlyFlag !== undefined)
-    ? nnObj.meta.userProfileOnlyFlag : userProfileOnlyFlag;
+  nnObj.meta.userProfileOnlyFlag = (nnObj.meta.userProfileOnlyFlag !== undefined) ? nnObj.meta.userProfileOnlyFlag : userProfileOnlyFlag;
 
   let convertedDatum = {};
 
@@ -1346,7 +1345,14 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     ));
   }
   
-  if (nnObj.networkTechnology === "brain"){
+  if (nnObj.networkTechnology === "tensorflow"){
+    const prediction = nnObj.network.predict([tensorflow.tensor(convertedDatum.datum.input, [1, convertedDatum.datum.input.length])]).arraySync();
+    if (params.verbose) {
+      console.log(chalkAlert("TENSORFLOW | " + nnObj.networkId))
+    }
+    outputRaw = prediction[0];
+  }
+  else if (nnObj.networkTechnology === "brain"){
     const outputRawBrain = nnObj.network.run(convertedDatum.datum.input);
     outputRaw[0] = outputRawBrain["0"];
     outputRaw[1] = outputRawBrain["1"];
