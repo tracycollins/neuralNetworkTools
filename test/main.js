@@ -22,6 +22,7 @@ const moment = require("moment");
 const fs = require("fs");
 const should = require("should");
 const tensorflow = require("@tensorflow/tfjs-node");
+const deepcopy = require("deepcopy");
 
 const chalkNetwork = chalk.blue;
 const chalkBlueBold = chalk.blue.bold;
@@ -1557,10 +1558,22 @@ function* labels() {
 
 async function main(){
 
+  const trainingSetSize = 5000;
+  const testSetSize = 500;
+  const iterations = 1000;
+
   await connectDb();
 
-  const inputsObj = await tcUtils.loadFileRetry({folder: defaultInputsFolder, file: "inputs_20201218_052234_1560_all_macpro2_20762.json"});
+  const inputsId = "inputs_20201218_052234_1560_all_macpro2_20762";
+  const inputsObj = await tcUtils.loadFileRetry({folder: defaultInputsFolder, file: `${inputsId}.json`});
 
+  const hiddenLayerSize = Math.floor(0.25 * inputsObj.meta.numInputs)
+  const options = {};
+  options.epochs = iterations;
+  options.batchSize = 100;
+
+  console.log({hiddenLayerSize})
+  console.log({options})
   console.log({inputsObj})
 
   await nnTools.loadInputs({ inputsObj: inputsObj});
@@ -1569,19 +1582,31 @@ async function main(){
   const cursorTrain = await global.wordAssoDb.User
     .find({categorized: true, friends: { $exists: true, $ne: [] }})
     .lean()
-    .limit(100)
+    .limit(trainingSetSize)
     .cursor();
 
-  const options = {};
-  options.iterations = 10;
-  options.batchSize = 10;
 
   const trainingSet = {};
   trainingSet.data = [];
   trainingSet.labels = [];
 
+  const nnId = "nn_test_tensorflow_" + moment().valueOf();
+  // const savePath = `file://${nnId}`;
+  // const tensorflowModelPath = `file://${nnId}/model.json`;
+
+  
+  const nnObj = new global.wordAssoDb.NeuralNetwork({
+    networkId: nnId,
+    networkTechnology: "tensorflow",
+    hiddenLayerSize: hiddenLayerSize,
+    binaryMode: true,
+    numInputs: inputsObj.meta.numInputs,
+    numOutputs: 3,
+    inputsId: inputsId
+  })
+
   const network = tensorflow.sequential();
-  network.add(tensorflow.layers.dense({inputShape: [inputsObj.meta.numInputs], units: 32, activation: 'relu'}));
+  network.add(tensorflow.layers.dense({inputShape: [inputsObj.meta.numInputs], units: hiddenLayerSize, activation: 'relu'}));
   network.add(tensorflow.layers.dense({units: 3, activation: 'softmax'}));
 
   await cursorTrain.eachAsync(async function(user){
@@ -1590,14 +1615,14 @@ async function main(){
       cursorTrain.close();
     }
 
-    console.log("USER | " + tcUtils.userText({user: user}));
+    // console.log("USER | " + tcUtils.userText({user: user}));
 
     const results = await tcUtils.convertDatumOneNetwork({
       user: user,
       inputsId: inputsObj.inputsId,
       numInputs: inputsObj.numInputs,
-      userProfileCharCodesOnlyFlag: false,
-      verbose: true
+      userProfileCharCodesOnlyFlag: false
+      // verbose: true
     })
 
     const label = categoryToArray(user.category);
@@ -1613,47 +1638,46 @@ async function main(){
     metrics: ['accuracy']
   });
 
+  // const artifactsArray = [];
+
+  // await network.save(tensorflow.io.withSaveHandler(artifacts => {
+  //   artifactsArray.push(artifacts);
+  // }));
+
+  // console.log({artifactsArray})
+
   const results = await network.fit(
     tensorflow.tensor(trainingSet.data), 
     tensorflow.tensor(trainingSet.labels), 
-    {
-      epochs: 10,
-      batchSize: 10
-    }
+    options
   );
 
   console.log({results});
 
-  const nnId = "nn_test_tensorflow";
-  const savePath = `file://${nnId}`;
-  const tensorflowModelPath = `file://${nnId}/model.json`;
+  // const saveResults = await nnObj.network.save(savePath)
+  // console.log({saveResults})
 
-  const saveResults = await network.save(savePath)
-  console.log({saveResults})
+  let networkSaveResult = await network.save(tensorflow.io.withSaveHandler(async modelArtifacts => modelArtifacts));
+  networkSaveResult.weightData = Buffer.from(networkSaveResult.weightData).toString("base64");
+  nnObj.networkJson = {};
+  nnObj.networkJson = deepcopy(JSON.stringify(networkSaveResult));
+  nnObj.network = {};
 
-  const nn = new global.wordAssoDb.NeuralNetwork({
-    networkId: nnId,
-    networkTechnology: "tensorflow",
-    tensorflowModelPath: tensorflowModelPath,
-    binaryMode: true,
-    network: network,
-    numInputs: inputsObj.meta.numInputs,
-    numOutputs: 3,
-    inputsId: inputsObj.inputsId,
-    inputsObj: inputsObj
-  })
-
-  console.log({nn})
-
-  await nnTools.loadNetwork({networkObj: nn})
+  await nnTools.loadNetwork({networkObj: nnObj})
 
   const cursorTest = await global.wordAssoDb.User
     .find({categorized: true, friends: { $exists: true, $ne: [] }})
-    .skip(500)
+    .skip(trainingSetSize + testSetSize)
     .lean()
-    .limit(20)
+    .limit(testSetSize)
     .cursor();
 
+  const testResults = {};
+  testResults.total = 0;
+  testResults.pass = 0;
+  testResults.fail = 0;
+  testResults.successRate = 0;
+  
   await cursorTest.eachAsync(async function(user){
 
     if (!user) {
@@ -1666,16 +1690,28 @@ async function main(){
 
     // const prediction = network.predict([tensorflow.tensor(results.datum.input, [1, results.datum.input.length])]).arraySync();
     const result = await nnTools.activateSingleNetwork({
-      networkId: nn.networkId,
+      networkId: nnObj.networkId,
       userProfileOnlyFlag: false,
       binaryMode: true,
       convertDatumFlag: true,
-      verbose: true,
+      // verbose: true,
       user: user
     });
 
-    console.log(result)
+    testResults.total += 1;
+
+    testResults.pass = user.category === result.categoryAuto ? testResults.pass + 1 : testResults.pass;
+    testResults.fail = user.category !== result.categoryAuto ? testResults.fail + 1 : testResults.fail;
+    testResults.successRate = (100 * testResults.pass/testResults.total).toFixed(2);
+    // console.log(result);
+
   });
+
+  console.log({testResults})
+
+  nnObj.network = {};
+  // nnObj.inputsObj = {};
+  await nnObj.save();
 
   return;
 }

@@ -279,16 +279,19 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     let network;
 
-    if (nn.networkTechnology === "tensorflow" && nn.tensorflowModelPath){
+    if (nn.networkTechnology === "tensorflow" && nn.networkJson){
       console.log(chalkWarn(MODULE_ID_PREFIX + " | ... LOAD NN | TECH: " + nn.networkTechnology + " | " + nn.networkId));
 
       console.log(chalkWarn(MODULE_ID_PREFIX 
-        + " | ... LOAD NN FROM JSON FILE | TECH: " + nn.networkTechnology 
+        + " | ... LOAD NN FROM JSON | TECH: " + nn.networkTechnology 
         + " | " + nn.networkId
-        + " | PATH: " + nn.tensorflowModelPath
+        // + " | PATH: " + nn.tensorflowModelPath
       ));
 
-      network = await tensorflow.loadLayersModel(nn.tensorflowModelPath);
+      const nnJson = JSON.parse(nn.networkJson);
+      const weightData = new Uint8Array(Buffer.from(nnJson.weightData, "base64")).buffer;
+      network = await tensorflow.loadLayersModel(tensorflow.io.fromMemory(nnJson.modelTopology, nnJson.weightSpecs, weightData));
+
     }
     else if (nn.networkTechnology === "brain"){
       console.log(chalkWarn(MODULE_ID_PREFIX + " | ... LOAD NN RAW | TECH: " + nn.networkTechnology + " | " + nn.networkId));
