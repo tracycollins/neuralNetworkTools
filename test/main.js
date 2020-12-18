@@ -1662,14 +1662,6 @@ async function main(){
 
     console.log("TEST | " + tcUtils.userText({user: user}));
 
-    // const results = await tcUtils.convertDatumOneNetwork({
-    //   user: user,
-    //   inputsId: inputsObj.inputsId,
-    //   numInputs: inputsObj.numInputs,
-    //   userProfileCharCodesOnlyFlag: false,
-    //   verbose: true
-    // })
-
     const label = categoryToArray(user.category);
 
     // const prediction = network.predict([tensorflow.tensor(results.datum.input, [1, results.datum.input.length])]).arraySync();
