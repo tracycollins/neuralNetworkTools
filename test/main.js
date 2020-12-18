@@ -21,6 +21,7 @@ const chalk = require("chalk");
 const moment = require("moment");
 const fs = require("fs");
 const should = require("should");
+const tensorflow = require("@tensorflow/tfjs-node");
 
 const chalkNetwork = chalk.blue;
 const chalkBlueBold = chalk.blue.bold;
@@ -1525,20 +1526,33 @@ function updateTrainingSet(p){
 //   return;
 // }
 
+function categoryToArray(category){
+  switch (category) {
+    case "left":
+      return [1, 0, 0];
+    case "neutral":
+      return [0, 1, 0];
+    case "right":
+      return [0, 0, 1];
+    default:
+      return [0, 0, 0];
+  }
+}
+
+const notZero = (element) => element !== 0;
+
 async function main(){
 
   await connectDb();
-  await nnTools.setUserProfileOnlyFlag(false);
+  // await nnTools.setUserProfileOnlyFlag(false);
 
-  const networkIdArray = await loadNetworksDb();
+  // const networkIdArray = await loadNetworksDb();
 
-  const randomNnId = randomItem(networkIdArray);
+  // const randomNnId = randomItem(networkIdArray);
 
-  console.log("setPrimaryNeuralNetwork: " + randomNnId);
+  // console.log("setPrimaryNeuralNetwork: " + randomNnId);
 
-  await nnTools.setPrimaryNeuralNetwork(randomNnId);
-
-  const totalIterations = TOTAL_ITERATIONS;
+  // await nnTools.setPrimaryNeuralNetwork(randomNnId);
 
   const cursor = await global.wordAssoDb.User
     .find({categorized: true, friends: { $exists: true, $ne: [] }})
@@ -1546,30 +1560,94 @@ async function main(){
     .limit(100)
     .cursor();
 
+  const options = {};
+  options.iterations = 10;
+  options.batchSize = 10;
+
+  const trainingSet = {};
+  trainingSet.data = [];
+  trainingSet.labels = [];
+
+  const userIds = [
+    "25073877",
+    "620571475",
+    "20545835",
+    "292929271",
+    "435331179",
+    "807095",
+    "22203756",
+    "1367531",
+    "813286",
+    "1249982359",
+    "11134252",
+    "49698134",
+    "822215679726100480",
+    "1917731",
+    "14344823",
+    "770781940341288960",
+    "32871086",
+    "1209936918",
+    "939091",
+    "30354991",
+    "138203134",
+    "1339835893",
+    "759251",
+    "457984599",
+    "783792992",
+    "15764644",
+  ]
+
+  const network = tensorflow.sequential();
+  network.add(tensorflow.layers.dense({inputShape: [userIds.length], units: 32, activation: 'relu'}));
+  network.add(tensorflow.layers.dense({units: 3, activation: 'softmax'}));
+
   await cursor.eachAsync(async function(user){
+
     if (!user) {
       cursor.close();
     }
 
     console.log("USER | " + tcUtils.userText({user: user}));
 
-    const noutObj = await nnTools.activate({
-      user: user, 
-      // binaryMode: params.binaryMode, 
-      // logScaleMode: params.logScaleMode, 
-      convertDatumFlag: true,
-      verbose: true
-    });
+    const label = categoryToArray(user.category);
+    const datum = [];
 
-    // const results = await tcUtils.updateGlobalHistograms({user: user, verbose: true});
+    for(const userId of userIds){
+      const bit = user.friends.includes(userId) ? 1 : 0;
+      datum.push(bit)
+    }
+
+    console.log("VALID: " + tcUtils.formatBoolean(datum.some(notZero)) + " | DATUM: " + datum + " | LABEL: " + label);
+
+    trainingSet.data.push(datum);
+    trainingSet.labels.push(label);
+
+    // const noutObj = await nnTools.activate({
+    //   user: user, 
+    //   convertDatumFlag: true,
+    //   verbose: true
+    // });
 
   });
+    
+  network.compile({
+    optimizer: 'sgd',
+    loss: 'categoricalCrossentropy',
+    metrics: ['accuracy']
+  });
 
-  // const statsObj = await nnTools.getNetworkStats();
-  // console.log("statsObj.bestNetwork\n" + jsonPrint(statsObj.bestNetwork));
-  // console.log("statsObj.currentBestNetwork\n" + jsonPrint(statsObj.currentBestNetwork));
+  const results = await network.fit(
+    tensorflow.tensor(trainingSet.data), 
+    tensorflow.tensor(trainingSet.labels), 
+    {
+      epochs: 10,
+      batchSize: 10
+    }
+  );
 
-  await nnTools.deleteAllNetworks();
+  console.log({results})
+
+  // await nnTools.deleteAllNetworks();
   
   return;
 }
@@ -1580,6 +1658,6 @@ main()
   process.exit();
 })
 .catch(function(err){
-  console.log("NNT | *** TEST ACTIVATE setPrimaryNeuralNetwork ERROR: " + err);
+  console.log("NNT | *** MAIN ERROR: " + err);
   process.exit();
 });

@@ -4,10 +4,10 @@ const DEFAULT_BINARY_MODE = false;
 const DEFAULT_USER_PROFILE_ONLY_FLAG = false;
 const tcuChildName = MODULE_ID_PREFIX + "_TCU";
 
-const DEFAULT_BRAIN_TRAIN_ERROR = 0.3;
-const DEFAULT_BRAIN_TRAIN_ITERATIONS = 1000;
-const DEFAULT_BRAIN_TRAIN_LEARNING_RATE = 0.3;
-const DEFAULT_BRAIN_TRAIN_MOMENTUM = 0.1;
+// const DEFAULT_BRAIN_TRAIN_ERROR = 0.3;
+// const DEFAULT_BRAIN_TRAIN_ITERATIONS = 1000;
+// const DEFAULT_BRAIN_TRAIN_LEARNING_RATE = 0.3;
+// const DEFAULT_BRAIN_TRAIN_MOMENTUM = 0.1;
 
 const debug = require("debug")(MODULE_ID_PREFIX);
 
@@ -26,6 +26,7 @@ hostname = hostname.replace(/word/g, "google");
 
 const carrot = require("@liquid-carrot/carrot/src/index.js");
 
+const tensorflow = require("@tensorflow/tfjs-node");
 const neataptic = require("neataptic");
 const brain = require("brain.js");
 
@@ -205,6 +206,7 @@ const networkPickArray = [
   "binaryMode",
   // "logScaleMode",
   "inputsId",
+  "tensorflowModelPath",
   "matchFlag",
   "matchRate",
   "meta",
@@ -236,9 +238,9 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     throw new Error(MODULE_ID_PREFIX + " | LOAD NN UNDEFINED");
   }
 
-  if (empty(params.networkObj.network) && empty(params.networkObj.networkJson)) {
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD NN JSON UNDEFINED: " + params.networkObj.networkId));
-    throw new Error(MODULE_ID_PREFIX + " | LOAD NN JSON UNDEFINED");
+  if (empty(params.networkObj.network) && empty(params.networkObj.networkJson) && empty(params.networkObj.tensorflowModelPath)) {
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD NN JSON & TENSORFLOW PATH UNDEFINED: " + params.networkObj.networkId));
+    throw new Error(MODULE_ID_PREFIX + " | LOAD NN JSON & TENSORFLOW PATH UNDEFINED");
   }
 
   if (!params.networkObj.inputsId || params.networkObj.inputsId === undefined) {
@@ -277,7 +279,18 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     let network;
 
-    if (nn.networkTechnology === "brain"){
+    if (nn.networkTechnology === "tensorflow" && nn.tensorflowModelPath){
+      console.log(chalkWarn(MODULE_ID_PREFIX + " | ... LOAD NN | TECH: " + nn.networkTechnology + " | " + nn.networkId));
+
+      console.log(chalkWarn(MODULE_ID_PREFIX 
+        + " | ... LOAD NN FROM JSON FILE | TECH: " + nn.networkTechnology 
+        + " | " + nn.networkId 
+        + " | PATH: " + nn.tensorflowModelPath
+      ));
+
+      network = await tensorflow.loadLayersModel(nn.tensorflowModelPath);
+    }
+    else if (nn.networkTechnology === "brain"){
       console.log(chalkWarn(MODULE_ID_PREFIX + " | ... LOAD NN RAW | TECH: " + nn.networkTechnology + " | " + nn.networkId));
 
       if (params.networkIsRaw) {
@@ -1132,72 +1145,107 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
   });
 };
 
-NeuralNetworkTools.prototype.streamTrainNetwork = async function (params) {
+// NeuralNetworkTools.prototype.streamTrainNetwork = async function (params) {
 
-  return new Promise(function(resolve){
+//   try{
 
+//     const network = params.network;
+//     const trainingSet = params.trainingSet;
+
+//     const DEFAULT_BRAIN_TRAIN_SCHEDULE = function(data){
+//       console.log(MODULE_ID_PREFIX +" streamTrainNetwork | ", data);
+//     };
+
+//     // BRAIN
+//     // net.train(data, {
+//     //   // Defaults values --> expected validation
+//     //   iterations: 20000, // the maximum times to iterate the training data --> number greater than 0
+//     //   errorThresh: 0.005, // the acceptable error percentage from training data --> number between 0 and 1
+//     //   log: false, // true to use console.log, when a function is supplied it is used --> Either true or a function
+//     //   logPeriod: 10, // iterations between logging out --> number greater than 0
+//     //   learningRate: 0.3, // scales with delta to effect training rate --> number between 0 and 1
+//     //   momentum: 0.1, // scales with next layer's change value --> number between 0 and 1
+//     //   callback: null, // a periodic call back that can be triggered while training --> null or function
+//     //   callbackPeriod: 10, // the number of iterations through the training data between callback calls --> number greater than 0
+//     //   timeout: Infinity, // the max number of milliseconds to train for --> number greater than 0
+//     // })
+
+//     const errorThresh = params.options.error || DEFAULT_BRAIN_TRAIN_ERROR;
+//     const iterations = params.options.iterations || DEFAULT_BRAIN_TRAIN_ITERATIONS;
+//     const learningRate = params.options.learningRate || DEFAULT_BRAIN_TRAIN_LEARNING_RATE;
+//     const momentum = params.options.momentum || DEFAULT_BRAIN_TRAIN_MOMENTUM;
+//     const schedule = params.options.schedule || DEFAULT_BRAIN_TRAIN_SCHEDULE;
+
+//     const trainStream = new brain.TrainStream({
+//       callback: schedule,
+//       callbackPeriod: 1,
+//       errorThresh: errorThresh,
+//       iterations: iterations,
+//       learningRate: learningRate,
+//       momentum: momentum,
+//       neuralNetwork: network,
+
+//       floodCallback: function() {
+//         readInputs(trainStream, trainingSet);
+//       },
+
+//       doneTrainingCallback: function(stats) {
+
+//         console.log(chalkLog(MODULE_ID_PREFIX + " | STREAM TRAINING DONE"
+//           + " | " + params.networkId
+//           + "\n" + jsonPrint(stats)
+//         ));
+
+//         return {network: network, stats: stats} ;
+//       }
+
+//     });
+
+//     // kick it off
+//     readInputs(trainStream, trainingSet);
+
+//     function readInputs(stream, trainingSet) {
+//       for (let i = 0; i < trainingSet.length; i++) {
+//         const datum = {input: trainingSet[i].input, output: trainingSet[i].output};
+//         stream.write(datum);
+//       }
+//       // let it know we've reached the end of the inputs
+//       stream.endInputs();
+//     }
+
+//   }
+//   catch(err){
+//     console.log(chalkError(MODULE_ID_PREFIX + " | *** BRAIN streamTrainNetwork ERROR: " + err));
+//     throw err;
+//   }
+
+// };
+
+NeuralNetworkTools.prototype.fit = async function (params) {
+
+  // evolveResults = await nnTools.fit({
+  //   networkId: childNetworkObj.networkId,
+  //   options: preppedOptions,
+  //   network: childNetworkRaw,
+  //   trainingSet: preppedTrainingSet,
+  // });
+
+  try{
     const network = params.network;
-    const trainingSet = params.trainingSet;
 
-    const DEFAULT_BRAIN_TRAIN_SCHEDULE = function(data){
-      console.log(MODULE_ID_PREFIX +" streamTrainNetwork | ", data);
-    };
-
-    // BRAIN
-    // net.train(data, {
-    //   // Defaults values --> expected validation
-    //   iterations: 20000, // the maximum times to iterate the training data --> number greater than 0
-    //   errorThresh: 0.005, // the acceptable error percentage from training data --> number between 0 and 1
-    //   log: false, // true to use console.log, when a function is supplied it is used --> Either true or a function
-    //   logPeriod: 10, // iterations between logging out --> number greater than 0
-    //   learningRate: 0.3, // scales with delta to effect training rate --> number between 0 and 1
-    //   momentum: 0.1, // scales with next layer's change value --> number between 0 and 1
-    //   callback: null, // a periodic call back that can be triggered while training --> null or function
-    //   callbackPeriod: 10, // the number of iterations through the training data between callback calls --> number greater than 0
-    //   timeout: Infinity, // the max number of milliseconds to train for --> number greater than 0
-    // })
-
-    const errorThresh = params.options.error || DEFAULT_BRAIN_TRAIN_ERROR;
-    const iterations = params.options.iterations || DEFAULT_BRAIN_TRAIN_ITERATIONS;
-    const learningRate = params.options.learningRate || DEFAULT_BRAIN_TRAIN_LEARNING_RATE;
-    const momentum = params.options.momentum || DEFAULT_BRAIN_TRAIN_MOMENTUM;
-    const schedule = params.options.schedule || DEFAULT_BRAIN_TRAIN_SCHEDULE;
-
-    const trainStream = new brain.TrainStream({
-      callback: schedule,
-      callbackPeriod: 1,
-      errorThresh: errorThresh,
-      iterations: iterations,
-      learningRate: learningRate,
-      momentum: momentum,
-      neuralNetwork: network,
-
-      floodCallback: function() {
-        readInputs(trainStream, trainingSet);
-      },
-
-      doneTrainingCallback: function(stats) {
-        console.log(chalkLog(MODULE_ID_PREFIX + " | STREAM TRAINING DONE"
-          + " | " + params.networkId
-          + "\n" + jsonPrint(stats)
-        ));
-        resolve({network: network, stats: stats});
-      }
-
+    const results = await network.fit(params.trainingSet.data, params.trainingSet.labels, {
+      epochs: params.options.iterations,
+      batchSize: params.options.batchSize
+      // callbacks: params.options.onEpochEnd
     });
 
-    // kick it off
-    readInputs(trainStream, trainingSet);
+    return {network: network, stats: results};
 
-    function readInputs(stream, trainingSet) {
-      for (let i = 0; i < trainingSet.length; i++) {
-        const datum = {input: trainingSet[i].input, output: trainingSet[i].output};
-        stream.write(datum);
-      }
-      // let it know we've reached the end of the inputs
-      stream.endInputs();
-    }
-  });
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** TENSORFLOW fitDataset ERROR: " + err));
+    throw err;
+  }
 };
 
 NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
