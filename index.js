@@ -1263,8 +1263,8 @@ NeuralNetworkTools.prototype.fit = async function (params) {
 
     for(const item of params.trainingSet){
       // console.log({item})
-      trainingSetData.push(item.datum.input)
-      trainingSetLabels.push(item.datum.output)
+      trainingSetData.push(item.input)
+      trainingSetLabels.push(item.output)
     }
 
     const results = await network.fit(

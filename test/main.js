@@ -1632,7 +1632,7 @@ async function main(){
       // verbose: true
     });
 
-    trainingSet.push(results)
+    trainingSet.push(results.datum)
 
     // const label = categoryToArray(user.category);
 
