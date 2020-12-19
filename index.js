@@ -1234,6 +1234,10 @@ NeuralNetworkTools.prototype.fit = async function (params) {
   // });
 
   try{
+    if (params.verbose){
+      console.log(chalkLog(MODULE_ID_PREFIX + " | TENSORFLOW FIT PARAMS"));
+      console.log({params})
+    }
     const network = params.network;
 
     const results = await network.fit(params.trainingSet.data, params.trainingSet.labels, {
