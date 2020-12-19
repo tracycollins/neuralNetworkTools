@@ -1240,7 +1240,10 @@ NeuralNetworkTools.prototype.fit = async function (params) {
     }
     const network = params.network;
 
-    const results = await network.fit(params.trainingSet.data, params.trainingSet.labels, {
+    const trainingSetData = params.trainingSet.data.map((datum) => datum.input);
+    const trainingSetLabels = params.trainingSet.data.map((datum) => datum.output);
+
+    const results = await network.fit(trainingSetData, trainingSetLabels, {
       epochs: params.options.iterations,
       batchSize: params.options.batchSize
       // callbacks: params.options.onEpochEnd
@@ -1250,7 +1253,7 @@ NeuralNetworkTools.prototype.fit = async function (params) {
 
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** TENSORFLOW fitDataset ERROR: " + err));
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** TENSORFLOW fit ERROR: " + err));
     throw err;
   }
 };

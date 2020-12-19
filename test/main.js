@@ -1558,9 +1558,9 @@ function* labels() {
 
 async function main(){
 
-  const trainingSetSize = 5000;
-  const testSetSize = 500;
-  const iterations = 1000;
+  const trainingSetSize = 1000;
+  const testSetSize = 100;
+  const iterations = 100;
 
   await connectDb();
 
@@ -1570,7 +1570,7 @@ async function main(){
   const hiddenLayerSize = Math.floor(0.25 * inputsObj.meta.numInputs)
   const options = {};
   options.epochs = iterations;
-  options.batchSize = 100;
+  options.batchSize = 20;
 
   console.log({hiddenLayerSize})
   console.log({options})
@@ -1628,7 +1628,11 @@ async function main(){
     const label = categoryToArray(user.category);
 
     trainingSet.data.push(results.datum.input);
-    trainingSet.labels.push(label);
+    trainingSet.labels.push(results.datum.output);
+
+    if (trainingSet.data.length % 100 === 0){
+      console.log(`[${trainingSet.data.length}] USER | ${tcUtils.userText({user: user})}`);
+    }
 
   });
     
