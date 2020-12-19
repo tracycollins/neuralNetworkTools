@@ -1248,11 +1248,13 @@ NeuralNetworkTools.prototype.fit = async function (params) {
       trainingSetLabels.push(datum.output)
     }
 
-    const results = await network.fit(trainingSetData, trainingSetLabels, {
-      epochs: params.options.iterations,
-      batchSize: params.options.batchSize
-      // callbacks: params.options.onEpochEnd
-    });
+    const results = await network.fit(
+      tensorflow.tensor(trainingSetData), 
+      tensorflow.tensor(trainingSetLabels), {
+        epochs: params.options.iterations,
+        batchSize: params.options.batchSize
+      }
+    );
 
     return {network: network, stats: results};
 

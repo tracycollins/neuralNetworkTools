@@ -1560,7 +1560,7 @@ async function main(){
 
   const trainingSetSize = 1000;
   const testSetSize = 100;
-  const iterations = 100;
+  const iterations = 50;
 
   await connectDb();
 
