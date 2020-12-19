@@ -1239,6 +1239,8 @@ NeuralNetworkTools.prototype.fit = async function (params) {
 
   try{
 
+    params.epochs = params.epochs || params.iterations;
+    
     if (params.verbose){
       console.log(chalkLog(MODULE_ID_PREFIX + " | TENSORFLOW FIT PARAMS"));
       console.log({params})
