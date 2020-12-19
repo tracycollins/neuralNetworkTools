@@ -1233,27 +1233,44 @@ NeuralNetworkTools.prototype.fit = async function (params) {
   //   trainingSet: preppedTrainingSet,
   // });
 
+  const defaultOnEpochEnd = (epoch, logs) => {
+    console.log(chalkLog(`${MODULE_ID_PREFIX} | TENSOR FIT | EPOCH: ${epoch} | LOSS: ${logs.loss.toFixed(3)} | ACC: ${logs.acc.toFixed(6)}`))
+  }
+
   try{
+
     if (params.verbose){
       console.log(chalkLog(MODULE_ID_PREFIX + " | TENSORFLOW FIT PARAMS"));
       console.log({params})
     }
+
+    const onEpochEnd = params.onEpochEnd || defaultOnEpochEnd;
     const network = params.network;
+
+    const defaultOptions = {};
+    defaultOptions.epochs = 1000;
+    defaultOptions.batchSize = 20;
+    defaultOptions.verbose = 0;
+    defaultOptions.callbacks = {};
+    defaultOptions.callbacks.onEpochEnd = onEpochEnd;
+
+    const options = defaults(params.options, defaultOptions);
+
+    console.log({options})
 
     const trainingSetData = [];
     const trainingSetLabels = [];
 
-    for(const datum of params.trainingSet){
-      trainingSetData.push(datum.input)
-      trainingSetLabels.push(datum.output)
+    for(const item of params.trainingSet){
+      // console.log({item})
+      trainingSetData.push(item.datum.input)
+      trainingSetLabels.push(item.datum.output)
     }
 
     const results = await network.fit(
       tensorflow.tensor(trainingSetData), 
-      tensorflow.tensor(trainingSetLabels), {
-        epochs: params.options.iterations,
-        batchSize: params.options.batchSize
-      }
+      tensorflow.tensor(trainingSetLabels),
+      options
     );
 
     return {network: network, stats: results};
