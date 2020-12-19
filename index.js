@@ -1240,8 +1240,13 @@ NeuralNetworkTools.prototype.fit = async function (params) {
     }
     const network = params.network;
 
-    const trainingSetData = params.trainingSet.data.map((datum) => datum.input);
-    const trainingSetLabels = params.trainingSet.data.map((datum) => datum.output);
+    const trainingSetData = [];
+    const trainingSetLabels = [];
+
+    for(const datum of params.trainingSet){
+      trainingSetData.push(datum.input)
+      trainingSetLabels.push(datum.output)
+    }
 
     const results = await network.fit(trainingSetData, trainingSetLabels, {
       epochs: params.options.iterations,
