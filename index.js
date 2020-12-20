@@ -290,8 +290,12 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
       const nnJson = JSON.parse(nn.networkJson);
       const weightData = new Uint8Array(Buffer.from(nnJson.weightData, "base64")).buffer;
-      network = await tensorflow.loadLayersModel(tensorflow.io.fromMemory(nnJson.modelTopology, nnJson.weightSpecs, weightData));
-
+      // network = await tensorflow.loadLayersModel(tensorflow.io.fromMemory(nnJson.modelTopology, nnJson.weightSpecs, weightData));
+      network = await tensorflow.loadLayersModel(tensorflow.io.fromMemory({
+        modelTopology: nnJson.modelTopology,
+        weightSpecs: nnJson.weightSpecs,
+        weightData: weightData
+      }));
     }
     else if (nn.networkTechnology === "brain"){
       console.log(chalkWarn(MODULE_ID_PREFIX + " | ... LOAD NN RAW | TECH: " + nn.networkTechnology + " | " + nn.networkId));
