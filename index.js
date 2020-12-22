@@ -300,11 +300,12 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     if (nn.networkTechnology === "tensorflow" && nn.networkJson){
 
-      console.log(chalkWarn(MODULE_ID_PREFIX + " | ... LOAD NN | TECH: " + nn.networkTechnology + " | " + nn.networkId));
+      console.log(chalkLog(MODULE_ID_PREFIX + " | ... LOAD NN | TECH: " + nn.networkTechnology + " | " + nn.networkId));
 
-      console.log(chalkWarn(MODULE_ID_PREFIX 
+      console.log(chalkLog(MODULE_ID_PREFIX 
         + " | ... LOAD NN FROM JSON | TECH: " + nn.networkTechnology 
         + " | " + nn.networkId
+        + "\n NN META\n" + jsonPrint(nn.meta)
         // + " | PATH: " + nn.tensorflowModelPath
       ));
 

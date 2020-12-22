@@ -1627,9 +1627,10 @@ async function main(){
     const results = await tcUtils.convertDatumOneNetwork({
       user: user,
       inputsId: inputsObj.inputsId,
+      binaryMode: nnObj.binaryMode,
       numInputs: inputsObj.numInputs,
-      userProfileCharCodesOnlyFlag: false
-      // verbose: true
+      userProfileCharCodesOnlyFlag: false,
+      verbose: true
     });
 
     trainingSet.push(results.datum)
@@ -1711,7 +1712,7 @@ async function main(){
     const result = await nnTools.activateSingleNetwork({
       networkId: nnObj.networkId,
       userProfileOnlyFlag: false,
-      binaryMode: true,
+      // binaryMode: false,
       convertDatumFlag: true,
       // verbose: true,
       user: user
