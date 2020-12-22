@@ -1171,7 +1171,10 @@ NeuralNetworkTools.prototype.convertNetwork = async function(params){
       nnObj.networkJson = deepcopy(nnObj.network);
       nnObj.network = {};
 
-      if (nnObj.networkTechnology === "carrot") {
+      if (nnObj.networkTechnology === "tensorflow") {
+        nnObj.networkRaw = await convertTensorFlow({networkJson: nnObj.networkJson})
+      }
+      else if (nnObj.networkTechnology === "carrot") {
         nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
       }
       else if (nnObj.networkTechnology === "brain") {
