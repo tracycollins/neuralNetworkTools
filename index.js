@@ -1299,7 +1299,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   // };
 
   const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
-  const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
+  let binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const verbose = configuration.verbose || params.verbose;
   const nnId = params.networkId || primaryNeuralNetworkId;
@@ -1334,7 +1334,8 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   }
 
-  nnObj.binaryMode = nnObj.binaryMode || binaryMode;
+  // nnObj.binaryMode = nnObj.binaryMode !== undefined ? nnObj.binaryMode : binaryMode;
+  binaryMode = (nnObj.binaryMode !== undefined) ? nnObj.binaryMode : binaryMode;
   nnObj.meta.userProfileOnlyFlag = (nnObj.meta.userProfileOnlyFlag !== undefined) ? nnObj.meta.userProfileOnlyFlag : userProfileOnlyFlag;
 
   let convertedDatum = {};
@@ -1344,7 +1345,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
       user: params.user, 
       inputsId: nnObj.inputsId,
       userProfileOnlyFlag: nnObj.meta.userProfileOnlyFlag,
-      binaryMode: nnObj.binaryMode, 
+      binaryMode: binaryMode, 
       verbose: verbose
     });
 

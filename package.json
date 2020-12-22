@@ -1,6 +1,6 @@
 {
   "name": "@threeceelabs/neural-network-tools",
-  "version": "1.0.238",
+  "version": "1.0.240",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "@tensorflow/tfjs": "^2.8.1",
     "@tensorflow/tfjs-node": "^2.8.1",
     "@threeceelabs/mongoose-twitter": "^1.0.340",
-    "@threeceelabs/threecee-utilities": "^1.0.404",
+    "@threeceelabs/threecee-utilities": "^1.0.405",
     "@threeceelabs/user-server-controller": "^1.0.529",
     "async": "^3.2.0",
     "brain": "^1.0.0",
