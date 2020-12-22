@@ -231,6 +231,25 @@ NeuralNetworkTools.prototype.loadInputs = async function(params){
   return;
 };
 
+NeuralNetworkTools.prototype.convertTensorFlow = async function(params){
+  try{
+    const nnJson = JSON.parse(params.networkJson);
+    const weightData = new Uint8Array(Buffer.from(nnJson.weightData, "base64")).buffer;
+    const network = await tensorflow.loadLayersModel(tensorflow.io.fromMemory({
+      modelTopology: nnJson.modelTopology,
+      weightSpecs: nnJson.weightSpecs,
+      weightData: weightData
+    }));
+    return network;
+  }
+  catch(err){
+    console.log(chalkError(`${MODULE_ID_PREFIX} | *** convertTensorFlow ERROR: ${err}`));
+    throw err
+  }
+};
+
+const convertTensorFlow = NeuralNetworkTools.prototype.convertTensorFlow;
+
 NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
   if (empty(params.networkObj)) {
@@ -238,9 +257,9 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     throw new Error(MODULE_ID_PREFIX + " | LOAD NN UNDEFINED");
   }
 
-  if (empty(params.networkObj.network) && empty(params.networkObj.networkJson) && empty(params.networkObj.tensorflowModelPath)) {
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD NN JSON & TENSORFLOW PATH UNDEFINED: " + params.networkObj.networkId));
-    throw new Error(MODULE_ID_PREFIX + " | LOAD NN JSON & TENSORFLOW PATH UNDEFINED");
+  if (empty(params.networkObj.network) && empty(params.networkObj.networkJson) && empty(params.networkObj)) {
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD NN JSON UNDEFINED: " + params.networkObj.networkId));
+    throw new Error(MODULE_ID_PREFIX + " | LOAD NN JSON PATH UNDEFINED");
   }
 
   if (!params.networkObj.inputsId || params.networkObj.inputsId === undefined) {
@@ -280,6 +299,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
     let network;
 
     if (nn.networkTechnology === "tensorflow" && nn.networkJson){
+
       console.log(chalkWarn(MODULE_ID_PREFIX + " | ... LOAD NN | TECH: " + nn.networkTechnology + " | " + nn.networkId));
 
       console.log(chalkWarn(MODULE_ID_PREFIX 
@@ -288,14 +308,17 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
         // + " | PATH: " + nn.tensorflowModelPath
       ));
 
-      const nnJson = JSON.parse(nn.networkJson);
-      const weightData = new Uint8Array(Buffer.from(nnJson.weightData, "base64")).buffer;
-      // network = await tensorflow.loadLayersModel(tensorflow.io.fromMemory(nnJson.modelTopology, nnJson.weightSpecs, weightData));
-      network = await tensorflow.loadLayersModel(tensorflow.io.fromMemory({
-        modelTopology: nnJson.modelTopology,
-        weightSpecs: nnJson.weightSpecs,
-        weightData: weightData
-      }));
+      network = await convertTensorFlow({networkJson: nn.networkJson});
+
+      // const nnJson = JSON.parse(nn.networkJson);
+      // const weightData = new Uint8Array(Buffer.from(nnJson.weightData, "base64")).buffer;
+      // // network = await tensorflow.loadLayersModel(tensorflow.io.fromMemory(nnJson.modelTopology, nnJson.weightSpecs, weightData));
+      // network = await tensorflow.loadLayersModel(tensorflow.io.fromMemory({
+      //   modelTopology: nnJson.modelTopology,
+      //   weightSpecs: nnJson.weightSpecs,
+      //   weightData: weightData
+      // }));
+
     }
     else if (nn.networkTechnology === "brain"){
       console.log(chalkWarn(MODULE_ID_PREFIX + " | ... LOAD NN RAW | TECH: " + nn.networkTechnology + " | " + nn.networkId));
@@ -362,22 +385,33 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
             nn.networkJson.input_nodes = [];
 
-            nn.networkJson.nodes.forEach(function(node, index){
-              if (node.type === "input"){
+            // nn.networkJson.nodes.forEach(function(node, index){
+            //   if (node.type === "input"){
+            //     nn.networkJson.input_nodes.push(index);
+            //   }
+            // });
+
+            for(let index = 0; index < nn.networkJson.nodes.length; index++){
+              if (nn.networkJson.nodes[index].type === "input"){
                 nn.networkJson.input_nodes.push(index);
               }
-            });
-
+            }
           }
 
           if (!nn.networkJson.output_nodes) {
             nn.networkJson.output_nodes = [];
 
-            nn.networkJson.nodes.forEach(function(node, index){
-              if (node.type === "output"){
+            // nn.networkJson.nodes.forEach(function(node, index){
+            //   if (node.type === "output"){
+            //     nn.networkJson.output_nodes.push(index);
+            //   }
+            // });
+
+            for(let index = 0; index < nn.networkJson.nodes.length; index++){
+              if (nn.networkJson.nodes[index].type === "output"){
                 nn.networkJson.output_nodes.push(index);
               }
-            });
+            }
 
           }
 
@@ -1033,75 +1067,80 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
   });
 };
 
-NeuralNetworkTools.prototype.convertNetwork = function(params){
+NeuralNetworkTools.prototype.convertNetwork = async function(params){
 
-  return new Promise(function(resolve, reject){
-
+  try{
     const nnObj = params.networkObj;
 
     if (empty(nnObj.network) && empty(nnObj.networkJson)) {
       console.log(chalkError(MODULE_ID_PREFIX + " | *** NO OLD NET or JSON EXIST | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
-      reject(new Error("NO JSON NN"));
+      throw new Error("NO JSON NN");
     }
     else if (!empty(nnObj.networkJson)) {
 
       console.log(chalkLog(MODULE_ID_PREFIX + " | JSON EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
 
-      if (nnObj.networkTechnology === "carrot") {
-
-        if (!empty(nnObj.networkJson)) {
-          
-          // catch errors due to toJSON() and fromJSON() bugs in carrot
-
-          if (nnObj.networkJson.input && !nnObj.networkJson.input_size) {
-            nnObj.networkJson.input_size = nnObj.networkJson.input;
-          }
-
-          if (nnObj.networkJson.output && !nnObj.networkJson.output_size) {
-            nnObj.networkJson.output_size = nnObj.networkJson.output;
-          }
-
-          if (!nnObj.networkJson.input_nodes) {
-
-            nnObj.networkJson.input_nodes = [];
-
-            nnObj.networkJson.nodes.forEach(function(node, index){
-              if (node.type === "input"){
-                nnObj.networkJson.input_nodes.push(index);
-              }
-            });
-
-          }
-
-          if (!nnObj.networkJson.output_nodes) {
-            nnObj.networkJson.output_nodes = [];
-
-            nnObj.networkJson.nodes.forEach(function(node, index){
-              if (node.type === "output"){
-                nnObj.networkJson.output_nodes.push(index);
-              }
-            });
-
-          }
-
-          if (nnObj.networkJson.input_nodes.length !== nnObj.networkJson.input_size){
-            // throw new Error("INPUT NODES LENGTH: " + nnObj.networkJson.input_nodes.length);
-            console.log(chalkError(MODULE_ID_PREFIX + " | *** INPUT NODES ERROR | " + nnObj.networkId + " | LENGTH: " + nnObj.networkJson.input_nodes.length));
-          }
-
-          if (nnObj.networkJson.input_nodes.length <= 1){
-            console.log(chalkError(MODULE_ID_PREFIX + " | *** INPUT NODES ERROR | " + nnObj.networkId + " | LENGTH: " + nnObj.networkJson.input_nodes.length));
-            throw new Error("INPUT NODES LENGTH: " + nnObj.networkJson.input_nodes.length);
-          }
-
-          if (nnObj.networkJson.output_nodes.length !== nnObj.networkJson.output_size){
-            // throw new Error("OUTPUT NODES LENGTH: " + nnObj.networkJson.output_nodes.length);
-          }
-
-          nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
-          // nnObj.networkRaw = carrot.fromJSON(nnObj.networkJson);
-        }
+      if (nnObj.networkTechnology === "tensorflow") {
+        nnObj.networkRaw = await convertTensorFlow({networkJson: nnObj.networkJson})
       }
+      else if (nnObj.networkTechnology === "carrot") {
+        
+        // catch errors due to toJSON() and fromJSON() bugs in carrot
+
+        if (nnObj.networkJson.input && !nnObj.networkJson.input_size) {
+          nnObj.networkJson.input_size = nnObj.networkJson.input;
+        }
+
+        if (nnObj.networkJson.output && !nnObj.networkJson.output_size) {
+          nnObj.networkJson.output_size = nnObj.networkJson.output;
+        }
+
+        if (!nnObj.networkJson.input_nodes) {
+
+          nnObj.networkJson.input_nodes = [];
+
+          // nnObj.networkJson.nodes.forEach(function(node, index){
+          //   if (node.type === "input"){
+          //     nnObj.networkJson.input_nodes.push(index);
+          //   }
+          // });
+
+          for(let index = 0; index < nnObj.networkJson.nodes.length; index++){
+            if (nnObj.networkJson.nodes[index].type === "input"){
+              nnObj.networkJson.input_nodes.push(index);
+            }
+          }
+
+        }
+
+        if (!nnObj.networkJson.output_nodes) {
+          nnObj.networkJson.output_nodes = [];
+
+          // nnObj.networkJson.nodes.forEach(function(node, index){
+          //   if (node.type === "output"){
+          //     nnObj.networkJson.output_nodes.push(index);
+          //   }
+          // });
+
+          for(let index = 0; index < nnObj.networkJson.nodes.length; index++){
+            if (nnObj.networkJson.nodes[index].type === "output"){
+              nnObj.networkJson.output_nodes.push(index);
+            }
+          }
+        }
+
+        if (nnObj.networkJson.input_nodes.length !== nnObj.networkJson.input_size){
+          console.log(chalkError(MODULE_ID_PREFIX + " | *** INPUT NODES ERROR | " + nnObj.networkId + " | LENGTH: " + nnObj.networkJson.input_nodes.length));
+        }
+
+        if (nnObj.networkJson.input_nodes.length <= 1){
+          console.log(chalkError(MODULE_ID_PREFIX + " | *** INPUT NODES ERROR | " + nnObj.networkId + " | LENGTH: " + nnObj.networkJson.input_nodes.length));
+          throw new Error("INPUT NODES LENGTH: " + nnObj.networkJson.input_nodes.length);
+        }
+
+        nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
+      }
+
       else if (nnObj.networkTechnology === "brain") {
         if (!empty(nnObj.networkJson)) {
           nnObj.networkRaw = new brain.NeuralNetwork();
@@ -1121,11 +1160,11 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
         }
       }
 
-      resolve(nnObj);
+      return nnObj;
+
     }
     else if (!empty(nnObj.network)) {
       console.log(chalkLog(MODULE_ID_PREFIX + " | OLD JSON EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
-      // const newNetObj = objectRenameKeys(nnObj, {network: "networkJson"});
 
       nnObj.networkJson = {};
       nnObj.networkJson = deepcopy(nnObj.network);
@@ -1133,7 +1172,6 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
 
       if (nnObj.networkTechnology === "carrot") {
         nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
-        // nnObj.networkRaw = carrot.fromJSON(nnObj.networkJson);
       }
       else if (nnObj.networkTechnology === "brain") {
         nnObj.networkRaw = brain.NeuralNetwork.fromJSON(nnObj.networkJson);
@@ -1142,14 +1180,18 @@ NeuralNetworkTools.prototype.convertNetwork = function(params){
         nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.networkJson);
       }
 
-      resolve(nnObj);
+      return nnObj;
     }
     else{
       console.log(chalkError(MODULE_ID_PREFIX + " | *** convertNetwork ERROR: NO VALID NN JSON " + nnObj.networkId));
-      reject(new Error("NO VALID JSON NN: " + nnObj.networkId));
+      throw new Error("NO VALID JSON NN: " + nnObj.networkId);
     }
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** convertNetwork ERROR: " + err));
+    throw err
+  }
 
-  });
 };
 
 // NeuralNetworkTools.prototype.streamTrainNetwork = async function (params) {
