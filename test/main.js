@@ -1606,7 +1606,7 @@ async function main(){
     networkId: nnId,
     networkTechnology: "tensorflow",
     hiddenLayerSize: hiddenLayerSize,
-    binaryMode: true,
+    binaryMode: false,
     numInputs: inputsObj.meta.numInputs,
     numOutputs: 3,
     inputsId: inputsId
