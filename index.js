@@ -554,7 +554,9 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
       
       console.log(chalkLog(MODULE_ID_PREFIX + " | --> LOAD IN: " + nn.inputsId + " | " + inputsHashMap.size + " INPUT OBJs"));
 
-      return nn.networkId;
+      // return nn.networkId;
+      return network;
+      
     }
     catch(err){
       console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD INPUTS ERROR"
