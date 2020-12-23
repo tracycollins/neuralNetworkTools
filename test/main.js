@@ -21,7 +21,7 @@ const chalk = require("chalk");
 const moment = require("moment");
 const fs = require("fs");
 const should = require("should");
-const tensorflow = require("@tensorflow/tfjs-node");
+// const tensorflow = require("@tensorflow/tfjs-node");
 const deepcopy = require("deepcopy");
 
 const chalkNetwork = chalk.blue;
@@ -1612,9 +1612,15 @@ async function main(){
     inputsId: inputsId
   })
 
-  const network = tensorflow.sequential();
-  network.add(tensorflow.layers.dense({inputShape: [inputsObj.meta.numInputs], units: hiddenLayerSize, activation: 'relu'}));
-  network.add(tensorflow.layers.dense({units: 3, activation: 'softmax'}));
+  nnObj.network = await nnTools.createNetwork({
+    networkTechnology: "tensorflow",
+    inputsObj: inputsObj,
+    hiddenLayerSize: hiddenLayerSize
+  })
+
+  // const network = tensorflow.sequential();
+  // network.add(tensorflow.layers.dense({inputShape: [inputsObj.meta.numInputs], units: hiddenLayerSize, activation: 'relu'}));
+  // network.add(tensorflow.layers.dense({units: 3, activation: 'softmax'}));
 
   await cursorTrain.eachAsync(async function(user){
 
@@ -1646,7 +1652,7 @@ async function main(){
 
   });
     
-  network.compile({
+  nnObj.network.compile({
     optimizer: 'sgd',
     loss: 'categoricalCrossentropy',
     metrics: ['accuracy']
@@ -1667,7 +1673,7 @@ async function main(){
   // );
 
   const results = await nnTools.fit({
-    network: network,
+    network: nnObj.network,
     trainingSet: trainingSet,
     options: options
   });
@@ -1677,12 +1683,14 @@ async function main(){
   // const saveResults = await nnObj.network.save(savePath)
   // console.log({saveResults})
 
-  let networkSaveResult = await network.save(tensorflow.io.withSaveHandler(async modelArtifacts => modelArtifacts));
-  networkSaveResult.weightData = Buffer.from(networkSaveResult.weightData).toString("base64");
-  nnObj.networkJson = {};
-  nnObj.networkJson = deepcopy(JSON.stringify(networkSaveResult));
-  nnObj.network = {};
+  // let networkSaveResult = await network.save(tensorflow.io.withSaveHandler(async modelArtifacts => modelArtifacts));
+  // networkSaveResult.weightData = Buffer.from(networkSaveResult.weightData).toString("base64");
+  // nnObj.networkJson = {};
+  // nnObj.networkJson = deepcopy(JSON.stringify(networkSaveResult));
+  // nnObj.network = {};
 
+  
+  await nnTools.saveNetwork({networkObj: nnObj})
   await nnTools.loadNetwork({networkObj: nnObj})
 
   const cursorTest = await global.wordAssoDb.User

@@ -1,3 +1,7 @@
+const configuration = {};
+configuration.tensorflow = {};
+configuration.tensorflow.enabled = false;
+
 const MODULE_ID_PREFIX = "NNT";
 const DEFAULT_BINARY_MODE = false;
 // const DEFAULT_LOGSCALE_MODE = false;
@@ -26,7 +30,9 @@ hostname = hostname.replace(/word/g, "google");
 
 const carrot = require("@liquid-carrot/carrot/src/index.js");
 
-const tensorflow = require("@tensorflow/tfjs-node");
+// const tensorflow = require("@tensorflow/tfjs-node");
+let tensorflow = false;
+
 const neataptic = require("neataptic");
 const brain = require("brain.js");
 
@@ -60,7 +66,6 @@ const chalkLog = chalk.gray;
 
 let primaryNeuralNetworkId;
 
-const configuration = {};
 configuration.userProfileOnlyFlag = DEFAULT_USER_PROFILE_ONLY_FLAG;
 configuration.binaryMode = DEFAULT_BINARY_MODE;
 // configuration.logScaleMode = DEFAULT_LOGSCALE_MODE;
@@ -101,6 +106,29 @@ NeuralNetworkTools.prototype.verbose = function(v){
   console.log(chalkAlert(MODULE_ID_PREFIX + " | --> SET VERBOSE: " + configuration.verbose));
   return;
 };
+
+NeuralNetworkTools.prototype.enableTensorflow = function(){
+
+  try{
+
+    if (!configuration.tensorflow.enabled){
+      configuration.tensorflow.enabled = true;
+      tensorflow = require("@tensorflow/tfjs-node"); // eslint-disable-line global-require
+      console.log(chalkAlert(`${MODULE_ID_PREFIX} | --> ENABLE TENSORFLOW: ${configuration.tensorflow.enabled}`));
+    }
+    else {
+      console.log(chalkAlert(`${MODULE_ID_PREFIX} | !!! TENSORFLOW ALREADY ENABLED: ${configuration.tensorflow.enabled}`));
+    }
+
+    return;
+  }
+  catch(err){
+    console.log(chalkAlert(`${MODULE_ID_PREFIX} | *** ENABLE TENSORFLOW ERROR: ${err}`));
+    throw err;
+  }
+};
+
+const enableTensorflow = NeuralNetworkTools.prototype.enableTensorflow;
 
 NeuralNetworkTools.prototype.setBinaryMode = function(b){
   if (b === undefined) { return configuration.binaryMode; }
@@ -232,7 +260,13 @@ NeuralNetworkTools.prototype.loadInputs = async function(params){
 };
 
 NeuralNetworkTools.prototype.convertTensorFlow = async function(params){
+
   try{
+
+    if (!configuration.tensorflow.enabled) {
+      console.log(chalkError(`${MODULE_ID_PREFIX} | *** convertTensorFlow ERROR: TENSORFLOW NOT ENABLED`));
+      throw new Error(`${MODULE_ID_PREFIX} | *** convertTensorFlow ERROR: TENSORFLOW NOT ENABLED`)
+    }
     const nnJson = JSON.parse(params.networkJson);
     const weightData = new Uint8Array(Buffer.from(nnJson.weightData, "base64")).buffer;
     const network = await tensorflow.loadLayersModel(tensorflow.io.fromMemory({
@@ -240,6 +274,7 @@ NeuralNetworkTools.prototype.convertTensorFlow = async function(params){
       weightSpecs: nnJson.weightSpecs,
       weightData: weightData
     }));
+
     return network;
   }
   catch(err){
@@ -255,6 +290,11 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
   if (empty(params.networkObj)) {
     console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD NN UNDEFINED: " + params.networkObj));
     throw new Error(MODULE_ID_PREFIX + " | LOAD NN UNDEFINED");
+  }
+
+  if (!configuration.tensorflow.enabled && params.networkObj.networkTechnology === "tensorflow") {
+    console.log(chalkError(`${MODULE_ID_PREFIX} | *** loadNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.networkObj.networkId}`));
+    throw new Error(`${MODULE_ID_PREFIX} | *** loadNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.networkObj.networkId}`)
   }
 
   if (empty(params.networkObj.network) && empty(params.networkObj.networkJson) && empty(params.networkObj)) {
@@ -1068,9 +1108,79 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
   });
 };
 
+NeuralNetworkTools.prototype.createNetwork = async function(params){
+
+  try{
+      
+    if (params.networkTechnology === "tensorflow") {
+
+      console.log(chalkLog(`${MODULE_ID_PREFIX} | ... CREATING TENSORFLOW NETWORK`));
+
+      if (!configuration.tensorflow.enabled){
+        enableTensorflow();
+      }
+
+      const network = tensorflow.sequential();
+      network.add(tensorflow.layers.dense({inputShape: [params.inputsObj.meta.numInputs], units: params.hiddenLayerSize, activation: 'relu'}));
+      network.add(tensorflow.layers.dense({units: 3, activation: 'softmax'}));
+
+      return network;
+
+    }
+
+    return;
+
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** createNetwork ERROR: " + err));
+    throw err
+  }
+
+};
+
+NeuralNetworkTools.prototype.saveNetwork = async function(params){
+
+  try{
+      
+    if (params.networkObj.networkTechnology === "tensorflow") {
+
+      console.log(chalkLog(`${MODULE_ID_PREFIX} | ... SAVING TENSORFLOW NETWORK | NN ID: ${params.networkObj.networkId}`));
+
+      if (!configuration.tensorflow.enabled){
+        enableTensorflow();
+      }
+
+      const networkSaveResult = await params.networkObj.network.save(tensorflow.io.withSaveHandler(async (modelArtifacts) => modelArtifacts));
+      networkSaveResult.weightData = Buffer.from(networkSaveResult.weightData).toString("base64");
+
+      params.networkObj.networkJson = {};
+      params.networkObj.networkJson = deepcopy(JSON.stringify(networkSaveResult));
+      params.networkObj.network = {};
+
+      return params.networkObj;
+
+    }
+
+    return;
+
+  }
+  catch(err){
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** createNetwork ERROR: " + err));
+    throw err
+  }
+
+};
+
+
 NeuralNetworkTools.prototype.convertNetwork = async function(params){
 
   try{
+      
+    if (!configuration.tensorflow.enabled && params.networkObj.networkTechnology === "tensorflow") {
+      console.log(chalkError(`${MODULE_ID_PREFIX} | *** convertNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.networkObj.networkId}`));
+      throw new Error(`${MODULE_ID_PREFIX} | *** convertNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.networkObj.networkId}`)
+    }
+
     const nnObj = params.networkObj;
 
     if (empty(nnObj.network) && empty(nnObj.networkJson)) {
@@ -1283,11 +1393,17 @@ NeuralNetworkTools.prototype.fit = async function (params) {
   //   trainingSet: preppedTrainingSet,
   // });
 
-  const defaultOnEpochEnd = (epoch, logs) => {
-    console.log(chalkLog(`${MODULE_ID_PREFIX} | TENSOR FIT | EPOCH: ${epoch} | LOSS: ${logs.loss.toFixed(3)} | ACC: ${logs.acc.toFixed(6)}`))
-  }
 
   try{
+
+    if (!configuration.tensorflow.enabled) {
+      console.log(chalkError(`${MODULE_ID_PREFIX} | *** fit ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.network.networkId}`));
+      throw new Error(`${MODULE_ID_PREFIX} | *** fit ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.network.networkId}`)
+    }
+
+    const defaultOnEpochEnd = (epoch, logs) => {
+      console.log(chalkLog(`${MODULE_ID_PREFIX} | TENSOR FIT | EPOCH: ${epoch} | LOSS: ${logs.loss.toFixed(3)} | ACC: ${logs.acc.toFixed(6)}`))
+    }
 
     params.options.epochs = params.options.epochs || params.options.iterations;
 
@@ -1329,7 +1445,7 @@ NeuralNetworkTools.prototype.fit = async function (params) {
 
   }
   catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** TENSORFLOW fit ERROR: " + err));
+    console.log(chalkError(MODULE_ID_PREFIX + " | *** TENSORFLOW FIT ERROR: " + err));
     throw err;
   }
 };
@@ -1356,6 +1472,11 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   }
 
   const nnObj = networksHashMap.get(nnId);
+
+  if (!configuration.tensorflow.enabled && nnObj.networkTechnology === "tensorflow") {
+    console.log(chalkError(`${MODULE_ID_PREFIX} | *** activateSingleNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${nnObj.networkId}`));
+    throw new Error(`${MODULE_ID_PREFIX} | *** activateSingleNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${nnObj.networkId}`)
+  }
 
   if (!nnObj.network || (nnObj.network === undefined)){
     console.log(chalkError(MODULE_ID_PREFIX + " | *** NN UNDEFINED: " + nnId));
