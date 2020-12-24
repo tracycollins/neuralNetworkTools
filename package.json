@@ -1,6 +1,6 @@
 {
   "name": "@threeceelabs/neural-network-tools",
-  "version": "1.0.251",
+  "version": "1.0.252",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -24,7 +24,6 @@
     "@threeceelabs/threecee-utilities": "^1.0.411",
     "@threeceelabs/user-server-controller": "^1.0.529",
     "async": "^3.2.0",
-    "brain": "^1.0.0",
     "brain.js": "^2.0.0-beta.2",
     "deepcopy": "^2.1.0",
     "hashmap": "^2.4.0",
