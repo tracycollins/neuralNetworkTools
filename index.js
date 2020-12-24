@@ -1191,7 +1191,7 @@ NeuralNetworkTools.prototype.convertNetwork = async function(params){
       console.log(chalkLog(MODULE_ID_PREFIX + " | JSON EXISTS | TECH: " + nnObj.networkTechnology + " | " + nnObj.networkId));
 
       if (nnObj.networkTechnology === "tensorflow") {
-        nnObj.networkRaw = await convertTensorFlow({networkJson: nnObj.networkJson})
+        nnObj.network = await convertTensorFlow({networkJson: nnObj.networkJson})
       }
       else if (nnObj.networkTechnology === "carrot") {
         
@@ -1248,26 +1248,26 @@ NeuralNetworkTools.prototype.convertNetwork = async function(params){
           throw new Error("INPUT NODES LENGTH: " + nnObj.networkJson.input_nodes.length);
         }
 
-        nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
+        nnObj.network = carrot.Network.fromJSON(nnObj.networkJson);
       }
 
       else if (nnObj.networkTechnology === "brain") {
         if (!empty(nnObj.networkJson)) {
-          nnObj.networkRaw = new brain.NeuralNetwork();
-          nnObj.networkRaw.fromJSON(nnObj.networkJson);
+          nnObj.network = new brain.NeuralNetwork();
+          // nnObj.networkRaw.fromJSON(nnObj.networkJson);
         }
-        else if (!empty(nnObj.network)) {
-          nnObj.networkRaw = new brain.NeuralNetwork();
-          nnObj.networkRaw.fromJSON(nnObj.network);
-        }
+        // else if (!empty(nnObj.network)) {
+        //   nnObj.networkRaw = new brain.NeuralNetwork();
+        //   nnObj.networkRaw.fromJSON(nnObj.network);
+        // }
       }
       else {
         if (!empty(nnObj.networkJson)) {
-          nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.networkJson);
+          nnObj.network = neataptic.Network.fromJSON(nnObj.networkJson);
         }
-        else if (!empty(nnObj.network)) {
-          nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.network);
-        }
+        // else if (!empty(nnObj.network)) {
+        //   nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.network);
+        // }
       }
 
       return nnObj;
@@ -1281,16 +1281,16 @@ NeuralNetworkTools.prototype.convertNetwork = async function(params){
       nnObj.network = {};
 
       if (nnObj.networkTechnology === "tensorflow") {
-        nnObj.networkRaw = await convertTensorFlow({networkJson: nnObj.networkJson})
+        nnObj.network = await convertTensorFlow({networkJson: nnObj.networkJson})
       }
       else if (nnObj.networkTechnology === "carrot") {
-        nnObj.networkRaw = carrot.Network.fromJSON(nnObj.networkJson);
+        nnObj.network = carrot.Network.fromJSON(nnObj.networkJson);
       }
       else if (nnObj.networkTechnology === "brain") {
-        nnObj.networkRaw = brain.NeuralNetwork.fromJSON(nnObj.networkJson);
+        nnObj.network = brain.NeuralNetwork.fromJSON(nnObj.networkJson);
       }
       else {
-        nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.networkJson);
+        nnObj.network = neataptic.Network.fromJSON(nnObj.networkJson);
       }
 
       return nnObj;
