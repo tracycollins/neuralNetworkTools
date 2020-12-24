@@ -556,7 +556,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
       // return nn.networkId;
       return network;
-      
+
     }
     catch(err){
       console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD INPUTS ERROR"
@@ -1123,7 +1123,7 @@ NeuralNetworkTools.prototype.createNetwork = async function(params){
       }
 
       const network = tensorflow.sequential();
-      network.add(tensorflow.layers.dense({inputShape: [params.inputsObj.meta.numInputs], units: params.hiddenLayerSize, activation: 'relu'}));
+      network.add(tensorflow.layers.dense({inputShape: [params.numInputs], units: params.hiddenLayerSize, activation: 'relu'}));
       network.add(tensorflow.layers.dense({units: 3, activation: 'softmax'}));
 
       return network;

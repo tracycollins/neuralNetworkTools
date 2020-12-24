@@ -1614,7 +1614,7 @@ async function main(){
 
   nnObj.network = await nnTools.createNetwork({
     networkTechnology: "tensorflow",
-    inputsObj: inputsObj,
+    numInputs: inputsObj.meta.numInputs,
     hiddenLayerSize: hiddenLayerSize
   })
 
