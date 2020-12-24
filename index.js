@@ -311,7 +311,8 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     const nn = params.networkObj;
 
-    nn.meta = defaults(nn.meta, networkDefaults.meta);
+    // nn.meta = defaults(nn.meta, networkDefaults.meta);
+    defaults(nn.meta, networkDefaults.meta);
 
     statsObj.networks[nn.networkId] = {};
     statsObj.networks[nn.networkId] = pick(nn, networkPickArray);
@@ -773,7 +774,8 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
 
     const params = p || {};
 
-    statsObj.currentBestNetwork = defaults(statsObj.currentBestNetwork, networkDefaults);
+    // statsObj.currentBestNetwork = defaults(statsObj.currentBestNetwork, networkDefaults);
+    defaults(statsObj.currentBestNetwork, networkDefaults);
 
     titleDefault = "T: " + statsObj.currentBestNetwork.networkTechnology.charAt(0).toUpperCase()
       + " | B: " + formatBoolean(statsObj.currentBestNetwork.binaryMode)
@@ -797,10 +799,13 @@ NeuralNetworkTools.prototype.printNetworkResults = function(p){
     const sortedNetworksArray = _.sortBy(networksHashMap.values(), ["matchRate"]);
     _.reverse(sortedNetworksArray);
 
-    async.eachOfSeries(sortedNetworksArray, function(n, index, cb0){
+    async.eachOfSeries(sortedNetworksArray, function(nn, index, cb0){
 
-      const nn = defaults(n, networkDefaults);
-      nn.meta = defaults(n.meta, networkDefaults.meta);
+      // const nn = defaults(n, networkDefaults);
+      defaults(nn, networkDefaults);
+
+      // nn.meta = defaults(n.meta, networkDefaults.meta);
+      defaults(nn.meta, networkDefaults.meta);
 
       statsTextArray[index] = [];
       statsTextArray[index] = [
@@ -1006,8 +1011,11 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
         return reject(new Error(MODULE_ID_PREFIX + " | updateNetworkStats NN UNDEFINED | NN ID: " + nnId));
       }
 
-      nn = defaults(nn, networkDefaults);
-      nn.meta = defaults(nn.meta, networkDefaults.meta);
+      // nn = defaults(nn, networkDefaults);
+      defaults(nn, networkDefaults);
+
+      // nn.meta = defaults(nn.meta, networkDefaults.meta);
+      defaults(nn.meta, networkDefaults.meta);
 
       tempNetwork = pick(nn, networkPickArray);
       tempNetwork.meta = nn.meta;
@@ -1413,7 +1421,9 @@ NeuralNetworkTools.prototype.fit = async function (params) {
     defaultOptions.callbacks = {};
     defaultOptions.callbacks.onEpochEnd = onEpochEnd;
 
-    const options = defaults(params.options, defaultOptions);
+    // const options = defaults(params.options, defaultOptions);
+    const options = params.options
+    defaults(options, defaultOptions);
 
     console.log({options})
 
