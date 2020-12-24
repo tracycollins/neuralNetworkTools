@@ -43,7 +43,7 @@ const util = require("util");
 const _ = require("lodash");
 const EventEmitter = require("events");
 const HashMap = require("hashmap").HashMap;
-const defaults = require("object.defaults/immutable");
+const defaults = require("object.defaults");
 const pick = require("object.pick");
 const table = require("text-table");
 const empty = require("is-empty");
@@ -545,7 +545,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
       console.log(chalkLog(MODULE_ID_PREFIX + " | --> LOAD IN: " + nn.inputsId + " | " + inputsHashMap.size + " INPUT OBJs"));
 
       // return nn.networkId;
-      return network;
+      return nn;
 
     }
     catch(err){
