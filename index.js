@@ -1160,7 +1160,7 @@ NeuralNetworkTools.prototype.saveNetwork = async function(params){
 
     }
 
-    return;
+    return params.networkObj;
 
   }
   catch(err){
