@@ -345,20 +345,9 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
       console.log(chalkLog(MODULE_ID_PREFIX 
         + " | ... LOAD NN FROM JSON | TECH: " + nn.networkTechnology 
         + " | " + nn.networkId
-        + "\n NN META\n" + jsonPrint(nn.meta)
-        // + " | PATH: " + nn.tensorflowModelPath
       ));
 
       network = await convertTensorFlow({networkJson: nn.networkJson});
-
-      // const nnJson = JSON.parse(nn.networkJson);
-      // const weightData = new Uint8Array(Buffer.from(nnJson.weightData, "base64")).buffer;
-      // // network = await tensorflow.loadLayersModel(tensorflow.io.fromMemory(nnJson.modelTopology, nnJson.weightSpecs, weightData));
-      // network = await tensorflow.loadLayersModel(tensorflow.io.fromMemory({
-      //   modelTopology: nnJson.modelTopology,
-      //   weightSpecs: nnJson.weightSpecs,
-      //   weightData: weightData
-      // }));
 
     }
     else if (nn.networkTechnology === "brain"){
