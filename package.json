@@ -21,7 +21,7 @@
     "@tensorflow/tfjs": "^2.8.1",
     "@tensorflow/tfjs-node": "^2.8.1",
     "@threeceelabs/mongoose-twitter": "^1.0.340",
-    "@threeceelabs/threecee-utilities": "^1.0.410",
+    "@threeceelabs/threecee-utilities": "^1.0.411",
     "@threeceelabs/user-server-controller": "^1.0.529",
     "async": "^3.2.0",
     "brain": "^1.0.0",
