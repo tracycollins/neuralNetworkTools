@@ -1690,8 +1690,8 @@ async function main(){
   // nnObj.network = {};
 
   
-  const savedNetworkObj = await nnTools.saveNetwork({networkObj: nnObj})
-  await nnTools.loadNetwork({networkObj: savedNetworkObj})
+  nnObj.networkJson = await nnTools.tensorflowCreateJson({networkObj: nnObj})
+  await nnTools.loadNetwork({networkObj: nnObj})
 
   const cursorTest = await global.wordAssoDb.User
     .find({categorized: true, friends: { $exists: true, $ne: [] }})

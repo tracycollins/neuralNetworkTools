@@ -1137,13 +1137,13 @@ NeuralNetworkTools.prototype.createNetwork = async function(params){
 
 };
 
-NeuralNetworkTools.prototype.saveNetwork = async function(params){
+NeuralNetworkTools.prototype.tensorflowCreateJson = async function(params){
 
   try{
       
     if (params.networkObj.networkTechnology === "tensorflow") {
 
-      console.log(chalkLog(`${MODULE_ID_PREFIX} | ... SAVING TENSORFLOW NETWORK | NN ID: ${params.networkObj.networkId}`));
+      console.log(chalkLog(`${MODULE_ID_PREFIX} | ... CREATE TENSORFLOW JSON | NN ID: ${params.networkObj.networkId}`));
 
       if (!configuration.tensorflow.enabled){
         enableTensorflow();
@@ -1152,11 +1152,11 @@ NeuralNetworkTools.prototype.saveNetwork = async function(params){
       const networkSaveResult = await params.networkObj.network.save(tensorflow.io.withSaveHandler(async (modelArtifacts) => modelArtifacts));
       networkSaveResult.weightData = Buffer.from(networkSaveResult.weightData).toString("base64");
 
-      params.networkObj.networkJson = {};
-      params.networkObj.networkJson = deepcopy(JSON.stringify(networkSaveResult));
-      params.networkObj.network = {};
+      // params.networkObj.networkJson = {};
+      // params.networkObj.networkJson = deepcopy(JSON.stringify(networkSaveResult));
+      // params.networkObj.network = {};
 
-      return params.networkObj;
+      return JSON.stringify(networkSaveResult);
 
     }
 
