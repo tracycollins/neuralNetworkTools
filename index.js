@@ -267,11 +267,20 @@ NeuralNetworkTools.prototype.convertTensorFlow = async function(params){
       console.log(chalkError(`${MODULE_ID_PREFIX} | *** convertTensorFlow ERROR: TENSORFLOW NOT ENABLED`));
       throw new Error(`${MODULE_ID_PREFIX} | *** convertTensorFlow ERROR: TENSORFLOW NOT ENABLED`)
     }
-    // const nnJson = JSON.parse(params.networkJson);
-    const weightData = new Uint8Array(Buffer.from(params.networkJson.weightData, "base64")).buffer;
+
+    let nnJson = {}
+    try{
+      // old style
+      nnJson = JSON.parse(params.networkJson);
+    }
+    catch(e){
+      nnJson = params.networkJson
+    }
+
+    const weightData = new Uint8Array(Buffer.from(nnJson.weightData, "base64")).buffer;
     const network = await tensorflow.loadLayersModel(tensorflow.io.fromMemory({
-      modelTopology: params.networkJson.modelTopology,
-      weightSpecs: params.networkJson.weightSpecs,
+      modelTopology: nnJson.modelTopology,
+      weightSpecs: nnJson.weightSpecs,
       weightData: weightData
     }));
 
