@@ -1559,25 +1559,29 @@ async function main(){
 
   const trainingSetSize = 20;
   const testSetSize = 10;
-  const iterations = 50;
+  const iterations = 5;
+  const binaryMode = false;
+
+  const timestamp = moment().valueOf();
+
+  const techArray = ["neataptic", "carrot", "tensorflow"]
 
   await connectDb();
 
   const inputsId = "inputs_20201218_052234_1560_all_macpro2_20762";
   const inputsObj = await tcUtils.loadFileRetry({folder: defaultInputsFolder, file: `${inputsId}.json`});
 
-  const hiddenLayerSize = Math.floor(0.25 * inputsObj.meta.numInputs)
+  // const hiddenLayerSize = Math.floor(0.05 * inputsObj.meta.numInputs)
+  const hiddenLayerSize = 10
 
   const onEpochBegin = () => {
     console.log("EPOCH")
   }
 
   const options = {};
+  options.iterations = iterations;
   options.epochs = iterations;
   options.batchSize = 20;
-  // options.verbose = 0;
-  // options.callbacks = {};
-  // options.callbacks.onEpochEnd = (epoch, logs) => console.log(`EPOCH ${epoch} | LOSS: ${logs.loss.toFixed(6)} | ACC: ${logs.acc.toFixed(6)}`)
   
   console.log({hiddenLayerSize})
   console.log({options})
@@ -1592,17 +1596,15 @@ async function main(){
     .limit(trainingSetSize)
     .cursor();
 
-
   const trainingSet = [];
-  // trainingSet.data = [];
-  // trainingSet.labels = [];
+  const trainingSetCarrot = [];
 
-  const nnId = "nn_test_tensorflow_" + moment().valueOf();
-  // const savePath = `file://${nnId}`;
-  // const tensorflowModelPath = `file://${nnId}/model.json`;
+  const nnCarrotId = "nn_test_carrot_" + timestamp;
+  const nnNeatapticId = "nn_test_neataptic_" + timestamp;
+  const nnTensorflowId = "nn_test_tensorflow_" + timestamp;
 
-  const nnObj = new global.wordAssoDb.NeuralNetwork({
-    networkId: nnId,
+  const nnTensorflowObj = new global.wordAssoDb.NeuralNetwork({
+    networkId: nnTensorflowId,
     networkTechnology: "tensorflow",
     hiddenLayerSize: hiddenLayerSize,
     binaryMode: false,
@@ -1611,20 +1613,40 @@ async function main(){
     inputsId: inputsId
   })
 
-  // nnObj.network = await nnTools.createNetwork({
-  //   networkTechnology: "tensorflow",
-  //   numInputs: inputsObj.meta.numInputs,
-  //   hiddenLayerSize: hiddenLayerSize
-  // })
-
-  nnObj.network = await nnTools.createNetwork({
-    networkObj: nnObj,
+  nnTensorflowObj.network = await nnTools.createNetwork({
+    networkObj: nnTensorflowObj,
     numInputs: inputsObj.meta.numInputs
   })
 
-  // const network = tensorflow.sequential();
-  // network.add(tensorflow.layers.dense({inputShape: [inputsObj.meta.numInputs], units: hiddenLayerSize, activation: 'relu'}));
-  // network.add(tensorflow.layers.dense({units: 3, activation: 'softmax'}));
+  const nnCarrotObj = new global.wordAssoDb.NeuralNetwork({
+    networkId: nnCarrotId,
+    networkTechnology: "carrot",
+    hiddenLayerSize: hiddenLayerSize,
+    binaryMode: false,
+    numInputs: inputsObj.meta.numInputs,
+    numOutputs: 3,
+    inputsId: inputsId
+  })
+
+  nnCarrotObj.network = await nnTools.createNetwork({
+    networkObj: nnCarrotObj,
+    numInputs: inputsObj.meta.numInputs,
+  })
+
+  const nnNeatapticObj = new global.wordAssoDb.NeuralNetwork({
+    networkId: nnNeatapticId,
+    networkTechnology: "neataptic",
+    hiddenLayerSize: hiddenLayerSize,
+    binaryMode: binaryMode,
+    numInputs: inputsObj.meta.numInputs,
+    numOutputs: 3,
+    inputsId: inputsId
+  })
+
+  nnNeatapticObj.network = await nnTools.createNetwork({
+    networkObj: nnNeatapticObj,
+    numInputs: inputsObj.meta.numInputs,
+  })
 
   await cursorTrain.eachAsync(async function(user){
 
@@ -1637,117 +1659,119 @@ async function main(){
     const results = await tcUtils.convertDatumOneNetwork({
       user: user,
       inputsId: inputsObj.inputsId,
-      binaryMode: nnObj.binaryMode,
+      binaryMode: binaryMode,
       numInputs: inputsObj.numInputs,
-      userProfileCharCodesOnlyFlag: false,
       verbose: true
     });
 
     trainingSet.push(results.datum)
 
-    // const label = categoryToArray(user.category);
-
-    // trainingSet.data.push(results.datum.input);
-    // trainingSet.labels.push(results.datum.output);
-
-    // if (trainingSet.data.length % 100 === 0){
-    //   console.log(`[${trainingSet.data.length}] USER | ${tcUtils.userText({user: user})}`);
-    // }
+    trainingSetCarrot.push({
+      // user: results.user,
+      // screenName: user.screenName,
+      // name: results.datum.name,
+      input: results.datum.input,
+      output: results.datum.output
+      // inputHits: results.inputHits,
+      // inputMisses: results.inputMisses,
+      // inputHitRate: results.inputHitRate
+    });
 
   });
     
-  nnObj.network.compile({
+
+  const neatapticEvolveOptions = {
+    iterations: iterations,
+    log: 1
+  }
+
+  console.log("EVOLVE NEATAPTIC")
+  const resultsNeataptic = await nnNeatapticObj.network.evolve(trainingSetCarrot, neatapticEvolveOptions)
+  console.log({resultsNeataptic});
+  nnNeatapticObj.networkJson = await nnTools.createJson({networkObj: nnNeatapticObj, verbose: true})
+  await nnTools.loadNetwork({networkObj: nnNeatapticObj, verbose: true})
+
+  nnTensorflowObj.network.compile({
     optimizer: 'sgd',
     loss: 'categoricalCrossentropy',
     metrics: ['accuracy']
   });
 
-  // const artifactsArray = [];
-
-  // await network.save(tensorflow.io.withSaveHandler(artifacts => {
-  //   artifactsArray.push(artifacts);
-  // }));
-
-  // console.log({artifactsArray})
-
-  // const results = await network.fit(
-  //   tensorflow.tensor(trainingSet.data), 
-  //   tensorflow.tensor(trainingSet.labels), 
-  //   options
-  // );
-
-  const results = await nnTools.fit({
-    network: nnObj.network,
+  console.log("EVOLVE TENSORFLOW")
+  const resultsTensorflow = await nnTools.fit({
+    network: nnTensorflowObj.network,
     trainingSet: trainingSet,
     options: options
   });
 
-  console.log({results});
+  console.log({resultsTensorflow});
 
-  // const saveResults = await nnObj.network.save(savePath)
-  // console.log({saveResults})
+  const carrotEvolveOptions = {
+    iterations: iterations,
+    log: 1
+  }
 
-  // let networkSaveResult = await network.save(tensorflow.io.withSaveHandler(async modelArtifacts => modelArtifacts));
-  // networkSaveResult.weightData = Buffer.from(networkSaveResult.weightData).toString("base64");
-  // nnObj.networkJson = {};
-  // nnObj.networkJson = deepcopy(JSON.stringify(networkSaveResult));
-  // nnObj.network = {};
+  console.log("EVOLVE CARROT")
+  const resultsCarrot = await nnCarrotObj.network.evolve(trainingSetCarrot, carrotEvolveOptions)
+  console.log({resultsCarrot});
+  nnCarrotObj.networkJson = await nnTools.createJson({networkObj: nnCarrotObj, verbose: true})
+  await nnTools.loadNetwork({networkObj: nnCarrotObj, verbose: true})
 
-  
-  nnObj.networkJson = await nnTools.tensorflowCreateJson({networkObj: nnObj, verbose: true})
-  delete nnObj.network;
+  nnTensorflowObj.networkJson = await nnTools.createJson({networkObj: nnTensorflowObj, verbose: true})
+  delete nnTensorflowObj.network;
 
-  const file = nnObj.networkId + ".json";
+  const file = nnTensorflowObj.networkId + ".json";
 
-  await tcUtils.saveFile({folder: testNetworkFolder, file: file, obj: nnObj, verbose: true})
+  await tcUtils.saveFile({folder: testNetworkFolder, file: file, obj: nnTensorflowObj, verbose: true})
 
-  const loadedNetworkObj = await tcUtils.loadFile({folder: testNetworkFolder, file: file, verbose: true})
+  const loadedNnTensorflowObj = await tcUtils.loadFile({folder: testNetworkFolder, file: file, verbose: true})
 
-  const newNnObj = await nnTools.loadNetwork({networkObj: loadedNetworkObj, verbose: true})
-
-  const cursorTest = await global.wordAssoDb.User
-    .find({categorized: true, friends: { $exists: true, $ne: [] }})
-    .skip(trainingSetSize + testSetSize)
-    .lean()
-    .limit(testSetSize)
-    .cursor();
+  const newNnTensorflowObj = await nnTools.loadNetwork({networkObj: loadedNnTensorflowObj, verbose: true})
 
   const testResults = {};
-  testResults.total = 0;
-  testResults.pass = 0;
-  testResults.fail = 0;
-  testResults.successRate = 0;
-  
-  await cursorTest.eachAsync(async function(user){
 
-    if (!user) {
-      cursorTest.close();
-    }
+  for(const tech of techArray){
 
-    console.log("TEST | " + tcUtils.userText({user: user}));
+    const networkId = `nn_test_${tech}_${timestamp}`;
 
-    const label = categoryToArray(user.category);
+    testResults.total = 0;
+    testResults.pass = 0;
+    testResults.fail = 0;
+    testResults.successRate = 0;
 
-    // const prediction = network.predict([tensorflow.tensor(results.datum.input, [1, results.datum.input.length])]).arraySync();
-    const result = await nnTools.activateSingleNetwork({
-      networkId: nnObj.networkId,
-      userProfileOnlyFlag: false,
-      // binaryMode: false,
-      convertDatumFlag: true,
-      // verbose: true,
-      user: user
+    const cursorTest = await global.wordAssoDb.User
+      .find({categorized: true, friends: { $exists: true, $ne: [] }})
+      .skip(trainingSetSize + testSetSize)
+      .lean()
+      .limit(testSetSize)
+      .cursor();
+
+
+    await cursorTest.eachAsync(async function(user){
+
+      if (!user) { cursorTest.close(); }
+
+      console.log("TEST | " + tcUtils.userText({user: user}));
+
+      const label = categoryToArray(user.category);
+
+      const result = await nnTools.activateSingleNetwork({
+        networkId: networkId,
+        userProfileOnlyFlag: false,
+        convertDatumFlag: true,
+        user: user
+      });
+
+      testResults.total += 1;
+      testResults.pass = user.category === result.categoryAuto ? testResults.pass + 1 : testResults.pass;
+      testResults.fail = user.category !== result.categoryAuto ? testResults.fail + 1 : testResults.fail;
+      testResults.successRate = (100 * testResults.pass/testResults.total).toFixed(2);
+
     });
 
-    testResults.total += 1;
+    console.log({testResults})
 
-    testResults.pass = user.category === result.categoryAuto ? testResults.pass + 1 : testResults.pass;
-    testResults.fail = user.category !== result.categoryAuto ? testResults.fail + 1 : testResults.fail;
-    testResults.successRate = (100 * testResults.pass/testResults.total).toFixed(2);
-    // console.log(result);
-
-  });
-
-  console.log({testResults})
+  }
 
   return;
 }

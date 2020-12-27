@@ -60,7 +60,6 @@ let primaryNeuralNetworkId;
 
 configuration.userProfileOnlyFlag = DEFAULT_USER_PROFILE_ONLY_FLAG;
 configuration.binaryMode = DEFAULT_BINARY_MODE;
-// configuration.logScaleMode = DEFAULT_LOGSCALE_MODE;
 configuration.verbose = false;
 
 const statsObj = {};
@@ -134,18 +133,6 @@ NeuralNetworkTools.prototype.getBinaryMode = function(){
   return configuration.binaryMode;
 };
 
-// NeuralNetworkTools.prototype.setLogScaleMode = function(s){
-//   if (s === undefined) { return configuration.logScaleMode; }
-//   configuration.logScaleMode = s;
-//   tcUtils.setLogScaleMode(s);
-//   console.log(chalkAlert(MODULE_ID_PREFIX + " | --> SET LOG SCALE MODE: " + configuration.logScaleMode));
-//   return;
-// };
-
-// NeuralNetworkTools.prototype.getLogScaleMode = function(){
-//   return configuration.logScaleMode;
-// };
-
 NeuralNetworkTools.prototype.setUserProfileOnlyFlag = function(f){
   if (f === undefined) { return configuration.userProfileOnlyFlag; }
   configuration.userProfileOnlyFlag = f;
@@ -157,18 +144,6 @@ NeuralNetworkTools.prototype.setUserProfileOnlyFlag = function(f){
 NeuralNetworkTools.prototype.getUserProfileOnlyFlag = function(){
   return configuration.userProfileOnlyFlag;
 };
-
-// NeuralNetworkTools.prototype.setMaxInputHashMap = function(m){
-//   return new Promise(function(resolve){
-//     tcUtils.setMaxInputHashMap(m);
-//     console.log(chalkLog(MODULE_ID_PREFIX + " | --> SET MAX INPUT HASHMAP: " + Object.keys(tcUtils.getMaxInputHashMap())));
-//     resolve();
-//   });
-// };
-
-// NeuralNetworkTools.prototype.getMaxInputHashMap = function(){
-//   return tcUtils.getMaxInputHashMap();
-// };
 
 NeuralNetworkTools.prototype.setNormalization = function(n){
   return new Promise(function(resolve){
@@ -191,8 +166,6 @@ NeuralNetworkTools.prototype.getNumberNetworks = function(){
 const networkDefaults = {};
 
 networkDefaults.binaryMode = configuration.binaryMode;
-// networkDefaults.userProfileOnlyFlag = configuration.userProfileOnlyFlag;
-// networkDefaults.logScaleMode = configuration.logScaleMode;
 networkDefaults.rank = 1000;
 networkDefaults.previousRank = 1000;
 networkDefaults.matchRate = 0;
@@ -356,8 +329,6 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
     else if (nn.networkTechnology === "carrot"){
 
-      // const { Network } = require("@liquid-carrot/carrot/src/index.js");
-
       console.log(chalkWarn(MODULE_ID_PREFIX + " | ... LOAD NN RAW | TECH: " + nn.networkTechnology + " | " + nn.networkId));
 
       if (params.networkIsRaw) {
@@ -396,12 +367,6 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
             nn.networkJson.input_nodes = [];
 
-            // nn.networkJson.nodes.forEach(function(node, index){
-            //   if (node.type === "input"){
-            //     nn.networkJson.input_nodes.push(index);
-            //   }
-            // });
-
             for(let index = 0; index < nn.networkJson.nodes.length; index++){
               if (nn.networkJson.nodes[index].type === "input"){
                 nn.networkJson.input_nodes.push(index);
@@ -411,12 +376,6 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
 
           if (!nn.networkJson.output_nodes) {
             nn.networkJson.output_nodes = [];
-
-            // nn.networkJson.nodes.forEach(function(node, index){
-            //   if (node.type === "output"){
-            //     nn.networkJson.output_nodes.push(index);
-            //   }
-            // });
 
             for(let index = 0; index < nn.networkJson.nodes.length; index++){
               if (nn.networkJson.nodes[index].type === "output"){
@@ -442,11 +401,9 @@ NeuralNetworkTools.prototype.loadNetwork = async function(params){
           }
 
           network = carrot.Network.fromJSON(nn.networkJson);
-          // network = Network.fromJSON(nn.networkJson);
         }
         else if (!empty(nn.network)) {
           network = carrot.Network.fromJSON(nn.network);
-          // network = Network.fromJSON(nn.network);
         }
         else{
           console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD NN FROM JSON ERROR | NO JSON??? | TECH: " + nn.networkTechnology + " | " + nn.networkId));
@@ -1090,6 +1047,8 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params){
 NeuralNetworkTools.prototype.createNetwork = async function(params){
 
   try{
+
+    let network;
       
     if (params.networkObj.networkTechnology === "tensorflow") {
 
@@ -1098,15 +1057,51 @@ NeuralNetworkTools.prototype.createNetwork = async function(params){
       if (!configuration.tensorflow.enabled){
         enableTensorflow();
       }
-      const network = tensorflow.sequential();
+      
+      network = tensorflow.sequential();
       network.add(tensorflow.layers.dense({inputShape: [params.numInputs], units: params.networkObj.hiddenLayerSize, activation: 'relu'}));
       network.add(tensorflow.layers.dense({units: 3, activation: 'softmax'}));
 
       return network;
 
     }
+    else if (params.networkObj.networkTechnology === "carrot"){
+      // childNetworkObj.evolve.options.architecture
+      // childNetworkObj.evolve.options.hiddenLayerSize
+      // childNetworkObj.evolve.options.outputs ["left", "neutral", "right"]
+      // params.numInputs
 
-    return params.networkObj.network;
+      console.log(chalkLog(`${MODULE_ID_PREFIX} | ... CREATING CARROT NETWORK | INPUTS: ${params.numInputs} | HIDDEN: ${params.networkObj.hiddenLayerSize}`));
+
+      if (params.networkObj.hiddenLayerSize && params.networkObj.hiddenLayerSize > 0){
+        network = new carrot.architect.Perceptron(params.numInputs, params.networkObj.hiddenLayerSize, 3);
+      }
+      else {
+        network = new carrot.Network(params.numInputs, 3);
+      }
+
+      return network;
+
+    }
+    else if (params.networkObj.networkTechnology === "neataptic"){
+      // childNetworkObj.evolve.options.architecture
+      // childNetworkObj.evolve.options.hiddenLayerSize
+      // childNetworkObj.evolve.options.outputs ["left", "neutral", "right"]
+      // params.numInputs
+
+      console.log(chalkLog(`${MODULE_ID_PREFIX} | ... CREATING NEATAPTIC NETWORK | INPUTS: ${params.numInputs} | HIDDEN: ${params.networkObj.hiddenLayerSize}`));
+
+      if (params.networkObj.hiddenLayerSize && params.networkObj.hiddenLayerSize > 0){
+        network = new neataptic.architect.Perceptron(params.numInputs, params.networkObj.hiddenLayerSize, 3);
+      }
+      else {
+        network = new neataptic.architect.Random(params.numInputs, 3);
+      }
+
+      return network;
+
+    }
+
 
   }
   catch(err){
@@ -1116,7 +1111,7 @@ NeuralNetworkTools.prototype.createNetwork = async function(params){
 
 };
 
-NeuralNetworkTools.prototype.tensorflowCreateJson = async function(params){
+NeuralNetworkTools.prototype.createJson = async function(params){
 
   try{
       
@@ -1131,16 +1126,24 @@ NeuralNetworkTools.prototype.tensorflowCreateJson = async function(params){
       const networkSaveResult = await params.networkObj.network.save(tensorflow.io.withSaveHandler(async (modelArtifacts) => modelArtifacts));
       networkSaveResult.weightData = Buffer.from(networkSaveResult.weightData).toString("base64");
 
-      // params.networkObj.networkJson = {};
-      // params.networkObj.networkJson = deepcopy(JSON.stringify(networkSaveResult));
-      // params.networkObj.network = {};
-
       return JSON.stringify(networkSaveResult);
-      // return networkSaveResult;
-
     }
 
-    return params.networkObj;
+    if (params.networkObj.networkTechnology === "carrot") {
+
+      console.log(chalkLog(`${MODULE_ID_PREFIX} | ... CREATE CARROT JSON | NN ID: ${params.networkObj.networkId}`));
+      const networkJson = params.networkObj.network.toJSON();
+      return networkJson;
+    }
+
+    if (params.networkObj.networkTechnology === "neataptic") {
+
+      console.log(chalkLog(`${MODULE_ID_PREFIX} | ... CREATE NEATAPTIC JSON | NN ID: ${params.networkObj.networkId}`));
+      const networkJson = params.networkObj.network.toJSON();
+      return networkJson;
+    }
+
+    throw new Error(`${MODULE_ID_PREFIX} | *** UNKNOWN NETWORK TECH: ${params.networkObj.networkTechnology}`);
 
   }
   catch(err){
@@ -1149,7 +1152,6 @@ NeuralNetworkTools.prototype.tensorflowCreateJson = async function(params){
   }
 
 };
-
 
 NeuralNetworkTools.prototype.convertNetwork = async function(params){
 
@@ -1189,12 +1191,6 @@ NeuralNetworkTools.prototype.convertNetwork = async function(params){
 
           nnObj.networkJson.input_nodes = [];
 
-          // nnObj.networkJson.nodes.forEach(function(node, index){
-          //   if (node.type === "input"){
-          //     nnObj.networkJson.input_nodes.push(index);
-          //   }
-          // });
-
           for(let index = 0; index < nnObj.networkJson.nodes.length; index++){
             if (nnObj.networkJson.nodes[index].type === "input"){
               nnObj.networkJson.input_nodes.push(index);
@@ -1205,12 +1201,6 @@ NeuralNetworkTools.prototype.convertNetwork = async function(params){
 
         if (!nnObj.networkJson.output_nodes) {
           nnObj.networkJson.output_nodes = [];
-
-          // nnObj.networkJson.nodes.forEach(function(node, index){
-          //   if (node.type === "output"){
-          //     nnObj.networkJson.output_nodes.push(index);
-          //   }
-          // });
 
           for(let index = 0; index < nnObj.networkJson.nodes.length; index++){
             if (nnObj.networkJson.nodes[index].type === "output"){
@@ -1234,9 +1224,7 @@ NeuralNetworkTools.prototype.convertNetwork = async function(params){
         if (!empty(nnObj.networkJson)) {
           nnObj.network = neataptic.Network.fromJSON(nnObj.networkJson);
         }
-        // else if (!empty(nnObj.network)) {
-        //   nnObj.networkRaw = neataptic.Network.fromJSON(nnObj.network);
-        // }
+
       }
 
       return nnObj;
@@ -1351,7 +1339,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   const nnId = params.networkId || primaryNeuralNetworkId;
 
   if (!networksHashMap.has(nnId)){
-    console.log(chalkError(MODULE_ID_PREFIX + " | NN NOT IN HASHMAP" + nnId));
+    console.log(chalkError(MODULE_ID_PREFIX + " | NN NOT IN HASHMAP: " + nnId));
     throw new Error("NN NOT IN HASHMAP: " + nnId);
   }
 
