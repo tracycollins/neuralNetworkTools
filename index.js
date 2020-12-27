@@ -1093,7 +1093,7 @@ NeuralNetworkTools.prototype.createNetwork = async function(params){
       
     if (params.networkTechnology === "tensorflow") {
 
-      console.log(chalkLog(`${MODULE_ID_PREFIX} | ... CREATING TENSORFLOW NETWORK\n${jsonPrint(params)}`));
+      console.log(chalkLog(`${MODULE_ID_PREFIX} | ... CREATING TENSORFLOW NETWORK`));
 
       if (!configuration.tensorflow.enabled){
         enableTensorflow();
@@ -1106,7 +1106,7 @@ NeuralNetworkTools.prototype.createNetwork = async function(params){
 
     }
 
-    return;
+    return params.networkObj.network;
 
   }
   catch(err){
