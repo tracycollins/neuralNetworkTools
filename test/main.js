@@ -41,7 +41,6 @@ const _ = require("lodash");
 const shuffle = require("shuffle-array");
 const HashMap = require("hashmap").HashMap;
 const yauzl = require("yauzl");
-const brain = require("brain.js");
 
 const os = require("os");
 let hostname = os.hostname();
