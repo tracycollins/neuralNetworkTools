@@ -1091,7 +1091,7 @@ NeuralNetworkTools.prototype.createNetwork = async function(params){
 
   try{
       
-    if (params.networkTechnology === "tensorflow") {
+    if (params.networkObj.networkTechnology === "tensorflow") {
 
       console.log(chalkLog(`${MODULE_ID_PREFIX} | ... CREATING TENSORFLOW NETWORK`));
 
@@ -1099,7 +1099,7 @@ NeuralNetworkTools.prototype.createNetwork = async function(params){
         enableTensorflow();
       }
       const network = tensorflow.sequential();
-      network.add(tensorflow.layers.dense({inputShape: [params.numInputs], units: params.hiddenLayerSize, activation: 'relu'}));
+      network.add(tensorflow.layers.dense({inputShape: [params.numInputs], units: params.networkObj.hiddenLayerSize, activation: 'relu'}));
       network.add(tensorflow.layers.dense({units: 3, activation: 'softmax'}));
 
       return network;

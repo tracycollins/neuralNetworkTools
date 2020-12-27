@@ -1611,10 +1611,15 @@ async function main(){
     inputsId: inputsId
   })
 
+  // nnObj.network = await nnTools.createNetwork({
+  //   networkTechnology: "tensorflow",
+  //   numInputs: inputsObj.meta.numInputs,
+  //   hiddenLayerSize: hiddenLayerSize
+  // })
+
   nnObj.network = await nnTools.createNetwork({
-    networkTechnology: "tensorflow",
-    numInputs: inputsObj.meta.numInputs,
-    hiddenLayerSize: hiddenLayerSize
+    networkObj: nnObj,
+    numInputs: inputsObj.meta.numInputs
   })
 
   // const network = tensorflow.sequential();
