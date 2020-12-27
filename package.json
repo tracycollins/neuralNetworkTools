@@ -20,7 +20,7 @@
     "@liquid-carrot/carrot": "^0.3.20",
     "@tensorflow/tfjs-node": "^2.7.0",
     "@threeceelabs/mongoose-twitter": "^1.0.341",
-    "@threeceelabs/threecee-utilities": "^1.0.412",
+    "@threeceelabs/threecee-utilities": "^1.0.413",
     "@threeceelabs/user-server-controller": "^1.0.529",
     "async": "^3.2.0",
     "brain.js": "^2.0.0-beta.2",
