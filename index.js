@@ -274,6 +274,7 @@ NeuralNetworkTools.prototype.convertTensorFlow = async function(params){
       nnJson = JSON.parse(params.networkJson);
     }
     catch(e){
+      console.log(chalkAlert(`${MODULE_ID_PREFIX} | !!! convertTensorFlow: TENSORFLOW JSON PARSE FAILED ... networkJson READY?`));
       nnJson = params.networkJson
     }
 
@@ -1164,8 +1165,8 @@ NeuralNetworkTools.prototype.tensorflowCreateJson = async function(params){
       // params.networkObj.networkJson = deepcopy(JSON.stringify(networkSaveResult));
       // params.networkObj.network = {};
 
-      // return JSON.stringify(networkSaveResult);
-      return networkSaveResult;
+      return JSON.stringify(networkSaveResult);
+      // return networkSaveResult;
 
     }
 
@@ -1513,6 +1514,11 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   // nnObj.binaryMode = nnObj.binaryMode !== undefined ? nnObj.binaryMode : binaryMode;
   binaryMode = (nnObj.binaryMode !== undefined) ? nnObj.binaryMode : binaryMode;
+
+  if (nnObj.meta === undefined){
+    nnObj.meta = {}
+  }
+  
   nnObj.meta.userProfileOnlyFlag = (nnObj.meta.userProfileOnlyFlag !== undefined) ? nnObj.meta.userProfileOnlyFlag : userProfileOnlyFlag;
 
   let convertedDatum = {};

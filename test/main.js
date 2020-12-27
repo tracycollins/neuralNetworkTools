@@ -1690,8 +1690,16 @@ async function main(){
   // nnObj.network = {};
 
   
-  nnObj.networkJson = await nnTools.tensorflowCreateJson({networkObj: nnObj})
-  await nnTools.loadNetwork({networkObj: nnObj})
+  nnObj.networkJson = await nnTools.tensorflowCreateJson({networkObj: nnObj, verbose: true})
+  delete nnObj.network;
+
+  const file = nnObj.networkId + ".json";
+
+  await tcUtils.saveFile({folder: testNetworkFolder, file: file, obj: nnObj, verbose: true})
+
+  const loadedNetworkObj = await tcUtils.loadFile({folder: testNetworkFolder, file: file, verbose: true})
+
+  const newNnObj = await nnTools.loadNetwork({networkObj: loadedNetworkObj, verbose: true})
 
   const cursorTest = await global.wordAssoDb.User
     .find({categorized: true, friends: { $exists: true, $ne: [] }})
@@ -1736,9 +1744,6 @@ async function main(){
   });
 
   console.log({testResults})
-
-  nnObj.network = {};
-  await nnObj.save();
 
   return;
 }
