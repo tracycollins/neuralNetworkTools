@@ -1122,12 +1122,11 @@ NeuralNetworkTools.prototype.createNetwork = async function(params){
       
     if (params.networkTechnology === "tensorflow") {
 
-      console.log(chalkLog(`${MODULE_ID_PREFIX} | ... CREATING TENSORFLOW NETWORK`));
+      console.log(chalkLog(`${MODULE_ID_PREFIX} | ... CREATING TENSORFLOW NETWORK\n${jsonPrint(params)}`));
 
       if (!configuration.tensorflow.enabled){
         enableTensorflow();
       }
-
       const network = tensorflow.sequential();
       network.add(tensorflow.layers.dense({inputShape: [params.numInputs], units: params.hiddenLayerSize, activation: 'relu'}));
       network.add(tensorflow.layers.dense({units: 3, activation: 'softmax'}));
