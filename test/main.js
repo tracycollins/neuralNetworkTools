@@ -1621,7 +1621,7 @@ async function main(){
   const nnCarrotObj = new global.wordAssoDb.NeuralNetwork({
     networkId: nnCarrotId,
     networkTechnology: "carrot",
-    hiddenLayerSize: hiddenLayerSize,
+    hiddenLayerSize: 0,
     binaryMode: false,
     numInputs: inputsObj.meta.numInputs,
     numOutputs: 3,

@@ -1092,10 +1092,12 @@ NeuralNetworkTools.prototype.createNetwork = async function(params){
       console.log(chalkLog(`${MODULE_ID_PREFIX} | ... CREATING NEATAPTIC NETWORK | INPUTS: ${params.numInputs} | HIDDEN: ${params.networkObj.hiddenLayerSize}`));
 
       if (params.networkObj.hiddenLayerSize && params.networkObj.hiddenLayerSize > 0){
+        console.log(chalkLog(`${MODULE_ID_PREFIX} | ... CREATING NEATAPTIC PERCEPTRON NETWORK | INPUTS: ${params.numInputs} | HIDDEN: ${params.networkObj.hiddenLayerSize}`));
         network = new neataptic.architect.Perceptron(params.numInputs, params.networkObj.hiddenLayerSize, 3);
       }
       else {
-        network = new neataptic.architect.Random(params.numInputs, 3);
+        console.log(chalkLog(`${MODULE_ID_PREFIX} | ... CREATING NEATAPTIC RANDOM NETWORK | INPUTS: ${params.numInputs}`));
+        network = new neataptic.Network(params.numInputs, 3);
       }
 
       return network;
