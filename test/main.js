@@ -1591,7 +1591,8 @@ async function main(){
   await nnTools.setPrimaryInputs(inputsObj.inputsId);
 
   const cursorTrain = await global.wordAssoDb.User
-    .find({categorized: true, friends: { $exists: true, $ne: [] }})
+    // .find({categorized: true, friends: { $exists: true, $ne: [] }})
+    .find({screenName: 'parsonsdesign'})
     .lean()
     .limit(trainingSetSize)
     .cursor();
@@ -1740,8 +1741,9 @@ async function main(){
     testResults.successRate = 0;
 
     const cursorTest = await global.wordAssoDb.User
-      .find({categorized: true, friends: { $exists: true, $ne: [] }})
-      .skip(trainingSetSize + testSetSize)
+      // .find({categorized: true, friends: { $exists: true, $ne: [] }})
+      // .skip(trainingSetSize + testSetSize)
+      .find({screenName: 'parsonsdesign'})
       .lean()
       .limit(testSetSize)
       .cursor();
@@ -1759,7 +1761,8 @@ async function main(){
         networkId: networkId,
         userProfileOnlyFlag: false,
         convertDatumFlag: true,
-        user: user
+        user: user,
+        verbose: true
       });
 
       testResults.total += 1;

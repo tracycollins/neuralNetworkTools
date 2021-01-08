@@ -1,6 +1,6 @@
 {
   "name": "@threeceelabs/neural-network-tools",
-  "version": "1.0.273",
+  "version": "1.0.275",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,9 +18,9 @@
   "homepage": "https://github.com/tracycollins/neuralNetworkTools#readme",
   "dependencies": {
     "@liquid-carrot/carrot": "^0.3.20",
-    "@tensorflow/tfjs-node": "^2.8.2",
-    "@threeceelabs/mongoose-twitter": "^1.0.348",
-    "@threeceelabs/threecee-utilities": "^1.0.418",
+    "@tensorflow/tfjs-node": "^2.8.3",
+    "@threeceelabs/mongoose-twitter": "^1.0.349",
+    "@threeceelabs/threecee-utilities": "^1.0.419",
     "async": "^3.2.0",
     "deepcopy": "^2.1.0",
     "hashmap": "^2.4.0",
