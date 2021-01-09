@@ -1281,9 +1281,11 @@ NeuralNetworkTools.prototype.evolve = async (params) => {
 
 NeuralNetworkTools.prototype.abortEvolve = async function () {
   try{
-    console.log(chalkAlert(`${MODULE_ID_PREFIX} | XXX ABORT EVOLVE`));
-    currentEvolveNetwork = null;
-    currentEvolveNetwork = {};
+    if (currentEvolveNetwork){
+      console.log(chalkAlert(`${MODULE_ID_PREFIX} | XXX ABORT EVOLVE`));
+      currentEvolveNetwork = {};
+      currentEvolveNetwork = null;
+    }
     return;
   }
   catch(err){
@@ -1295,9 +1297,12 @@ NeuralNetworkTools.prototype.abortEvolve = async function () {
 let currentFitTensorflowNetwork = null;
 
 NeuralNetworkTools.prototype.abortFit = async function () {
+
   try{
-    console.log(chalkAlert(`${MODULE_ID_PREFIX} | XXX TENSORFLOW ABORT FIT`));
-    currentFitTensorflowNetwork.stopTraining = true;
+    if (currentFitTensorflowNetwork) {
+      console.log(chalkAlert(`${MODULE_ID_PREFIX} | XXX TENSORFLOW ABORT FIT`));
+      currentFitTensorflowNetwork.stopTraining = true;
+    }
     return;
   }
   catch(err){
