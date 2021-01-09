@@ -1263,9 +1263,50 @@ NeuralNetworkTools.prototype.convertNetwork = async function(params){
 
 };
 
+let currentEvolveNetwork;
+
+NeuralNetworkTools.prototype.evolve = async (params) => {
+  try{
+
+    currentEvolveNetwork = params.network;
+    
+    const evolveResults = await currentEvolveNetwork.evolve(params.trainingSet, params.options);
+    return evolveResults;
+  }
+  catch(err){
+    console.log(chalkError(`${MODULE_ID_PREFIX} | *** EVOLVE ERROR: ${err}`));
+    throw err;
+  }
+};
+
+NeuralNetworkTools.prototype.abortEvolve = async function () {
+  try{
+    console.log(chalkAlert(`${MODULE_ID_PREFIX} | XXX ABORT EVOLVE`));
+    currentEvolveNetwork = null;
+    currentEvolveNetwork = {};
+    return;
+  }
+  catch(err){
+    console.log(chalkError(`${MODULE_ID_PREFIX} | *** TENSORFLOW ABORT FIT ERROR: ${err}`));
+    throw err;
+  }
+}
+
+let currentFitTensorflowNetwork = null;
+
+NeuralNetworkTools.prototype.abortFit = async function () {
+  try{
+    console.log(chalkAlert(`${MODULE_ID_PREFIX} | XXX TENSORFLOW ABORT FIT`));
+    currentFitTensorflowNetwork.stopTraining = true;
+    return;
+  }
+  catch(err){
+    console.log(chalkError(`${MODULE_ID_PREFIX} | *** TENSORFLOW ABORT FIT ERROR: ${err}`));
+    throw err;
+  }
+}
+
 NeuralNetworkTools.prototype.fit = async function (params) {
-
-
   try{
 
     if (!configuration.tensorflow.enabled) {
@@ -1285,7 +1326,8 @@ NeuralNetworkTools.prototype.fit = async function (params) {
     }
 
     const onEpochEnd = params.onEpochEnd || defaultOnEpochEnd;
-    const network = params.network;
+    // const network = params.network;
+    currentFitTensorflowNetwork = params.network;
 
     const defaultOptions = {};
     defaultOptions.epochs = 1000;
@@ -1309,16 +1351,18 @@ NeuralNetworkTools.prototype.fit = async function (params) {
       trainingSetLabels.push(item.output)
     }
 
-    const results = await network.fit(
+    const results = await currentFitTensorflowNetwork.fit(
       tensorflow.tensor(trainingSetData), 
       tensorflow.tensor(trainingSetLabels),
       options
     );
 
-    return {network: network, stats: results};
+    // currentFitTensorflowNetwork = null;
+    return {network: currentFitTensorflowNetwork, stats: results};
 
   }
   catch(err){
+    currentFitTensorflowNetwork = null;
     console.log(chalkError(MODULE_ID_PREFIX + " | *** TENSORFLOW FIT ERROR: " + err));
     throw err;
   }

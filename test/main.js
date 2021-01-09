@@ -1559,7 +1559,8 @@ async function main(){
 
   const trainingSetSize = 20;
   const testSetSize = 10;
-  const iterations = 5;
+  const epochs = 1000;
+  const iterations = 1000;
   const binaryMode = false;
 
   const timestamp = moment().valueOf();
@@ -1580,7 +1581,7 @@ async function main(){
 
   const options = {};
   options.iterations = iterations;
-  options.epochs = iterations;
+  options.epochs = epochs;
   options.batchSize = 20;
   
   console.log({hiddenLayerSize})
@@ -1686,9 +1687,37 @@ async function main(){
     log: 1
   }
 
+  let abortFlag = false;
+
+  const sendScheduleMessage = () => {
+    return { abortFlag: abortFlag }
+  }
+
+  neatapticEvolveOptions.schedule = {
+
+    function: function (schedParams) {
+      return sendScheduleMessage()
+    },
+
+    iterations: 1,
+  };
+
   console.log("EVOLVE NEATAPTIC")
-  const resultsNeataptic = await nnNeatapticObj.network.evolve(trainingSetCarrot, neatapticEvolveOptions)
+
+  setTimeout(async () => {
+    await nnTools.abortEvolve()
+    abortFlag = true;
+    console.log(currentEvolveNetwork);
+  }, 5000);
+
+  const resultsNeataptic = await nnTools.evolve({
+    network: nnNeatapticObj.network, 
+    trainingSet: trainingSetCarrot, 
+    options: neatapticEvolveOptions
+  })
+
   console.log({resultsNeataptic});
+
   nnNeatapticObj.networkJson = await nnTools.createJson({networkObj: nnNeatapticObj, verbose: true})
   await nnTools.loadNetwork({networkObj: nnNeatapticObj, verbose: true})
 
@@ -1699,6 +1728,11 @@ async function main(){
   });
 
   console.log("EVOLVE TENSORFLOW")
+
+  setTimeout(async () => {
+    await nnTools.abortFit()
+  }, 2000);
+
   const resultsTensorflow = await nnTools.fit({
     network: nnTensorflowObj.network,
     trainingSet: trainingSet,
@@ -1713,7 +1747,17 @@ async function main(){
   }
 
   console.log("EVOLVE CARROT")
-  const resultsCarrot = await nnCarrotObj.network.evolve(trainingSetCarrot, carrotEvolveOptions)
+
+  setTimeout(async () => {
+    await nnTools.abortEvolve()
+  }, 2000);
+
+  const resultsCarrot = await nnTools.evolve({
+    network: nnCarrotObj.network, 
+    trainingSet: trainingSetCarrot, 
+    options: carrotEvolveOptions
+  })
+
   console.log({resultsCarrot});
   nnCarrotObj.networkJson = await nnTools.createJson({networkObj: nnCarrotObj, verbose: true})
   await nnTools.loadNetwork({networkObj: nnCarrotObj, verbose: true})
