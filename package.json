@@ -18,9 +18,9 @@
   "homepage": "https://github.com/tracycollins/neuralNetworkTools#readme",
   "dependencies": {
     "@liquid-carrot/carrot": "^0.3.20",
-    "@tensorflow/tfjs-node": "^2.8.4",
-    "@threeceelabs/mongoose-twitter": "^1.0.367",
-    "@threeceelabs/threecee-utilities": "^1.0.427",
+    "@tensorflow/tfjs-node": "^2.8.5",
+    "@threeceelabs/mongoose-twitter": "^1.0.369",
+    "@threeceelabs/threecee-utilities": "^1.0.430",
     "async": "^3.2.0",
     "deepcopy": "^2.1.0",
     "hashmap": "^2.4.0",
