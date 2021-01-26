@@ -1632,6 +1632,7 @@ NeuralNetworkTools.prototype.activate = async function (params) {
     throw new Error(MODULE_ID_PREFIX + " | *** NO NETWORKS IN HASHMAP");
   }
 
+  const useDatumCacheFlag = (params.useDatumCacheFlag !== undefined) ? params.useDatumCacheFlag : false;
   const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
   const binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
@@ -1659,6 +1660,7 @@ NeuralNetworkTools.prototype.activate = async function (params) {
     const promiseArray = [];
     const activateParams = {};
 
+    activateParams.useDatumCacheFlag = useDatumCacheFlag;
     activateParams.userProfileOnlyFlag = userProfileOnlyFlag;
     activateParams.binaryMode = binaryMode;
     activateParams.convertDatumFlag = convertDatumFlag;
