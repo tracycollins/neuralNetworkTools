@@ -30,7 +30,7 @@ const neataptic = require("neataptic");
 
 const NodeCache = require("node-cache");
 
-const DATUM_CACHE_DEFAULT_TTL = 60;
+const DATUM_CACHE_DEFAULT_TTL = 10;
 let datumCacheTtl = process.env.DATUM_CACHE_DEFAULT_TTL;
 if (datumCacheTtl === undefined) { datumCacheTtl = DATUM_CACHE_DEFAULT_TTL; }
 
@@ -1485,7 +1485,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
     }
 
     if (!convertedDatum){
-      
+
       convertedDatum = await tcUtils.convertDatum({
         inputsId: nnObj.inputsId,
         user: params.user, 
