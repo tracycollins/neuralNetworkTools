@@ -28,6 +28,44 @@ let tensorflow = false;
 
 const neataptic = require("neataptic");
 
+const NodeCache = require("node-cache");
+
+const DATUM_CACHE_DEFAULT_TTL = 60;
+let datumCacheTtl = process.env.DATUM_CACHE_DEFAULT_TTL;
+if (datumCacheTtl === undefined) { datumCacheTtl = DATUM_CACHE_DEFAULT_TTL; }
+
+console.log(MODULE_ID_PREFIX + " | DATUM CACHE TTL: " + datumCacheTtl + " SECONDS");
+
+let datumCacheCheckPeriod = process.env.DATUM_CACHE_CHECK_PERIOD;
+if (datumCacheCheckPeriod === undefined) { datumCacheCheckPeriod = 10; }
+
+console.log(MODULE_ID_PREFIX + " | DATUM CACHE CHECK PERIOD: " + datumCacheCheckPeriod + " SECONDS");
+
+const datumCache = new NodeCache({
+  stdTTL: datumCacheTtl,
+  checkperiod: datumCacheCheckPeriod
+});
+
+function datumCacheExpired(cacheKey, datum) {
+  console.log(chalkLog("XXX $ DATUM"
+    + " [" + datumCache.getStats().keys + "]"
+    + " | " + cacheKey
+    + " | INPUT HIT RATE: " + datum.inputHitRate
+    
+  ));
+}
+
+datumCache.on("expired", datumCacheExpired);
+
+datumCache.on("set", function(cacheKey, datum) {
+  console.log(chalkLog(MODULE_ID_PREFIX + " | $$$ DATUM CACHE"
+    + " [" + datumCache.getStats().keys + "]"
+    + " | " + cacheKey
+    + " | INPUT HIT RATE: " + datum.inputHitRate
+  ));
+});
+
+
 const deepcopy = require("deepcopy");
 const path = require("path");
 const async = require("async");
@@ -1383,6 +1421,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   //   verbose: configuration.verbose
   // };
 
+  const useDatumCacheFlag = (params.useDatumCacheFlag !== undefined) ? params.useDatumCacheFlag : false;
   const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
   let binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
   const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
@@ -1433,16 +1472,32 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   
   nnObj.meta.userProfileOnlyFlag = (nnObj.meta.userProfileOnlyFlag !== undefined) ? nnObj.meta.userProfileOnlyFlag : userProfileOnlyFlag;
 
-  let convertedDatum = {};
+  let convertedDatum = false;
 
   if (convertDatumFlag) {
-    convertedDatum = await tcUtils.convertDatum({
-      user: params.user, 
-      inputsId: nnObj.inputsId,
-      userProfileOnlyFlag: nnObj.meta.userProfileOnlyFlag,
-      binaryMode: binaryMode, 
-      verbose: verbose
-    });
+
+    let datumCacheKey;
+
+    if (useDatumCacheFlag){
+      datumCacheKey = `${nnObj.inputsId}_${params.user.nodeId}_${binaryMode ? "BIN" : ""}_${nnObj.meta.userProfileOnlyFlag ? "PROF" : ""}` 
+      console.log({datumCacheKey})
+      convertedDatum = datumCache.get(datumCacheKey)
+    }
+
+    if (!convertedDatum){
+      
+      convertedDatum = await tcUtils.convertDatum({
+        inputsId: nnObj.inputsId,
+        user: params.user, 
+        binaryMode: binaryMode, 
+        userProfileOnlyFlag: nnObj.meta.userProfileOnlyFlag,
+        verbose: verbose
+      });
+
+      if (useDatumCacheFlag){
+        datumCache.set(datumCacheKey, convertedDatum)
+      }
+    }
 
     if (!convertedDatum || convertedDatum === undefined) {
       console.log(MODULE_ID_PREFIX + " | *** CONVERT DATUM ERROR | NO RESULTS");

@@ -1805,6 +1805,7 @@ async function main(){
         networkId: networkId,
         userProfileOnlyFlag: false,
         convertDatumFlag: true,
+        useDatumCacheFlag: true,
         user: user,
         verbose: true
       });
