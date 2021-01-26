@@ -46,16 +46,16 @@ const datumCache = new NodeCache({
   checkperiod: datumCacheCheckPeriod
 });
 
-function datumCacheExpired(cacheKey, datum) {
-  console.log(chalkLog("XXX $ DATUM"
-    + " [" + datumCache.getStats().keys + "]"
-    + " | " + cacheKey
-    + " | INPUT HIT RATE: " + datum.inputHitRate
+// function datumCacheExpired(cacheKey, datum) {
+//   console.log(chalkLog("XXX $ DATUM"
+//     + " [" + datumCache.getStats().keys + "]"
+//     + " | " + cacheKey
+//     + " | INPUT HIT RATE: " + datum.inputHitRate
     
-  ));
-}
+//   ));
+// }
 
-datumCache.on("expired", datumCacheExpired);
+// datumCache.on("expired", datumCacheExpired);
 
 // datumCache.on("set", function(cacheKey, datum) {
 //   console.log(chalkLog(MODULE_ID_PREFIX + " | $$$ DATUM CACHE"
