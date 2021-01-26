@@ -37,7 +37,7 @@ if (datumCacheTtl === undefined) { datumCacheTtl = DATUM_CACHE_DEFAULT_TTL; }
 console.log(MODULE_ID_PREFIX + " | DATUM CACHE TTL: " + datumCacheTtl + " SECONDS");
 
 let datumCacheCheckPeriod = process.env.DATUM_CACHE_CHECK_PERIOD;
-if (datumCacheCheckPeriod === undefined) { datumCacheCheckPeriod = 10; }
+if (datumCacheCheckPeriod === undefined) { datumCacheCheckPeriod = 1; }
 
 console.log(MODULE_ID_PREFIX + " | DATUM CACHE CHECK PERIOD: " + datumCacheCheckPeriod + " SECONDS");
 
@@ -57,13 +57,13 @@ function datumCacheExpired(cacheKey, datum) {
 
 datumCache.on("expired", datumCacheExpired);
 
-datumCache.on("set", function(cacheKey, datum) {
-  console.log(chalkLog(MODULE_ID_PREFIX + " | $$$ DATUM CACHE"
-    + " [" + datumCache.getStats().keys + "]"
-    + " | " + cacheKey
-    + " | INPUT HIT RATE: " + datum.inputHitRate
-  ));
-});
+// datumCache.on("set", function(cacheKey, datum) {
+//   console.log(chalkLog(MODULE_ID_PREFIX + " | $$$ DATUM CACHE"
+//     + " [" + datumCache.getStats().keys + "]"
+//     + " | " + cacheKey
+//     + " | INPUT HIT RATE: " + datum.inputHitRate
+//   ));
+// });
 
 
 const deepcopy = require("deepcopy");
@@ -1480,7 +1480,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
     if (useDatumCacheFlag){
       datumCacheKey = `${nnObj.inputsId}_${params.user.nodeId}_${binaryMode ? "BIN" : ""}_${nnObj.meta.userProfileOnlyFlag ? "PROF" : ""}` 
-      console.log({datumCacheKey})
+      debug({datumCacheKey})
       convertedDatum = datumCache.get(datumCacheKey)
     }
 
