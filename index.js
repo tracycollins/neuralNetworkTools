@@ -1715,13 +1715,12 @@ NeuralNetworkTools.prototype.activate = async function (params) {
 
           if (activateParams.datum){
             statsObj.datumCache.hits += 1;
-            statsObj.datumCache.hitRate = 100*statsObj.datumCache.hits/(statsObj.datumCache.hits + statsObj.datumCache.misses)
-            debug(chalkLog(`${MODULE_ID_PREFIX} | DATUM $ HIT ${statsObj.datumCache.hits} | HIT RATE: ${statsObj.datumCache.hitRate.toFixed(3)}%`))
           }
           else{
             statsObj.datumCache.misses += 1;
-            statsObj.datumCache.hitRate = statsObj.datumCache.hits/(statsObj.datumCache.hits + statsObj.datumCache.misses)
           }
+          
+          statsObj.datumCache.hitRate = 100*statsObj.datumCache.hits/(statsObj.datumCache.hits + statsObj.datumCache.misses)
         }
 
         if (!activateParams.datum){
