@@ -105,6 +105,12 @@ statsObj.networks = {};
 statsObj.bestNetwork = {};
 statsObj.currentBestNetwork = {};
 
+statsObj.datumCache = {};
+statsObj.datumCache.hits = 0;
+statsObj.datumCache.misses = 0;
+statsObj.datumCache.hitRate = 0;
+
+
 let DROPBOX_ROOT_FOLDER;
 
 if (hostname.startsWith("google")){
@@ -165,6 +171,10 @@ NeuralNetworkTools.prototype.setBinaryMode = function(b){
   tcUtils.setBinaryMode(b);
   console.log(chalkAlert(MODULE_ID_PREFIX + " | --> SET BINARY MODE: " + configuration.binaryMode));
   return;
+};
+
+NeuralNetworkTools.prototype.datumCacheGetStats = function(){
+  return Object.assign({}, datumCache.getStats(), statsObj.datumCache);
 };
 
 NeuralNetworkTools.prototype.getBinaryMode = function(){
@@ -1421,10 +1431,10 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   //   verbose: configuration.verbose
   // };
 
-  const useDatumCacheFlag = (params.useDatumCacheFlag !== undefined) ? params.useDatumCacheFlag : false;
+  // const useDatumCacheFlag = (params.useDatumCacheFlag !== undefined) ? params.useDatumCacheFlag : false;
   const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
-  let binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
-  const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
+  // let binaryMode = (params.binaryMode !== undefined) ? params.binaryMode : configuration.binaryMode;
+  // const convertDatumFlag = (params.convertDatumFlag !== undefined) ? params.convertDatumFlag : false;
   const verbose = configuration.verbose || params.verbose;
   const nnId = params.networkId || primaryNeuralNetworkId;
 
@@ -1464,7 +1474,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   }
 
   // nnObj.binaryMode = nnObj.binaryMode !== undefined ? nnObj.binaryMode : binaryMode;
-  binaryMode = (nnObj.binaryMode !== undefined) ? nnObj.binaryMode : binaryMode;
+  // binaryMode = (nnObj.binaryMode !== undefined) ? nnObj.binaryMode : binaryMode;
 
   if (nnObj.meta === undefined){
     nnObj.meta = {}
@@ -1472,79 +1482,90 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   
   nnObj.meta.userProfileOnlyFlag = (nnObj.meta.userProfileOnlyFlag !== undefined) ? nnObj.meta.userProfileOnlyFlag : userProfileOnlyFlag;
 
-  let convertedDatum = false;
+  // let convertedDatum = false;
 
-  if (convertDatumFlag) {
+  // if (convertDatumFlag) {
 
-    let datumCacheKey;
+  //   let datumCacheKey;
 
-    if (useDatumCacheFlag){
-      datumCacheKey = `${nnObj.inputsId}_${params.user.nodeId}_${binaryMode ? "BIN" : ""}_${nnObj.meta.userProfileOnlyFlag ? "PROF" : ""}` 
-      debug({datumCacheKey})
-      convertedDatum = datumCache.get(datumCacheKey)
-    }
+  //   if (useDatumCacheFlag){
 
-    if (!convertedDatum){
+  //     datumCacheKey = `${nnObj.inputsId}_${params.user.nodeId}_${binaryMode ? "BIN" : ""}_${nnObj.meta.userProfileOnlyFlag ? "PROF" : ""}` 
+  //     debug({datumCacheKey})
+  //     convertedDatum = datumCache.get(datumCacheKey)
 
-      convertedDatum = await tcUtils.convertDatum({
-        inputsId: nnObj.inputsId,
-        user: params.user, 
-        binaryMode: binaryMode, 
-        userProfileOnlyFlag: nnObj.meta.userProfileOnlyFlag,
-        verbose: verbose
-      });
+  //     if (convertedDatum){
+  //       statsObj.datumCache.hits += 1;
+  //       statsObj.datumCache.hitRate = 100*statsObj.datumCache.hits/(statsObj.datumCache.hits + statsObj.datumCache.misses)
+  //       debug(chalkLog(`${MODULE_ID_PREFIX} | DATUM $ HIT ${statsObj.datumCache.hits} | HIT RATE: ${statsObj.datumCache.hitRate.toFixed(3)}%`))
+  //     }
+  //     else{
+  //       statsObj.datumCache.misses += 1;
+  //       statsObj.datumCache.hitRate = statsObj.datumCache.hits/(statsObj.datumCache.hits + statsObj.datumCache.misses)
+  //     }
+  //   }
 
-      if (useDatumCacheFlag){
-        datumCache.set(datumCacheKey, convertedDatum)
-      }
-    }
+  //   if (!convertedDatum){
 
-    if (!convertedDatum || convertedDatum === undefined) {
-      console.log(MODULE_ID_PREFIX + " | *** CONVERT DATUM ERROR | NO RESULTS");
-      throw new Error("CONVERT DATUM ERROR | NO RESULTS")
-    }
-  }
-  else {
-    convertedDatum.inputsId = nnObj.inputsId;
-    convertedDatum.inputHits = params.datum.inputHits;
-    convertedDatum.inputMisses = params.datum.inputMisses;
-    convertedDatum.inputHitRate = params.datum.inputHitRate;
-    convertedDatum.datum = {};
-    convertedDatum.datum = params.datum;
-  }
+  //     convertedDatum = await tcUtils.convertDatum({
+  //       inputsId: nnObj.inputsId,
+  //       user: params.user, 
+  //       binaryMode: binaryMode, 
+  //       userProfileOnlyFlag: nnObj.meta.userProfileOnlyFlag,
+  //       verbose: verbose
+  //     });
+
+  //     if (useDatumCacheFlag){
+  //       datumCache.set(datumCacheKey, convertedDatum)
+  //     }
+  //   }
+
+  //   if (!convertedDatum || convertedDatum === undefined) {
+  //     console.log(MODULE_ID_PREFIX + " | *** CONVERT DATUM ERROR | NO RESULTS");
+  //     throw new Error("CONVERT DATUM ERROR | NO RESULTS")
+  //   }
+  // }
+  // else {
+  //   convertedDatum.inputsId = nnObj.inputsId;
+  //   convertedDatum.inputHits = params.datum.inputHits;
+  //   convertedDatum.inputMisses = params.datum.inputMisses;
+  //   convertedDatum.inputHitRate = params.datum.inputHitRate;
+  //   convertedDatum.datum = {};
+  //   convertedDatum.datum = params.datum;
+  // }
 
   if (verbose) {
     console.log(chalkLog(MODULE_ID_PREFIX + " | CONVERT DATUM"
-      + " | @" + convertedDatum.datum.screenName
-      + " | INPUTS ID: " + convertedDatum.inputsId
-      + " | H/M/TOT: " + convertedDatum.inputHits + "/" + convertedDatum.inputMisses + "/" + nnObj.numInputs
-      + " | INPUT HIT RATE: " + convertedDatum.inputHitRate.toFixed(3) + "%"
+      + " | @" + params.datum.datum.screenName
+      + " | INPUTS ID: " + params.datum.inputsId
+      + " | H/M/TOT: " + params.datum.inputHits + "/" + params.datum.inputMisses + "/" + nnObj.numInputs
+      + " | INPUT HIT RATE: " + params.datum.inputHitRate.toFixed(3) + "%"
     ));
   }
 
   let outputRaw = [];
 
-  const allZero = convertedDatum.datum.input.every((value) => value === 0);
+  const allZero = params.datum.datum.input.every((value) => value === 0);
 
   if (allZero) {
     debug(chalkAlert(MODULE_ID_PREFIX + " | !!! ALL ZERO INPUT | activateSingleNetwork"
       + " | NN: " + nnObj.networkId
-      + " | @" + convertedDatum.datum.screenName
-      + " | INPUTS ID: " + convertedDatum.inputsId
-      + " | H/M/TOT: " + convertedDatum.inputHits + "/" + convertedDatum.inputMisses + "/" + nnObj.numInputs
-      + " | INPUT HIT RATE: " + convertedDatum.inputHitRate.toFixed(3) + "%"
+      + " | @" + params.datum.datum.screenName
+      + " | INPUTS ID: " + params.datum.inputsId
+      + " | H/M/TOT: " + params.datum.inputHits + "/" + params.datum.inputMisses + "/" + nnObj.numInputs
+      + " | INPUT HIT RATE: " + params.datum.inputHitRate.toFixed(3) + "%"
     ));
   }
   
   if (nnObj.networkTechnology === "tensorflow"){
-    const prediction = nnObj.network.predict([tensorflow.tensor(convertedDatum.datum.input, [1, convertedDatum.datum.input.length])]).arraySync();
+    const prediction = nnObj.network.predict([tensorflow.tensor(params.datum.datum.input, [1, params.datum.datum.input.length])]).arraySync();
     if (params.verbose) {
       console.log(chalkAlert("TENSORFLOW | " + nnObj.networkId))
     }
     outputRaw = prediction[0];
   }
   else{
-    outputRaw = nnObj.network.activate(convertedDatum.datum.input);
+    outputRaw = nnObj.network.activate(params.datum.datum.input);
   }
 
   const networkOutput = {};
@@ -1565,9 +1586,9 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   networkOutput.output = [0,0,0];
   networkOutput.categoryAuto = (!params.user.categoryAuto || params.user.categoryAuto === "false" || params.user.categoryAuto === undefined) ? "none" : params.user.categoryAuto;
   networkOutput.matchFlag = "MISS";
-  networkOutput.inputHits = convertedDatum.inputHits;
-  networkOutput.inputMisses = convertedDatum.inputMisses;
-  networkOutput.inputHitRate = convertedDatum.inputHitRate;
+  networkOutput.inputHits = params.datum.inputHits;
+  networkOutput.inputMisses = params.datum.inputMisses;
+  networkOutput.inputHitRate = params.datum.inputHitRate;
 
   if (outputRaw.length !== 3) {
     console.log(chalkError(MODULE_ID_PREFIX + " | *** NN OUTPUT SIZE !== 3  | " + nnId + " | outputRaw: " + outputRaw));
@@ -1613,7 +1634,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
     await printNetworkInput({
       title: title,
-      datum: convertedDatum.datum
+      datum: params.datum.datum
     });
 
     return networkOutput;
@@ -1676,18 +1697,63 @@ NeuralNetworkTools.prototype.activate = async function (params) {
         throw new Error(MODULE_ID_PREFIX + " | NET NOT IN HASHMAP | NN ID: " + nnId);
       }
 
-      activateParams.networkId = nnId;
-      promiseArray.push(activateSingleNetwork(activateParams));
+      const nnObj = networksHashMap.get(nnId);
 
-      // networkOutput[nnId] = await activateSingleNetwork({
-      //   networkId: nnId, 
-      //   user: user, 
-      //   datum: datum,
-      //   binaryMode: binaryMode,
-      //   userProfileOnlyFlag: userProfileOnlyFlag,
-      //   convertDatumFlag: convertDatumFlag, 
-      //   verbose: verbose
-      // });
+      activateParams.networkId = nnId;
+
+      if (convertDatumFlag) {
+
+        activateParams.datum = false;
+
+        let datumCacheKey;
+
+        if (useDatumCacheFlag){
+
+          datumCacheKey = `${nnObj.inputsId}_${params.user.nodeId}_${binaryMode ? "BIN" : ""}_${userProfileOnlyFlag ? "PROF" : ""}` 
+          debug({datumCacheKey})
+          activateParams.datum = datumCache.get(datumCacheKey)
+
+          if (activateParams.datum){
+            statsObj.datumCache.hits += 1;
+            statsObj.datumCache.hitRate = 100*statsObj.datumCache.hits/(statsObj.datumCache.hits + statsObj.datumCache.misses)
+            debug(chalkLog(`${MODULE_ID_PREFIX} | DATUM $ HIT ${statsObj.datumCache.hits} | HIT RATE: ${statsObj.datumCache.hitRate.toFixed(3)}%`))
+          }
+          else{
+            statsObj.datumCache.misses += 1;
+            statsObj.datumCache.hitRate = statsObj.datumCache.hits/(statsObj.datumCache.hits + statsObj.datumCache.misses)
+          }
+        }
+
+        if (!activateParams.datum){
+
+          activateParams.datum = await tcUtils.convertDatum({
+            inputsId: nnObj.inputsId,
+            user: user, 
+            binaryMode: binaryMode, 
+            userProfileOnlyFlag: userProfileOnlyFlag,
+            verbose: verbose
+          });
+
+          if (useDatumCacheFlag){
+            datumCache.set(datumCacheKey, activateParams.datum)
+          }
+        }
+
+        if (!activateParams.datum || activateParams.datum === undefined) {
+          console.log(MODULE_ID_PREFIX + " | *** CONVERT DATUM ERROR | NO RESULTS");
+          throw new Error("CONVERT DATUM ERROR | NO RESULTS")
+        }
+      }
+      else{
+        activateParams.datum.inputsId = nnObj.inputsId;
+        activateParams.datum.inputHits = params.datum.inputHits;
+        activateParams.datum.inputMisses = params.datum.inputMisses;
+        activateParams.datum.inputHitRate = params.datum.inputHitRate;
+        activateParams.datum.datum = {};
+        activateParams.datum.datum = params.datum;
+      }
+
+      promiseArray.push(activateSingleNetwork(activateParams));
 
     }
 

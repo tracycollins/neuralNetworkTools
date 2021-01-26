@@ -1559,8 +1559,8 @@ async function main(){
 
   const trainingSetSize = 20;
   const testSetSize = 10;
-  const epochs = 1000;
-  const iterations = 1000;
+  const epochs = 10;
+  const iterations = 5;
   const binaryMode = false;
 
   const timestamp = moment().valueOf();
@@ -1704,11 +1704,11 @@ async function main(){
 
   console.log("EVOLVE NEATAPTIC")
 
-  setTimeout(async () => {
-    await nnTools.abortEvolve()
-    abortFlag = true;
-    console.log(currentEvolveNetwork);
-  }, 5000);
+  // setTimeout(async () => {
+  //   await nnTools.abortEvolve()
+  //   abortFlag = true;
+  //   console.log(currentEvolveNetwork);
+  // }, 5000);
 
   const resultsNeataptic = await nnTools.evolve({
     network: nnNeatapticObj.network, 
@@ -1729,9 +1729,9 @@ async function main(){
 
   console.log("EVOLVE TENSORFLOW")
 
-  setTimeout(async () => {
-    await nnTools.abortFit()
-  }, 2000);
+  // setTimeout(async () => {
+  //   await nnTools.abortFit()
+  // }, 2000);
 
   const resultsTensorflow = await nnTools.fit({
     network: nnTensorflowObj.network,
@@ -1748,9 +1748,9 @@ async function main(){
 
   console.log("EVOLVE CARROT")
 
-  setTimeout(async () => {
-    await nnTools.abortEvolve()
-  }, 2000);
+  // setTimeout(async () => {
+  //   await nnTools.abortEvolve()
+  // }, 2000);
 
   const resultsCarrot = await nnTools.evolve({
     network: nnCarrotObj.network, 
@@ -1766,11 +1766,8 @@ async function main(){
   delete nnTensorflowObj.network;
 
   const file = nnTensorflowObj.networkId + ".json";
-
   await tcUtils.saveFile({folder: testNetworkFolder, file: file, obj: nnTensorflowObj, verbose: true})
-
   const loadedNnTensorflowObj = await tcUtils.loadFile({folder: testNetworkFolder, file: file, verbose: true})
-
   const newNnTensorflowObj = await nnTools.loadNetwork({networkObj: loadedNnTensorflowObj, verbose: true})
 
   const testResults = {};
@@ -1785,9 +1782,9 @@ async function main(){
     testResults.successRate = 0;
 
     const cursorTest = await global.wordAssoDb.User
-      // .find({categorized: true, friends: { $exists: true, $ne: [] }})
+      .find({categorized: true, friends: { $exists: true, $ne: [] }})
       // .skip(trainingSetSize + testSetSize)
-      .find({screenName: 'parsonsdesign'})
+      // .find({screenName: 'parsonsdesign'})
       .lean()
       .limit(testSetSize)
       .cursor();
@@ -1797,17 +1794,18 @@ async function main(){
 
       if (!user) { cursorTest.close(); }
 
-      console.log("TEST | " + tcUtils.userText({user: user}));
+      // console.log(`TEST | DATUM $ STATS\n${jsonPrint(nnTools.datumCacheGetStats())}`);
+      console.log(`TEST | DATUM $ STATS ${nnTools.datumCacheGetStats().hitRate.toFixed(3)}%`);
 
       const label = categoryToArray(user.category);
 
-      const result = await nnTools.activateSingleNetwork({
-        networkId: networkId,
-        userProfileOnlyFlag: false,
+      const result = await nnTools.activate({
+        // networkId: networkId,
+        // userProfileOnlyFlag: false,
         convertDatumFlag: true,
         useDatumCacheFlag: true,
         user: user,
-        verbose: true
+        // verbose: true
       });
 
       testResults.total += 1;
@@ -1830,6 +1828,6 @@ main()
   process.exit();
 })
 .catch(function(err){
-  console.log("NNT | *** MAIN ERROR: " + err);
+  console.trace("NNT | *** MAIN ERROR: " + err);
   process.exit();
 });
