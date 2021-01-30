@@ -1452,7 +1452,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   if (verbose) {
     console.log(chalkLog(MODULE_ID_PREFIX + " | CONVERT DATUM"
       + " | @" + params.user.screenName
-      + " | INPUTS ID: " + params.dataObj.datum.inputsId
+      + " | INPUTS ID: " + nnObj.inputsId
       + " | H/M/TOT: " + params.dataObj.datum.inputHits + "/" + params.dataObj.inputMisses + "/" + nnObj.numInputs
       + " | INPUT HIT RATE: " + params.dataObj.inputHitRate.toFixed(3) + "%"
     ));
