@@ -1,6 +1,6 @@
 {
   "name": "@threeceelabs/neural-network-tools",
-  "version": "1.0.292",
+  "version": "1.0.293",
   "description": "various neural net tools & utilities",
   "main": "index.js",
   "scripts": {

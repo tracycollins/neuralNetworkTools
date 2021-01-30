@@ -1377,10 +1377,10 @@ NeuralNetworkTools.prototype.fit = async function (params) {
     const trainingSetData = [];
     const trainingSetLabels = [];
 
-    for(const item of params.trainingSet){
+    for(const dataObj of params.trainingSet){
       // console.log({item})
-      trainingSetData.push(item.input)
-      trainingSetLabels.push(item.output)
+      trainingSetData.push(dataObj.datum.input)
+      trainingSetLabels.push(dataObj.datum.output)
     }
 
     const results = await currentFitTensorflowNetwork.fit(
