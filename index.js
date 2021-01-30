@@ -1402,8 +1402,6 @@ NeuralNetworkTools.prototype.fit = async function (params) {
 
 NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
-  console.log({params})
-
   const userProfileOnlyFlag = (params.userProfileOnlyFlag !== undefined) ? params.userProfileOnlyFlag : configuration.userProfileOnlyFlag;
   const verbose = configuration.verbose || params.verbose;
   const nnId = params.networkId || primaryNeuralNetworkId;
