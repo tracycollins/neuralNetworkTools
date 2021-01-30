@@ -1443,6 +1443,8 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   }
 
+  const user = params.dataObj.user;
+
   if (nnObj.meta === undefined){
     nnObj.meta = {}
   }
@@ -1451,7 +1453,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
 
   if (verbose) {
     console.log(chalkLog(MODULE_ID_PREFIX + " | CONVERT DATUM"
-      + " | @" + params.user.screenName
+      + " | @" + user.screenName
       + " | INPUTS ID: " + nnObj.inputsId
       + " | H/M/TOT: " + params.dataObj.datum.inputHits + "/" + params.dataObj.inputMisses + "/" + nnObj.numInputs
       + " | INPUT HIT RATE: " + params.dataObj.inputHitRate.toFixed(3) + "%"
@@ -1487,18 +1489,18 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   networkOutput.nnId = nnId;
   networkOutput.networkId = nnId;
   networkOutput.user = {};
-  networkOutput.user.nodeId = params.user.nodeId;
-  networkOutput.user.screenName = params.user.screenName;
-  networkOutput.user.category = (!params.user.category || params.user.category === "false" || params.user.category === undefined) ? "none" : params.user.category;
-  networkOutput.user.categoryAuto = (!params.user.categoryAuto || params.user.categoryAuto === "false" || params.user.categoryAuto === undefined) ? "none" : params.user.categoryAuto;
-  networkOutput.user.categorizeNetwork = params.user.categorizeNetwork;
+  networkOutput.user.nodeId = user.nodeId;
+  networkOutput.user.screenName = user.screenName;
+  networkOutput.user.category = (!user.category || user.category === "false" || user.category === undefined) ? "none" : user.category;
+  networkOutput.user.categoryAuto = (!user.categoryAuto || user.categoryAuto === "false" || user.categoryAuto === undefined) ? "none" : user.categoryAuto;
+  networkOutput.user.categorizeNetwork = user.categorizeNetwork;
   networkOutput.binaryMode = nnObj.binaryMode;
   networkOutput.userProfileOnlyFlag = userProfileOnlyFlag;
   networkOutput.outputRaw = [];
   networkOutput.outputRaw = outputRaw;
   networkOutput.output = [];
   networkOutput.output = [0,0,0];
-  networkOutput.categoryAuto = (!params.user.categoryAuto || params.user.categoryAuto === "false" || params.user.categoryAuto === undefined) ? "none" : params.user.categoryAuto;
+  networkOutput.categoryAuto = (!user.categoryAuto || user.categoryAuto === "false" || user.categoryAuto === undefined) ? "none" : user.categoryAuto;
   networkOutput.matchFlag = "MISS";
   networkOutput.inputHits = params.dataObj.inputHits;
   networkOutput.inputMisses = params.dataObj.inputMisses;
@@ -1529,7 +1531,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
       networkOutput.output = [0,0,0];
   }
 
-  networkOutput.matchFlag = ((params.user.category !== "none") && (networkOutput.categoryAuto === params.user.category)) ? "MATCH" : "MISS";
+  networkOutput.matchFlag = ((user.category !== "none") && (networkOutput.categoryAuto === user.category)) ? "MATCH" : "MISS";
 
   if (verbose) {
 
@@ -1541,8 +1543,8 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
         + " | INP: " + nnObj.inputsId 
         + " | H/M: " + networkOutput.inputHits + "/" + networkOutput.inputMisses
         + " | R: " + networkOutput.inputHitRate.toFixed(3) + "%"
-        + " | @" + params.user.screenName 
-        + " | C: " + formatCategory(params.user.category) 
+        + " | @" + user.screenName 
+        + " | C: " + formatCategory(user.category) 
         + " | A: " + formatCategory(networkOutput.categoryAuto)
         + " | MTCH: " + networkOutput.matchFlag;
 
