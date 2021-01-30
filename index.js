@@ -1583,8 +1583,6 @@ NeuralNetworkTools.prototype.activate = async function (params) {
 
     const activateParams = Object.assign(activateParamsDefaults, params);
 
-    console.log({activateParams})
-
     for(const nnId of nnIdArray){
 
       if (!networksHashMap.has(nnId)){
