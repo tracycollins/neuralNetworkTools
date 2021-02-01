@@ -19,9 +19,9 @@
   "dependencies": {
     "@liquid-carrot/carrot": "^0.3.20",
     "@tensorflow/tfjs-node": "^3.0.0",
-    "@threeceelabs/mongoose-twitter": "^1.0.370",
-    "@threeceelabs/mongoose-utilities": "^1.0.8",
-    "@threeceelabs/threecee-utilities": "^1.0.450",
+    "@threeceelabs/mongoose-twitter": "^1.0.371",
+    "@threeceelabs/mongoose-utilities": "^1.0.12",
+    "@threeceelabs/threecee-utilities": "^1.0.452",
     "async": "^3.2.0",
     "deepcopy": "^2.1.0",
     "hashmap": "^2.4.0",
