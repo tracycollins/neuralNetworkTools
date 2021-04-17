@@ -32,6 +32,7 @@
     "neataptic": "^1.4.7",
     "node-cache": "^5.1.2",
     "random-item": "^4.0.0",
+    "seedrandom": "^3.0.5",
     "shuffle-array": "^1.0.1",
     "text-table": "^0.2.0"
   },
