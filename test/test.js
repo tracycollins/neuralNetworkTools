@@ -162,22 +162,16 @@ before(async function () {
   userArray = await loadUsersDb();
 });
 
-describe("#enableTensorflow()", function () {
+describe("#loadNetwork()", function (done) {
   it("enableTensorflow", async function () {
     await nnTools.enableTensorflow();
   });
-});
-
-describe("#loadNetwork()", function () {
   it("loadNetwork", async function () {
     if (empty(nnArray[0].networkJson) && !empty(nnArray[0].network)) {
       nnArray[0].networkJson = nnArray[0].network;
     }
     await nnTools.loadNetwork({ networkObj: nnArray[0] });
   });
-});
-
-describe("#activate()", function () {
   it("activate", async function () {
     const results = await nnTools.activate({
       user: userArray[0],
