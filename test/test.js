@@ -8,15 +8,16 @@ const MODULE_ID_PREFIX = "NNT";
 
 const TOTAL_ITERATIONS = 20;
 
-const DEFAULT_USER_PROFILE_ONLY_INPUTS_ID = "inputs_25250101_000000_255_profilecharcodes";
+const DEFAULT_USER_PROFILE_ONLY_INPUTS_ID =
+  "inputs_25250101_000000_255_profilecharcodes";
 const c = DEFAULT_USER_PROFILE_ONLY_INPUTS_ID + ".json";
 
 const ONE_SECOND = 1000;
-const ONE_MINUTE = 60*ONE_SECOND;
-const ONE_HOUR = 60*ONE_MINUTE;
+const ONE_MINUTE = 60 * ONE_SECOND;
+const ONE_HOUR = 60 * ONE_MINUTE;
 const compactDateTimeFormat = "YYYYMMDD_HHmmss";
 
-const fsp = require('fs').promises;
+const fsp = require("fs").promises;
 const path = require("path");
 const chalk = require("chalk");
 const moment = require("moment");
@@ -39,7 +40,6 @@ const chalkLog = chalk.gray;
 const chalkInfo = chalk.black;
 
 const async = require("async");
-const randomItem = require("random-item");
 const _ = require("lodash");
 const shuffle = require("shuffle-array");
 const HashMap = require("hashmap").HashMap;
@@ -69,24 +69,33 @@ const mgUtils = new MongooseUtilities(mguAppName);
 
 mgUtils.on("ready", async () => {
   console.log(`${MODULE_ID_PREFIX} | +++ MONGOOSE UTILS READY: ${mguAppName}`);
-})
+});
 
 let DROPBOX_ROOT_FOLDER;
 
 if (hostname === "google") {
   DROPBOX_ROOT_FOLDER = "/home/tc/Dropbox/Apps/wordAssociation";
-}
-else {
+} else {
   DROPBOX_ROOT_FOLDER = "/Users/tc/Dropbox/Apps/wordAssociation";
 }
 
-const configDefaultFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/default");
+const configDefaultFolder = path.join(
+  DROPBOX_ROOT_FOLDER,
+  "config/utility/default"
+);
 
-const configDefaultTestFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility/test/testData");
-const configHostFolder = path.join(DROPBOX_ROOT_FOLDER, "config/utility",hostname);
+const configDefaultTestFolder = path.join(
+  DROPBOX_ROOT_FOLDER,
+  "config/utility/test/testData"
+);
+const configHostFolder = path.join(
+  DROPBOX_ROOT_FOLDER,
+  "config/utility",
+  hostname
+);
 
 const tcuChildName = Number("NNT_TEST_TCU");
-const ThreeceeUtilities = require("@threeceelabs/threecee-utilities");
+const ThreeceeUtilities = require("@threeceelabs/threeceeutilities");
 const tcUtils = new ThreeceeUtilities(tcuChildName);
 
 const jsonPrint = tcUtils.jsonPrint;
@@ -94,49 +103,52 @@ const formatCategory = tcUtils.formatCategory;
 
 const testNetworkFolder = path.join(configDefaultTestFolder, "networks");
 
-
 const NeuralNetworkTools = require("../index.js");
 const nnTools = new NeuralNetworkTools("TEST");
 let mongooseDb;
 
-
-async function loadUsersDb(){
-
+async function loadUsersDb() {
   console.log("... LOADING DB USERS");
 
-  try{
-
+  try {
     const userArray = await global.wordAssoDb.User.find({
       categorized: true,
-      ignored: false
-    }).limit(10).lean();
+      ignored: false,
+    })
+      .limit(10)
+      .lean();
 
-    console.log(chalkInfo(MODULE_ID_PREFIX + " | LOADED DB USERS: " + userArray.length));
+    console.log(
+      chalkInfo(MODULE_ID_PREFIX + " | LOADED DB USERS: " + userArray.length)
+    );
     return userArray;
-  }
-  catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD DB USERS ERROR: " + err));
+  } catch (err) {
+    console.log(
+      chalkError(MODULE_ID_PREFIX + " | *** LOAD DB USERS ERROR: " + err)
+    );
     throw err;
   }
 }
 
-
-async function loadNetworksDb(){
-
+async function loadNetworksDb() {
   console.log("... LOADING DB NETWORKS");
 
-  try{
-
+  try {
     const nnArray = await global.wordAssoDb.NeuralNetwork.find({
-      successRate: {"$gt": 80},
-      networkTechnology: "tensorflow"
-    }).limit(1).lean();
+      successRate: { $gt: 80 },
+      networkTechnology: "tensorflow",
+    })
+      .limit(1)
+      .lean();
 
-    console.log(chalkInfo(MODULE_ID_PREFIX + " | LOADED DB NETWORKS: " + nnArray.length));
+    console.log(
+      chalkInfo(MODULE_ID_PREFIX + " | LOADED DB NETWORKS: " + nnArray.length)
+    );
     return nnArray;
-  }
-  catch(err){
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** LOAD DB NETWORKS ERROR: " + err));
+  } catch (err) {
+    console.log(
+      chalkError(MODULE_ID_PREFIX + " | *** LOAD DB NETWORKS ERROR: " + err)
+    );
     throw err;
   }
 }
@@ -144,32 +156,34 @@ async function loadNetworksDb(){
 let nnArray = [];
 let userArray = [];
 
-before(async function() {
+before(async function () {
   mongooseDb = await mgUtils.connectDb();
   nnArray = await loadNetworksDb();
   userArray = await loadUsersDb();
 });
 
-
-describe('#enableTensorflow()', function() {
-  it('enableTensorflow', async function() {
+describe("#enableTensorflow()", function () {
+  it("enableTensorflow", async function () {
     await nnTools.enableTensorflow();
   });
 });
 
-describe('#loadNetwork()', function() {
-  it('loadNetwork', async function() {
-    if (empty(nnArray[0].networkJson) && !empty(nnArray[0].network)){
+describe("#loadNetwork()", function () {
+  it("loadNetwork", async function () {
+    if (empty(nnArray[0].networkJson) && !empty(nnArray[0].network)) {
       nnArray[0].networkJson = nnArray[0].network;
     }
-    await nnTools.loadNetwork({networkObj: nnArray[0]});
+    await nnTools.loadNetwork({ networkObj: nnArray[0] });
   });
 });
 
-describe('#activate()', function() {
-  it('activate', async function() {
-    const results = await nnTools.activate({user: userArray[0], convertDatumFlag: true, verbose: true});
-    console.log({results})
+describe("#activate()", function () {
+  it("activate", async function () {
+    const results = await nnTools.activate({
+      user: userArray[0],
+      convertDatumFlag: true,
+      verbose: true,
+    });
+    console.log({ results });
   });
 });
-
