@@ -35,7 +35,7 @@
   resolved "https://registry.yarnpkg.com/@google-cloud/promisify/-/promisify-2.0.3.tgz#f934b5cdc939e3c7039ff62b9caaf59a9d89e3a8"
   integrity sha512-d4VSA86eL/AFTe5xtyZX+ePUjE8dIFu2T8zmdeNBSa5/kNgXPCx/o/wbFNHAGLJdGnk1vddRuMESD9HbOC8irw==
 
-"@google-cloud/secret-manager@^3.4.0":
+"@google-cloud/secret-manager@^3.6.0":
   version "3.6.0"
   resolved "https://registry.yarnpkg.com/@google-cloud/secret-manager/-/secret-manager-3.6.0.tgz#408510554d2dd72b30449a85d6030069c85d2c04"
   integrity sha512-1lSYKYJ57PekYvUV2FLt7wtI4toDhMKrbHxMH5kA5X9XLfECasgm/PZo+EbmJ/uIxtz5i2qzQID/NczLrZNG+w==
@@ -85,10 +85,10 @@
   dependencies:
     lodash "^4.17.15"
 
-"@mapbox/node-pre-gyp@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.3.tgz#c740c23ec1007b9278d4c28f767b6e843a88c3d3"
-  integrity sha512-9dTIfQW8HVCxLku5QrJ/ysS/b2MdYngs9+/oPrOTLvp3TrggdANYVW2h8FGJGDf0J7MYfp44W+c90cVJx+ASuA==
+"@mapbox/node-pre-gyp@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.4.tgz#6c76e7a40138eac39e1a4dc869a083e43e236c00"
+  integrity sha512-M669Qo4nRT7iDmQEjQYC7RU8Z6dpz9UmSbkJ1OFEja3uevCdLKh7IZZki7L1TZj02kRyl82snXFY8QqkyfowrQ==
   dependencies:
     detect-libc "^1.0.3"
     https-proxy-agent "^5.0.0"
@@ -343,19 +343,20 @@
     mongoose "^5.11.18"
     should "^13.2.3"
 
-"@threeceelabs/mongoose-utilities@^1.0.13":
-  version "1.0.13"
-  resolved "https://registry.yarnpkg.com/@threeceelabs/mongoose-utilities/-/mongoose-utilities-1.0.13.tgz#7df9637bbdbf2f01e00df9feba1ba653335a876a"
-  integrity sha512-kUkqY/AnWJ6mKxBpv4vzoEPjYWQv0+t3LnBeC1ZMd53GyU2a3tVVfQylv6KOsE9EJ+Ah3RXSWZTvqMnzbmiTLQ==
+"@threeceelabs/mongoose-utilities@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@threeceelabs/mongoose-utilities/-/mongoose-utilities-2.0.1.tgz#5ee2bfd8c5cac8554d79aaf2e7a7f44232b047b6"
+  integrity sha512-fYECedE9ziaZIX9pH1LgNJBDOGjgGe//cUulk1IjBQevx0c9x3nFi2WjKF1ehYFeLZ0m/HqZUOK3WSQ6lIkgDQ==
   dependencies:
-    "@google-cloud/secret-manager" "^3.4.0"
+    "@google-cloud/secret-manager" "^3.6.0"
     "@threeceelabs/mongoose-twitter" "^1.1.0"
     eventemitter3 "^4.0.7"
+    treeify "^1.1.0"
 
-"@threeceelabs/threeceeutilities@^3.2.6":
-  version "3.2.6"
-  resolved "https://registry.yarnpkg.com/@threeceelabs/threeceeutilities/-/threeceeutilities-3.2.6.tgz#1a1ceeec094e735a837c9636c2027a82c3f79d9e"
-  integrity sha512-u0z4ybj+6e1BwP1UmfgwjtNImkAWoKg7Z2FkeWxMy5tvpiV9wRGbMNdrxMC+HCKPo9O2NZ+srCdl1y49wF5FXA==
+"@threeceelabs/threeceeutilities@^3.2.19":
+  version "3.2.19"
+  resolved "https://registry.yarnpkg.com/@threeceelabs/threeceeutilities/-/threeceeutilities-3.2.19.tgz#2d86884705dab050eaae86ce0d4b7e85676d8141"
+  integrity sha512-xoPlYagaFfBKIw8gX7vof4d90LD+B5Dtz1gTJG/oQcXwSBWknnSPNT2fiS25YXbllkNfnEa/W5+TxamcB8hT3A==
   dependencies:
     "@google-cloud/language" "^4.2.2"
     "@googlemaps/google-maps-services-js" "^3.1.16"
@@ -365,8 +366,9 @@
     assert "^2.0.0"
     async "^3.2.0"
     atob "^2.1.2"
+    backoff "^2.5.0"
     btoa "^1.2.1"
-    chalk "^4.1.0"
+    chalk "^4.1.1"
     d3-scale "^3.3.0"
     debug "^4.3.1"
     deep-copy "^1.4.2"
@@ -765,6 +767,13 @@ axios@^0.21.1:
   dependencies:
     follow-redirects "^1.10.0"
 
+backoff@^2.5.0:
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/backoff/-/backoff-2.5.0.tgz#f616eda9d3e4b66b8ca7fca79f695722c5f8e26f"
+  integrity sha1-9hbtqdPktmuMp/ynn2lXIsX44m8=
+  dependencies:
+    precond "0.2"
+
 balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
@@ -956,6 +965,14 @@ chalk@^4.0.0, chalk@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-4.1.0.tgz#4e14870a618d9e2edd97dd8345fd9d9dc315646a"
   integrity sha512-qwx12AxXe2Q5xQ43Ac//I6v5aXTipYrSESdOgzrN+9XjgEpyjpKuvSGaN4qE93f7TQTlerQQ8S+EQ0EyDoVL1A==
+  dependencies:
+    ansi-styles "^4.1.0"
+    supports-color "^7.1.0"
+
+chalk@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/chalk/-/chalk-4.1.1.tgz#c80b3fab28bf6371e6863325eee67e618b77e6ad"
+  integrity sha512-diHzdDKxcU+bAsUboHLPEDQiw0qEe0qd7SYUn3HgcFlWgbDcfLGswOHYeGrHKzG9z6UYf01d9VFMfZxPM1xZSg==
   dependencies:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
@@ -3533,6 +3550,11 @@ picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.2.3:
   version "2.2.3"
   resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.2.3.tgz#465547f359ccc206d3c48e46a1bcb89bf7ee619d"
   integrity sha512-KpELjfwcCDUb9PeigTs2mBJzXUPzAuP2oPcA989He8Rte0+YUAjw1JVedDhuTKPkHjSYzMN3npC9luThGYEKdg==
+
+precond@0.2:
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/precond/-/precond-0.2.3.tgz#aa9591bcaa24923f1e0f4849d240f47efc1075ac"
+  integrity sha1-qpWRvKokkj8eD0hJ0kD0fvwQdaw=
 
 prepend-http@^2.0.0:
   version "2.0.0"
