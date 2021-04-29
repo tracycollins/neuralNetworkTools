@@ -20,7 +20,7 @@
   "dependencies": {
     "@liquid-carrot/carrot": "^0.3.20",
     "@mapbox/node-pre-gyp": "^1.0.4",
-    "@tensorflow/tfjs-node": "^3.5.0",
+    "@tensorflow/tfjs-node": "^3.6.0",
     "@threeceelabs/mongoose-twitter": "^1.1.0",
     "@threeceelabs/mongoose-utilities": "^2.1.0",
     "@threeceelabs/threeceeutilities": "^5.1.0",

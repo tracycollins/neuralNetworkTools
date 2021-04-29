@@ -289,7 +289,7 @@
   resolved "https://registry.npmjs.org/@tensorflow/tfjs-layers/-/tfjs-layers-3.6.0.tgz#5358af559fc8baed304b3e567319fe93f1aa46a6"
   integrity sha512-B7EHwAT6KFqhKzdf0e2Sr6haj9qpqpyEATV8OCPHdk+g8z2AGXOLlFfbgW6vCMjy1wb5jzYqCyZDoY3EWdgJAw==
 
-"@tensorflow/tfjs-node@^3.5.0":
+"@tensorflow/tfjs-node@^3.6.0":
   version "3.6.0"
   resolved "https://registry.npmjs.org/@tensorflow/tfjs-node/-/tfjs-node-3.6.0.tgz#66f1b9db66af6d21a19b737d1eb3886d1ca92b75"
   integrity sha512-fmMS6aUrXfYWoSNpq+7XOdeSbgvQNMtYBrVV/CguoXTDMcO+PnJDu3BSO0Vy4uxIm+fxztketAeK8jf1x9AyIg==
