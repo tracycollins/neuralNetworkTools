@@ -17,16 +17,16 @@ const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
 const compactDateTimeFormat = "YYYYMMDD_HHmmss";
 
-const fsp = require("fs").promises;
-const path = require("path");
-const chalk = require("chalk");
-const moment = require("moment");
-const fs = require("fs");
-const should = require("should");
-const empty = require("is-empty");
-const assert = require("assert");
+import { promises as fsp } from "fs";
+import path from "path";
+import chalk from "chalk";
+import moment from "moment";
+import fs from "fs";
+import should from "should";
+import empty from "is-empty";
+import assert from "assert";
 
-const deepcopy = require("deepcopy");
+import deepcopy from "deepcopy";
 
 const chalkNetwork = chalk.blue;
 const chalkBlueBold = chalk.blue.bold;
@@ -39,13 +39,13 @@ const chalkWarn = chalk.yellow;
 const chalkLog = chalk.gray;
 const chalkInfo = chalk.black;
 
-const async = require("async");
-const _ = require("lodash");
-const shuffle = require("shuffle-array");
-const HashMap = require("hashmap").HashMap;
-const yauzl = require("yauzl");
+import async from "async";
+import _ from "lodash";
+import shuffle from "shuffle-array";
+import HashMap from "hashmap";
+import yauzl from "yauzl";
 
-const os = require("os");
+import os from "os";
 let hostname = os.hostname();
 hostname = hostname.replace(/\.example\.com/g, "");
 hostname = hostname.replace(/\.local/g, "");
@@ -61,10 +61,11 @@ statsObj.users.zipHashMapHit = 0;
 statsObj.users.zipHashMapMiss = 0;
 statsObj.users.unzipped = 0;
 
-global.wordAssoDb = require("@threeceelabs/mongoose-twitter");
+import mgt from "@threeceelabs/mongoose-twitter";
+global.wordAssoDb = mgt;
 
 const mguAppName = "MGU_" + MODULE_ID;
-const MongooseUtilities = require("@threeceelabs/mongoose-utilities");
+import MongooseUtilities from "@threeceelabs/mongoose-utilities";
 const mgUtils = new MongooseUtilities(mguAppName);
 
 mgUtils.on("ready", async () => {
@@ -95,7 +96,7 @@ const configHostFolder = path.join(
 );
 
 const tcuChildName = Number("NNT_TEST_TCU");
-const ThreeceeUtilities = require("@threeceelabs/threeceeutilities");
+import { ThreeceeUtilities } from "@threeceelabs/threeceeutilities";
 const tcUtils = new ThreeceeUtilities(tcuChildName);
 
 const jsonPrint = tcUtils.jsonPrint;
@@ -103,7 +104,7 @@ const formatCategory = tcUtils.formatCategory;
 
 const testNetworkFolder = path.join(configDefaultTestFolder, "networks");
 
-const NeuralNetworkTools = require("../index.js");
+import { NeuralNetworkTools } from "../index.js";
 const nnTools = new NeuralNetworkTools("TEST");
 let mongooseDb;
 

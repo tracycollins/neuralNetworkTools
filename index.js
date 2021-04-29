@@ -1,5 +1,5 @@
-const MODULE_ID_PREFIX = "NNT";
-const tcuChildName = MODULE_ID_PREFIX + "_TCU";
+const PF = "NNT";
+const tcuChildName = PF + "_TCU";
 
 const configuration = {};
 configuration.tensorflow = {};
@@ -13,8 +13,8 @@ configuration.userProfileOnlyFlag = false;
 configuration.binaryMode = false;
 configuration.verbose = false;
 
-const debug = require("debug")(MODULE_ID_PREFIX);
-const os = require("os");
+import debug from "debug";
+import os from "os";
 
 let hostname = os.hostname();
 hostname = hostname.replace(/\.example\.com/g, "");
@@ -26,11 +26,11 @@ hostname = hostname.replace(/word0-instance-1/g, "google");
 hostname = hostname.replace(/word-1/g, "google");
 hostname = hostname.replace(/word/g, "google");
 
-let tensorflow = false;
-const carrot = require("@liquid-carrot/carrot/src/index.js");
-const neataptic = require("neataptic");
+import tensorflow from "@tensorflow/tfjs-node";
+import carrot from "@liquid-carrot/carrot/src/index.js";
+import neataptic from "neataptic";
 
-const NodeCache = require("node-cache");
+import NodeCache from "node-cache";
 
 const DATUM_CACHE_DEFAULT_TTL = 10;
 let datumCacheTtl = process.env.DATUM_CACHE_DEFAULT_TTL;
@@ -38,9 +38,7 @@ if (datumCacheTtl === undefined) {
   datumCacheTtl = DATUM_CACHE_DEFAULT_TTL;
 }
 
-console.log(
-  MODULE_ID_PREFIX + " | DATUM CACHE TTL: " + datumCacheTtl + " SECONDS"
-);
+console.log(PF + " | DATUM CACHE TTL: " + datumCacheTtl + " SECONDS");
 
 let datumCacheCheckPeriod = process.env.DATUM_CACHE_CHECK_PERIOD;
 if (datumCacheCheckPeriod === undefined) {
@@ -48,10 +46,7 @@ if (datumCacheCheckPeriod === undefined) {
 }
 
 console.log(
-  MODULE_ID_PREFIX +
-    " | DATUM CACHE CHECK PERIOD: " +
-    datumCacheCheckPeriod +
-    " SECONDS"
+  PF + " | DATUM CACHE CHECK PERIOD: " + datumCacheCheckPeriod + " SECONDS"
 );
 
 const datumCache = new NodeCache({
@@ -59,21 +54,21 @@ const datumCache = new NodeCache({
   checkperiod: datumCacheCheckPeriod,
 });
 
-const deepcopy = require("deepcopy");
-const path = require("path");
-const async = require("async");
-const util = require("util");
-const _ = require("lodash");
-const EventEmitter = require("events");
-const HashMap = require("hashmap").HashMap;
-const defaults = require("object.defaults");
-const pick = require("object.pick");
-const table = require("text-table");
-const empty = require("is-empty");
+import deepcopy from "deepcopy";
+import path from "path";
+import async from "async";
+import util from "util";
+import _ from "lodash";
+import EventEmitter from "events";
+import HashMap from "hashmap";
+import defaults from "object.defaults";
+import pick from "object.pick";
+import table from "text-table";
+import empty from "is-empty";
 const networksHashMap = new HashMap();
 const inputsHashMap = new HashMap();
 
-const ThreeceeUtilities = require("@threeceelabs/threeceeutilities");
+import { ThreeceeUtilities } from "@threeceelabs/threeceeutilities";
 const tcUtils = new ThreeceeUtilities(tcuChildName);
 
 const jsonPrint = tcUtils.jsonPrint;
@@ -81,7 +76,7 @@ const indexOfMax = tcUtils.indexOfMax;
 const formatBoolean = tcUtils.formatBoolean;
 const formatCategory = tcUtils.formatCategory;
 
-const chalk = require("chalk");
+import chalk from "chalk";
 const chalkWarn = chalk.yellow;
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
@@ -130,11 +125,7 @@ NeuralNetworkTools.prototype.verbose = function (v) {
     return configuration.verbose;
   }
   configuration.verbose = v;
-  console.log(
-    chalkAlert(
-      MODULE_ID_PREFIX + " | --> SET VERBOSE: " + configuration.verbose
-    )
-  );
+  console.log(chalkAlert(PF + " | --> SET VERBOSE: " + configuration.verbose));
   return;
 };
 
@@ -142,25 +133,23 @@ NeuralNetworkTools.prototype.enableTensorflow = function () {
   try {
     if (!configuration.tensorflow.enabled) {
       configuration.tensorflow.enabled = true;
-      tensorflow = require("@tensorflow/tfjs-node"); // eslint-disable-line global-require
+      // tensorflow = require("@tensorflow/tfjs-node"); // eslint-disable-line global-require
       console.log(
         chalkAlert(
-          `${MODULE_ID_PREFIX} | --> ENABLE TENSORFLOW: ${configuration.tensorflow.enabled}`
+          `${PF} | --> ENABLE TENSORFLOW: ${configuration.tensorflow.enabled}`
         )
       );
     } else {
       console.log(
         chalkAlert(
-          `${MODULE_ID_PREFIX} | !!! TENSORFLOW ALREADY ENABLED: ${configuration.tensorflow.enabled}`
+          `${PF} | !!! TENSORFLOW ALREADY ENABLED: ${configuration.tensorflow.enabled}`
         )
       );
     }
 
     return;
   } catch (err) {
-    console.log(
-      chalkAlert(`${MODULE_ID_PREFIX} | *** ENABLE TENSORFLOW ERROR: ${err}`)
-    );
+    console.log(chalkAlert(`${PF} | *** ENABLE TENSORFLOW ERROR: ${err}`));
     throw err;
   }
 };
@@ -174,9 +163,7 @@ NeuralNetworkTools.prototype.setBinaryMode = function (b) {
   configuration.binaryMode = b;
   tcUtils.setBinaryMode(b);
   console.log(
-    chalkAlert(
-      MODULE_ID_PREFIX + " | --> SET BINARY MODE: " + configuration.binaryMode
-    )
+    chalkAlert(PF + " | --> SET BINARY MODE: " + configuration.binaryMode)
   );
   return;
 };
@@ -197,7 +184,7 @@ NeuralNetworkTools.prototype.setUserProfileOnlyFlag = function (f) {
   tcUtils.setUserProfileOnlyFlag(f);
   console.log(
     chalkAlert(
-      MODULE_ID_PREFIX +
+      PF +
         " | --> SET USER PROFILE ONLY FLAG: " +
         configuration.userProfileOnlyFlag
     )
@@ -214,7 +201,7 @@ NeuralNetworkTools.prototype.setNormalization = function (n) {
     tcUtils.setNormalization(n);
     console.log(
       chalkLog(
-        MODULE_ID_PREFIX +
+        PF +
           " | --> SET NORMALIZATION\n" +
           jsonPrint(tcUtils.getNormalization())
       )
@@ -299,11 +286,11 @@ NeuralNetworkTools.prototype.convertTensorFlow = async function (params) {
     if (!configuration.tensorflow.enabled) {
       console.log(
         chalkError(
-          `${MODULE_ID_PREFIX} | *** convertTensorFlow ERROR: TENSORFLOW NOT ENABLED`
+          `${PF} | *** convertTensorFlow ERROR: TENSORFLOW NOT ENABLED`
         )
       );
       throw new Error(
-        `${MODULE_ID_PREFIX} | *** convertTensorFlow ERROR: TENSORFLOW NOT ENABLED`
+        `${PF} | *** convertTensorFlow ERROR: TENSORFLOW NOT ENABLED`
       );
     }
 
@@ -314,7 +301,7 @@ NeuralNetworkTools.prototype.convertTensorFlow = async function (params) {
     } catch (e) {
       console.log(
         chalkAlert(
-          `${MODULE_ID_PREFIX} | !!! convertTensorFlow: TENSORFLOW JSON PARSE FAILED ... networkJson READY?`
+          `${PF} | !!! convertTensorFlow: TENSORFLOW JSON PARSE FAILED ... networkJson READY?`
         )
       );
       nnJson = params.networkJson;
@@ -332,9 +319,7 @@ NeuralNetworkTools.prototype.convertTensorFlow = async function (params) {
 
     return network;
   } catch (err) {
-    console.log(
-      chalkError(`${MODULE_ID_PREFIX} | *** convertTensorFlow ERROR: ${err}`)
-    );
+    console.log(chalkError(`${PF} | *** convertTensorFlow ERROR: ${err}`));
     throw err;
   }
 };
@@ -344,11 +329,9 @@ const convertTensorFlow = NeuralNetworkTools.prototype.convertTensorFlow;
 NeuralNetworkTools.prototype.loadNetwork = async function (params) {
   if (empty(params.networkObj)) {
     console.log(
-      chalkError(
-        MODULE_ID_PREFIX + " | *** LOAD NN UNDEFINED: " + params.networkObj
-      )
+      chalkError(PF + " | *** LOAD NN UNDEFINED: " + params.networkObj)
     );
-    throw new Error(MODULE_ID_PREFIX + " | LOAD NN UNDEFINED");
+    throw new Error(PF + " | LOAD NN UNDEFINED");
   }
 
   if (
@@ -357,11 +340,11 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
   ) {
     console.log(
       chalkError(
-        `${MODULE_ID_PREFIX} | *** loadNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.networkObj.networkId}`
+        `${PF} | *** loadNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.networkObj.networkId}`
       )
     );
     throw new Error(
-      `${MODULE_ID_PREFIX} | *** loadNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.networkObj.networkId}`
+      `${PF} | *** loadNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.networkObj.networkId}`
     );
   }
 
@@ -372,23 +355,21 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
   ) {
     console.log(
       chalkError(
-        MODULE_ID_PREFIX +
-          " | *** LOAD NN JSON UNDEFINED: " +
-          params.networkObj.networkId
+        PF + " | *** LOAD NN JSON UNDEFINED: " + params.networkObj.networkId
       )
     );
-    throw new Error(MODULE_ID_PREFIX + " | LOAD NN JSON PATH UNDEFINED");
+    throw new Error(PF + " | LOAD NN JSON PATH UNDEFINED");
   }
 
   if (!params.networkObj.inputsId || params.networkObj.inputsId === undefined) {
     console.log(
       chalkError(
-        MODULE_ID_PREFIX +
+        PF +
           " | *** LOAD NN INPUTS ID UNDEFINED: " +
           params.networkObj.networkId
       )
     );
-    throw new Error(MODULE_ID_PREFIX + " | LOAD NN INPUTS ID UNDEFINED");
+    throw new Error(PF + " | LOAD NN INPUTS ID UNDEFINED");
   }
 
   try {
@@ -414,17 +395,13 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
       params.isBestNetwork ||
       statsObj.bestNetwork.runtimeMatchRate < nn.runtimeMatchRate
     ) {
-      printNetworkObj(
-        MODULE_ID_PREFIX + " | --> LOAD BEST RUNTIME NN",
-        nn,
-        chalk.green
-      );
+      printNetworkObj(PF + " | --> LOAD BEST RUNTIME NN", nn, chalk.green);
       statsObj.bestNetwork = pick(nn, networkPickArray);
     }
 
     if (statsObj.currentBestNetwork.runtimeMatchRate < nn.runtimeMatchRate) {
       printNetworkObj(
-        MODULE_ID_PREFIX + " | --> LOAD CURRENT BEST RUNTIME NN",
+        PF + " | --> LOAD CURRENT BEST RUNTIME NN",
         nn,
         chalk.green
       );
@@ -436,7 +413,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
     if (nn.networkTechnology === "tensorflow" && nn.networkJson) {
       console.log(
         chalkLog(
-          MODULE_ID_PREFIX +
+          PF +
             " | ... LOAD NN | TECH: " +
             nn.networkTechnology +
             " | " +
@@ -446,7 +423,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
 
       console.log(
         chalkLog(
-          MODULE_ID_PREFIX +
+          PF +
             " | ... LOAD NN FROM JSON | TECH: " +
             nn.networkTechnology +
             " | " +
@@ -458,7 +435,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
     } else if (nn.networkTechnology === "carrot") {
       console.log(
         chalkWarn(
-          MODULE_ID_PREFIX +
+          PF +
             " | ... LOAD NN RAW | TECH: " +
             nn.networkTechnology +
             " | " +
@@ -469,7 +446,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
       if (params.networkIsRaw) {
         console.log(
           chalkWarn(
-            MODULE_ID_PREFIX +
+            PF +
               " | ... LOAD NN RAW | TECH: " +
               nn.networkTechnology +
               " | " +
@@ -480,7 +457,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
       } else {
         console.log(
           chalkWarn(
-            MODULE_ID_PREFIX +
+            PF +
               " | ... CONVERT+LOAD NN FROM JSON | TECH: " +
               nn.networkTechnology +
               " | " +
@@ -494,7 +471,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
           if (nn.networkJson.input && !nn.networkJson.input_size) {
             console.log(
               chalkAlert(
-                MODULE_ID_PREFIX +
+                PF +
                   " | !!! INPUT SIZE UNDEFINED | SETTING TO nn.networkJson.input" +
                   " | nn.networkId: " +
                   nn.networkId +
@@ -514,7 +491,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
           if (nn.networkJson.output && !nn.networkJson.output_size) {
             console.log(
               chalkAlert(
-                MODULE_ID_PREFIX +
+                PF +
                   " | !!! OUTPUT SIZE UNDEFINED | SETTING TO nn.networkJson.output" +
                   " | nn.networkId: " +
                   nn.networkId +
@@ -552,7 +529,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
           if (nn.networkJson.input_nodes.length !== nn.networkJson.input_size) {
             console.log(
               chalkError(
-                MODULE_ID_PREFIX +
+                PF +
                   " | *** INPUT NODES ERROR | " +
                   nn.networkId +
                   " | LENGTH: " +
@@ -567,7 +544,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
           if (nn.networkJson.input_nodes.length <= 1) {
             console.log(
               chalkError(
-                MODULE_ID_PREFIX +
+                PF +
                   " | *** INPUT NODES ERROR | " +
                   nn.networkId +
                   " | LENGTH: " +
@@ -584,7 +561,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
           ) {
             console.log(
               chalkError(
-                MODULE_ID_PREFIX +
+                PF +
                   " | *** OUTPUT NODES ERROR | " +
                   nn.networkId +
                   " | LENGTH: " +
@@ -602,7 +579,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
         } else {
           console.log(
             chalkError(
-              MODULE_ID_PREFIX +
+              PF +
                 " | *** LOAD NN FROM JSON ERROR | NO JSON??? | TECH: " +
                 nn.networkTechnology +
                 " | " +
@@ -615,7 +592,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
       if (params.networkIsRaw) {
         console.log(
           chalkWarn(
-            MODULE_ID_PREFIX +
+            PF +
               " | ... LOAD NN RAW | TECH: " +
               nn.networkTechnology +
               " | " +
@@ -626,7 +603,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
       } else {
         console.log(
           chalkWarn(
-            MODULE_ID_PREFIX +
+            PF +
               " | ... CONVERT+LOAD NN FROM JSON | TECH: " +
               nn.networkTechnology +
               " | " +
@@ -641,7 +618,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
         } else {
           console.log(
             chalkError(
-              MODULE_ID_PREFIX +
+              PF +
                 " | *** LOAD NN FROM JSON ERROR | NO JSON??? | TECH: " +
                 nn.networkTechnology +
                 " | " +
@@ -654,7 +631,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
       nn.networkTechnology = "neataptic";
       console.log(
         chalkAlert(
-          MODULE_ID_PREFIX +
+          PF +
             " | ??? TRY CONVERT+LOAD NN FROM JSON | ??? TECH: " +
             nn.networkTechnology +
             " | " +
@@ -666,7 +643,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
       } catch (err) {
         console.log(
           chalkAlert(
-            MODULE_ID_PREFIX +
+            PF +
               " | ??? TRY LOAD NN FROM JSON | ??? TECH: " +
               nn.networkTechnology +
               " | " +
@@ -692,7 +669,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
         if (empty(inputsObj)) {
           console.log(
             chalkAlert(
-              MODULE_ID_PREFIX +
+              PF +
                 " | !!! NN INPUTS OBJ NOT FOUND IN DB ... TRY FILE | NN: " +
                 nn.inputsId
             )
@@ -715,7 +692,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
 
       console.log(
         chalkLog(
-          MODULE_ID_PREFIX +
+          PF +
             " | --> LOAD NN: " +
             nn.networkId +
             " | TECH: " +
@@ -731,7 +708,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
 
       console.log(
         chalkLog(
-          MODULE_ID_PREFIX +
+          PF +
             " | --> LOAD IN: " +
             nn.inputsId +
             " | " +
@@ -745,7 +722,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
     } catch (err) {
       console.log(
         chalkError(
-          MODULE_ID_PREFIX +
+          PF +
             " | *** LOAD INPUTS ERROR" +
             " | NN ID: " +
             nn.networkId +
@@ -760,7 +737,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
   } catch (err) {
     console.log(
       chalkError(
-        MODULE_ID_PREFIX +
+        PF +
           " | *** LOAD NN ERROR" +
           " | NN ID: " +
           params.networkObj.networkId +
@@ -776,7 +753,7 @@ NeuralNetworkTools.prototype.loadNetwork = async function (params) {
 
 NeuralNetworkTools.prototype.deleteAllNetworks = async function () {
   try {
-    console.log(chalkError(MODULE_ID_PREFIX + " | XXX DEL ALL NETWORKS"));
+    console.log(chalkError(PF + " | XXX DEL ALL NETWORKS"));
 
     networksHashMap.clear();
 
@@ -787,9 +764,7 @@ NeuralNetworkTools.prototype.deleteAllNetworks = async function () {
 
     return;
   } catch (err) {
-    console.log(
-      chalkError(MODULE_ID_PREFIX + " | *** DEL ALL NN ERROR" + " | " + err)
-    );
+    console.log(chalkError(PF + " | *** DEL ALL NN ERROR" + " | " + err));
     throw err;
   }
 };
@@ -797,17 +772,13 @@ NeuralNetworkTools.prototype.deleteAllNetworks = async function () {
 NeuralNetworkTools.prototype.deleteNetwork = async function (params) {
   if (!params.networkId) {
     console.log(
-      chalkError(
-        MODULE_ID_PREFIX + " | *** DEL NN ID UNDEFINED: " + params.networkId
-      )
+      chalkError(PF + " | *** DEL NN ID UNDEFINED: " + params.networkId)
     );
-    throw new Error(MODULE_ID_PREFIX + " | DEL NN ID UNDEFINED");
+    throw new Error(PF + " | DEL NN ID UNDEFINED");
   }
 
   try {
-    console.log(
-      chalkError(MODULE_ID_PREFIX + " | XXX DEL NN: " + params.networkId)
-    );
+    console.log(chalkError(PF + " | XXX DEL NN: " + params.networkId));
 
     networksHashMap.delete(params.networkId);
 
@@ -815,9 +786,7 @@ NeuralNetworkTools.prototype.deleteNetwork = async function (params) {
 
     if (primaryNeuralNetworkId == params.networkId) {
       console.log(
-        chalkError(
-          MODULE_ID_PREFIX + " | XXX DEL PRIMARY NN: " + params.networkId
-        )
+        chalkError(PF + " | XXX DEL PRIMARY NN: " + params.networkId)
       );
       primaryNeuralNetworkId = false;
     }
@@ -827,9 +796,7 @@ NeuralNetworkTools.prototype.deleteNetwork = async function (params) {
       statsObj.bestNetwork !== undefined &&
       statsObj.bestNetwork.networkId == params.networkId
     ) {
-      console.log(
-        chalkError(MODULE_ID_PREFIX + " | XXX DEL BEST NN: " + params.networkId)
-      );
+      console.log(chalkError(PF + " | XXX DEL BEST NN: " + params.networkId));
       delete statsObj.bestNetwork;
     }
 
@@ -839,9 +806,7 @@ NeuralNetworkTools.prototype.deleteNetwork = async function (params) {
       statsObj.currentBestNetwork.networkId == params.networkId
     ) {
       console.log(
-        chalkError(
-          MODULE_ID_PREFIX + " | XXX DEL CURRENT BEST NN: " + params.networkId
-        )
+        chalkError(PF + " | XXX DEL CURRENT BEST NN: " + params.networkId)
       );
       delete statsObj.currentBestNetwork;
     }
@@ -850,7 +815,7 @@ NeuralNetworkTools.prototype.deleteNetwork = async function (params) {
   } catch (err) {
     console.log(
       chalkError(
-        MODULE_ID_PREFIX +
+        PF +
           " | *** DEL NN ERROR" +
           " | NN ID: " +
           params.networkId +
@@ -870,17 +835,13 @@ NeuralNetworkTools.prototype.setPrimaryInputs = async function (inputsId) {
 
 NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = async function (nnId) {
   if (!nnId || nnId === undefined) {
-    console.log(
-      chalkError(MODULE_ID_PREFIX + " | *** PRIMARY NN ID UNDEFINED: " + nnId)
-    );
-    return new Error(MODULE_ID_PREFIX + " | PRIMARY NN ID UNDEFINED");
+    console.log(chalkError(PF + " | *** PRIMARY NN ID UNDEFINED: " + nnId));
+    return new Error(PF + " | PRIMARY NN ID UNDEFINED");
   }
 
   if (!networksHashMap.has(nnId)) {
-    console.log(
-      chalkError(MODULE_ID_PREFIX + " | *** PRIMARY NN NOT LOADED: " + nnId)
-    );
-    return new Error(MODULE_ID_PREFIX + " | PRIMARY NN NOT LOADED: " + nnId);
+    console.log(chalkError(PF + " | *** PRIMARY NN NOT LOADED: " + nnId));
+    return new Error(PF + " | PRIMARY NN NOT LOADED: " + nnId);
   }
 
   primaryNeuralNetworkId = nnId;
@@ -889,24 +850,20 @@ NeuralNetworkTools.prototype.setPrimaryNeuralNetwork = async function (nnId) {
   if (!inputsHashMap.has(nnObj.inputsId)) {
     console.log(
       chalkError(
-        MODULE_ID_PREFIX +
+        PF +
           " | *** setPrimaryNeuralNetwork PRIMARY NN INPUTS NOT IN HASHMAP: " +
           nnObj.inputsId
       )
     );
     return new Error(
-      MODULE_ID_PREFIX +
-        " | PRIMARY NN INPUTS NOT IN HASHMAP: " +
-        nnObj.inputsId
+      PF + " | PRIMARY NN INPUTS NOT IN HASHMAP: " + nnObj.inputsId
     );
   }
 
   await tcUtils.setPrimaryInputs({ inputsId: nnObj.inputsId });
 
   console.log(
-    chalkLog(
-      MODULE_ID_PREFIX + " | --> SET PRIMARY NN: " + primaryNeuralNetworkId
-    )
+    chalkLog(PF + " | --> SET PRIMARY NN: " + primaryNeuralNetworkId)
   );
 
   return primaryNeuralNetworkId;
@@ -956,8 +913,7 @@ NeuralNetworkTools.prototype.printNetworkInput = function (params) {
     if (!params.datum.input || params.datum.input === undefined) {
       console.log(
         chalkError(
-          MODULE_ID_PREFIX +
-            " | *** printNetworkInput ERROR | datum.input UNDEFINED"
+          PF + " | *** printNetworkInput ERROR | datum.input UNDEFINED"
         )
       );
       return reject();
@@ -1009,9 +965,7 @@ NeuralNetworkTools.prototype.printNetworkInput = function (params) {
       function (err) {
         if (err) {
           console.log(
-            chalkError(
-              MODULE_ID_PREFIX + " | *** printNetworkInput ERROR: " + err
-            )
+            chalkError(PF + " | *** printNetworkInput ERROR: " + err)
           );
           return reject(err);
         }
@@ -1100,7 +1054,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function (p) {
 
         statsTextArray[index] = [];
         statsTextArray[index] = [
-          MODULE_ID_PREFIX + " | ",
+          PF + " | ",
           nn.rank,
           nn.previousRank,
           nn.networkTechnology,
@@ -1134,7 +1088,7 @@ NeuralNetworkTools.prototype.printNetworkResults = function (p) {
         }
 
         statsTextArray.unshift([
-          MODULE_ID_PREFIX + " | ",
+          PF + " | ",
           "RANK",
           "PREV RANK",
           "TECH",
@@ -1285,7 +1239,7 @@ NeuralNetworkTools.prototype.updateNetworkRank = function (p) {
             statsObj.currentBestNetwork.matchRate < nn.matchRate
           ) {
             printNetworkObj(
-              MODULE_ID_PREFIX +
+              PF +
                 " | +++ NEW CURRENT BEST NN    | " +
                 nn.meta.match +
                 "/" +
@@ -1359,9 +1313,7 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params) {
         if (!nn || nn === undefined) {
           return reject(
             new Error(
-              MODULE_ID_PREFIX +
-                " | updateNetworkStats NN UNDEFINED | NN ID: " +
-                nnId
+              PF + " | updateNetworkStats NN UNDEFINED | NN ID: " + nnId
             )
           );
         }
@@ -1410,7 +1362,7 @@ NeuralNetworkTools.prototype.updateNetworkStats = function (params) {
         if (verbose) {
           console.log(
             chalkCategory(
-              MODULE_ID_PREFIX +
+              PF +
                 " | " +
                 tempNetwork.meta.matchFlag +
                 " | @" +
@@ -1484,9 +1436,7 @@ NeuralNetworkTools.prototype.createNetwork = async function (params) {
     let network;
 
     if (params.networkObj.networkTechnology === "tensorflow") {
-      console.log(
-        chalkLog(`${MODULE_ID_PREFIX} | ... CREATING TENSORFLOW NETWORK`)
-      );
+      console.log(chalkLog(`${PF} | ... CREATING TENSORFLOW NETWORK`));
 
       if (!configuration.tensorflow.enabled) {
         enableTensorflow();
@@ -1511,7 +1461,7 @@ NeuralNetworkTools.prototype.createNetwork = async function (params) {
 
       console.log(
         chalkLog(
-          `${MODULE_ID_PREFIX} | ... CREATING CARROT NETWORK | INPUTS: ${params.numInputs} | HIDDEN: ${params.networkObj.hiddenLayerSize}`
+          `${PF} | ... CREATING CARROT NETWORK | INPUTS: ${params.numInputs} | HIDDEN: ${params.networkObj.hiddenLayerSize}`
         )
       );
 
@@ -1537,7 +1487,7 @@ NeuralNetworkTools.prototype.createNetwork = async function (params) {
 
       console.log(
         chalkLog(
-          `${MODULE_ID_PREFIX} | ... CREATING NEATAPTIC NETWORK | INPUTS: ${params.numInputs} | HIDDEN: ${params.networkObj.hiddenLayerSize}`
+          `${PF} | ... CREATING NEATAPTIC NETWORK | INPUTS: ${params.numInputs} | HIDDEN: ${params.networkObj.hiddenLayerSize}`
         )
       );
 
@@ -1547,7 +1497,7 @@ NeuralNetworkTools.prototype.createNetwork = async function (params) {
       ) {
         console.log(
           chalkLog(
-            `${MODULE_ID_PREFIX} | ... CREATING NEATAPTIC PERCEPTRON NETWORK | INPUTS: ${params.numInputs} | HIDDEN: ${params.networkObj.hiddenLayerSize}`
+            `${PF} | ... CREATING NEATAPTIC PERCEPTRON NETWORK | INPUTS: ${params.numInputs} | HIDDEN: ${params.networkObj.hiddenLayerSize}`
           )
         );
         network = new neataptic.architect.Perceptron(
@@ -1558,7 +1508,7 @@ NeuralNetworkTools.prototype.createNetwork = async function (params) {
       } else {
         console.log(
           chalkLog(
-            `${MODULE_ID_PREFIX} | ... CREATING NEATAPTIC RANDOM NETWORK | INPUTS: ${params.numInputs}`
+            `${PF} | ... CREATING NEATAPTIC RANDOM NETWORK | INPUTS: ${params.numInputs}`
           )
         );
         network = new neataptic.Network(params.numInputs, 3);
@@ -1567,9 +1517,7 @@ NeuralNetworkTools.prototype.createNetwork = async function (params) {
       return network;
     }
   } catch (err) {
-    console.log(
-      chalkError(MODULE_ID_PREFIX + " | *** createNetwork ERROR: " + err)
-    );
+    console.log(chalkError(PF + " | *** createNetwork ERROR: " + err));
     throw err;
   }
 };
@@ -1579,7 +1527,7 @@ NeuralNetworkTools.prototype.createJson = async function (params) {
     if (params.networkObj.networkTechnology === "tensorflow") {
       console.log(
         chalkLog(
-          `${MODULE_ID_PREFIX} | ... CREATE TENSORFLOW JSON | NN ID: ${params.networkObj.networkId}`
+          `${PF} | ... CREATE TENSORFLOW JSON | NN ID: ${params.networkObj.networkId}`
         )
       );
 
@@ -1600,7 +1548,7 @@ NeuralNetworkTools.prototype.createJson = async function (params) {
     if (params.networkObj.networkTechnology === "carrot") {
       console.log(
         chalkLog(
-          `${MODULE_ID_PREFIX} | ... CREATE CARROT JSON | NN ID: ${params.networkObj.networkId}`
+          `${PF} | ... CREATE CARROT JSON | NN ID: ${params.networkObj.networkId}`
         )
       );
       const networkJson = params.networkObj.network.toJSON();
@@ -1610,7 +1558,7 @@ NeuralNetworkTools.prototype.createJson = async function (params) {
     if (params.networkObj.networkTechnology === "neataptic") {
       console.log(
         chalkLog(
-          `${MODULE_ID_PREFIX} | ... CREATE NEATAPTIC JSON | NN ID: ${params.networkObj.networkId}`
+          `${PF} | ... CREATE NEATAPTIC JSON | NN ID: ${params.networkObj.networkId}`
         )
       );
       const networkJson = params.networkObj.network.toJSON();
@@ -1618,12 +1566,10 @@ NeuralNetworkTools.prototype.createJson = async function (params) {
     }
 
     throw new Error(
-      `${MODULE_ID_PREFIX} | *** UNKNOWN NETWORK TECH: ${params.networkObj.networkTechnology}`
+      `${PF} | *** UNKNOWN NETWORK TECH: ${params.networkObj.networkTechnology}`
     );
   } catch (err) {
-    console.log(
-      chalkError(MODULE_ID_PREFIX + " | *** createNetwork ERROR: " + err)
-    );
+    console.log(chalkError(PF + " | *** createNetwork ERROR: " + err));
     throw err;
   }
 };
@@ -1636,11 +1582,11 @@ NeuralNetworkTools.prototype.convertNetwork = async function (params) {
     ) {
       console.log(
         chalkError(
-          `${MODULE_ID_PREFIX} | *** convertNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.networkObj.networkId}`
+          `${PF} | *** convertNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.networkObj.networkId}`
         )
       );
       throw new Error(
-        `${MODULE_ID_PREFIX} | *** convertNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.networkObj.networkId}`
+        `${PF} | *** convertNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.networkObj.networkId}`
       );
     }
 
@@ -1649,7 +1595,7 @@ NeuralNetworkTools.prototype.convertNetwork = async function (params) {
     if (empty(nnObj.network) && empty(nnObj.networkJson)) {
       console.log(
         chalkError(
-          MODULE_ID_PREFIX +
+          PF +
             " | *** NO OLD NET or JSON EXIST | TECH: " +
             nnObj.networkTechnology +
             " | " +
@@ -1660,7 +1606,7 @@ NeuralNetworkTools.prototype.convertNetwork = async function (params) {
     } else if (!empty(nnObj.networkJson)) {
       console.log(
         chalkLog(
-          MODULE_ID_PREFIX +
+          PF +
             " | JSON EXISTS | TECH: " +
             nnObj.networkTechnology +
             " | " +
@@ -1708,7 +1654,7 @@ NeuralNetworkTools.prototype.convertNetwork = async function (params) {
         ) {
           console.log(
             chalkError(
-              MODULE_ID_PREFIX +
+              PF +
                 " | *** INPUT NODES ERROR | " +
                 nnObj.networkId +
                 " | LENGTH: " +
@@ -1720,7 +1666,7 @@ NeuralNetworkTools.prototype.convertNetwork = async function (params) {
         if (nnObj.networkJson.input_nodes.length <= 1) {
           console.log(
             chalkError(
-              MODULE_ID_PREFIX +
+              PF +
                 " | *** INPUT NODES ERROR | " +
                 nnObj.networkId +
                 " | LENGTH: " +
@@ -1743,7 +1689,7 @@ NeuralNetworkTools.prototype.convertNetwork = async function (params) {
     } else if (!empty(nnObj.network)) {
       console.log(
         chalkLog(
-          MODULE_ID_PREFIX +
+          PF +
             " | OLD JSON EXISTS | TECH: " +
             nnObj.networkTechnology +
             " | " +
@@ -1769,7 +1715,7 @@ NeuralNetworkTools.prototype.convertNetwork = async function (params) {
     } else {
       console.log(
         chalkError(
-          MODULE_ID_PREFIX +
+          PF +
             " | *** convertNetwork ERROR: NO VALID NN JSON " +
             nnObj.networkId
         )
@@ -1777,9 +1723,7 @@ NeuralNetworkTools.prototype.convertNetwork = async function (params) {
       throw new Error("NO VALID JSON NN: " + nnObj.networkId);
     }
   } catch (err) {
-    console.log(
-      chalkError(MODULE_ID_PREFIX + " | *** convertNetwork ERROR: " + err)
-    );
+    console.log(chalkError(PF + " | *** convertNetwork ERROR: " + err));
     throw err;
   }
 };
@@ -1796,7 +1740,7 @@ NeuralNetworkTools.prototype.evolve = async (params) => {
     );
     return evolveResults;
   } catch (err) {
-    console.log(chalkError(`${MODULE_ID_PREFIX} | *** EVOLVE ERROR: ${err}`));
+    console.log(chalkError(`${PF} | *** EVOLVE ERROR: ${err}`));
     throw err;
   }
 };
@@ -1804,15 +1748,13 @@ NeuralNetworkTools.prototype.evolve = async (params) => {
 NeuralNetworkTools.prototype.abortEvolve = async function () {
   try {
     if (currentEvolveNetwork) {
-      console.log(chalkAlert(`${MODULE_ID_PREFIX} | XXX ABORT EVOLVE`));
+      console.log(chalkAlert(`${PF} | XXX ABORT EVOLVE`));
       currentEvolveNetwork = {};
       currentEvolveNetwork = null;
     }
     return;
   } catch (err) {
-    console.log(
-      chalkError(`${MODULE_ID_PREFIX} | *** TENSORFLOW ABORT FIT ERROR: ${err}`)
-    );
+    console.log(chalkError(`${PF} | *** TENSORFLOW ABORT FIT ERROR: ${err}`));
     throw err;
   }
 };
@@ -1822,14 +1764,12 @@ let currentFitTensorflowNetwork = null;
 NeuralNetworkTools.prototype.abortFit = async function () {
   try {
     if (currentFitTensorflowNetwork) {
-      console.log(chalkAlert(`${MODULE_ID_PREFIX} | XXX TENSORFLOW ABORT FIT`));
+      console.log(chalkAlert(`${PF} | XXX TENSORFLOW ABORT FIT`));
       currentFitTensorflowNetwork.stopTraining = true;
     }
     return;
   } catch (err) {
-    console.log(
-      chalkError(`${MODULE_ID_PREFIX} | *** TENSORFLOW ABORT FIT ERROR: ${err}`)
-    );
+    console.log(chalkError(`${PF} | *** TENSORFLOW ABORT FIT ERROR: ${err}`));
     throw err;
   }
 };
@@ -1839,18 +1779,18 @@ NeuralNetworkTools.prototype.fit = async function (params) {
     if (!configuration.tensorflow.enabled) {
       console.log(
         chalkError(
-          `${MODULE_ID_PREFIX} | *** fit ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.network.networkId}`
+          `${PF} | *** fit ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.network.networkId}`
         )
       );
       throw new Error(
-        `${MODULE_ID_PREFIX} | *** fit ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.network.networkId}`
+        `${PF} | *** fit ERROR: TENSORFLOW NOT ENABLED | NN ID: ${params.network.networkId}`
       );
     }
 
     const defaultOnEpochEnd = (epoch, logs) => {
       console.log(
         chalkLog(
-          `${MODULE_ID_PREFIX} | TENSOR FIT | EPOCH: ${epoch} | LOSS: ${logs.loss.toFixed(
+          `${PF} | TENSOR FIT | EPOCH: ${epoch} | LOSS: ${logs.loss.toFixed(
             3
           )} | ACC: ${logs.acc.toFixed(6)}`
         )
@@ -1860,7 +1800,7 @@ NeuralNetworkTools.prototype.fit = async function (params) {
     params.options.epochs = params.options.epochs || params.options.iterations;
 
     if (params.verbose) {
-      console.log(chalkLog(MODULE_ID_PREFIX + " | TENSORFLOW FIT PARAMS"));
+      console.log(chalkLog(PF + " | TENSORFLOW FIT PARAMS"));
       console.log({ params });
     }
 
@@ -1900,9 +1840,7 @@ NeuralNetworkTools.prototype.fit = async function (params) {
     return { network: currentFitTensorflowNetwork, stats: results };
   } catch (err) {
     currentFitTensorflowNetwork = null;
-    console.log(
-      chalkError(MODULE_ID_PREFIX + " | *** TENSORFLOW FIT ERROR: " + err)
-    );
+    console.log(chalkError(PF + " | *** TENSORFLOW FIT ERROR: " + err));
     throw err;
   }
 };
@@ -1916,7 +1854,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   const nnId = params.networkId || primaryNeuralNetworkId;
 
   if (!networksHashMap.has(nnId)) {
-    console.log(chalkError(MODULE_ID_PREFIX + " | NN NOT IN HASHMAP: " + nnId));
+    console.log(chalkError(PF + " | NN NOT IN HASHMAP: " + nnId));
     throw new Error("NN NOT IN HASHMAP: " + nnId);
   }
 
@@ -1928,16 +1866,16 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   ) {
     console.log(
       chalkError(
-        `${MODULE_ID_PREFIX} | *** activateSingleNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${nnObj.networkId}`
+        `${PF} | *** activateSingleNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${nnObj.networkId}`
       )
     );
     throw new Error(
-      `${MODULE_ID_PREFIX} | *** activateSingleNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${nnObj.networkId}`
+      `${PF} | *** activateSingleNetwork ERROR: TENSORFLOW NOT ENABLED | NN ID: ${nnObj.networkId}`
     );
   }
 
   if (!nnObj.network || nnObj.network === undefined) {
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** NN UNDEFINED: " + nnId));
+    console.log(chalkError(PF + " | *** NN UNDEFINED: " + nnId));
     await deleteNetwork(nnId);
     throw new Error("NN UNDEFINED: " + nnId);
   }
@@ -1951,7 +1889,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   ) {
     console.log(
       chalkAlert(
-        MODULE_ID_PREFIX +
+        PF +
           " | NN ACTIVATE/RUN/PREDICT UNDEFINED" +
           " | TECH: " +
           nnObj.networkTechnology +
@@ -1983,7 +1921,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   if (verbose) {
     console.log(
       chalkLog(
-        MODULE_ID_PREFIX +
+        PF +
           " | CONVERT DATUM" +
           " | @" +
           user.screenName +
@@ -2009,7 +1947,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   if (allZero) {
     debug(
       chalkAlert(
-        MODULE_ID_PREFIX +
+        PF +
           " | !!! ALL ZERO INPUT | activateSingleNetwork" +
           " | NN: " +
           nnObj.networkId +
@@ -2084,7 +2022,7 @@ NeuralNetworkTools.prototype.activateSingleNetwork = async function (params) {
   if (outputRaw.length !== 3) {
     console.log(
       chalkError(
-        MODULE_ID_PREFIX +
+        PF +
           " | *** NN OUTPUT SIZE !== 3  | " +
           nnId +
           " | outputRaw: " +
@@ -2163,8 +2101,8 @@ const activateSingleNetwork =
 
 NeuralNetworkTools.prototype.activate = async function (params) {
   if (networksHashMap.size === 0) {
-    console.log(chalkError(MODULE_ID_PREFIX + " | *** NO NETWORKS IN HASHMAP"));
-    throw new Error(MODULE_ID_PREFIX + " | *** NO NETWORKS IN HASHMAP");
+    console.log(chalkError(PF + " | *** NO NETWORKS IN HASHMAP"));
+    throw new Error(PF + " | *** NO NETWORKS IN HASHMAP");
   }
 
   try {
@@ -2184,9 +2122,7 @@ NeuralNetworkTools.prototype.activate = async function (params) {
 
     for (const nnId of nnIdArray) {
       if (!networksHashMap.has(nnId)) {
-        throw new Error(
-          MODULE_ID_PREFIX + " | NET NOT IN HASHMAP | NN ID: " + nnId
-        );
+        throw new Error(PF + " | NET NOT IN HASHMAP | NN ID: " + nnId);
       }
 
       const nnObj = networksHashMap.get(nnId);
@@ -2231,9 +2167,7 @@ NeuralNetworkTools.prototype.activate = async function (params) {
         }
 
         if (!activateParams.dataObj || activateParams.dataObj === undefined) {
-          console.log(
-            MODULE_ID_PREFIX + " | *** CONVERT DATUM ERROR | NO RESULTS"
-          );
+          console.log(PF + " | *** CONVERT DATUM ERROR | NO RESULTS");
           throw new Error("CONVERT DATUM ERROR | NO RESULTS");
         }
       } else {
@@ -2254,12 +2188,10 @@ NeuralNetworkTools.prototype.activate = async function (params) {
     return { user: params.user, networkOutput: networkOutput };
   } catch (err) {
     console.log(
-      chalkError(
-        MODULE_ID_PREFIX + " | activate | *** ACTIVATE NN ERROR" + " | " + err
-      )
+      chalkError(PF + " | activate | *** ACTIVATE NN ERROR" + " | " + err)
     );
     throw err;
   }
 };
 
-module.exports = NeuralNetworkTools;
+export { NeuralNetworkTools };
