@@ -360,10 +360,10 @@
     eventemitter3 "^4.0.7"
     treeify "^1.1.0"
 
-"@threeceelabs/threeceeutilities@^5.1.0":
-  version "5.1.0"
-  resolved "https://registry.npmjs.org/@threeceelabs/threeceeutilities/-/threeceeutilities-5.1.0.tgz#48cb18087f05b9824937e4974a38a73f0c33a928"
-  integrity sha512-O5/Hiyq7EAV9RV1Pq12gF7XG22LwbUUFdofWlFWgdzO/e3bW53ahu/swiWV5xft0F897qYRKaBRkyKmZwgH3aw==
+"@threeceelabs/threeceeutilities@^5.1.1":
+  version "5.1.1"
+  resolved "https://registry.npmjs.org/@threeceelabs/threeceeutilities/-/threeceeutilities-5.1.1.tgz#6b3775b69b0aec6d823f6b68dce11ed33ed5f752"
+  integrity sha512-YAq0qHP5aDHKAc0NPlCw3FE6NbhB9/B0MD+sjideGr3/jZvFTeNLxBazvgsXPNEN7YggD6/3YntLRpj98pQBQw==
   dependencies:
     "@google-cloud/language" "^4.2.2"
     "@googlemaps/google-maps-services-js" "^3.1.16"
