@@ -86,7 +86,7 @@
   dependencies:
     lodash "^4.17.15"
 
-"@mapbox/node-pre-gyp@^1.0.4":
+"@mapbox/node-pre-gyp@^1.0.4", "@mapbox/node-pre-gyp@^1.0.5":
   version "1.0.5"
   resolved "https://registry.npmjs.org/@mapbox/node-pre-gyp/-/node-pre-gyp-1.0.5.tgz#2a0b32fcb416fb3f2250fd24cb2a81421a4f5950"
   integrity sha512-4srsKPXWlIxp5Vbqz5uLfBN+du2fJChBoYn/f2h991WLdk7jUvcSk/McVLSv/X+xQIPI8eGD5GjrnygdyHnhPA==
@@ -289,7 +289,7 @@
   resolved "https://registry.npmjs.org/@tensorflow/tfjs-layers/-/tfjs-layers-3.6.0.tgz#5358af559fc8baed304b3e567319fe93f1aa46a6"
   integrity sha512-B7EHwAT6KFqhKzdf0e2Sr6haj9qpqpyEATV8OCPHdk+g8z2AGXOLlFfbgW6vCMjy1wb5jzYqCyZDoY3EWdgJAw==
 
-"@tensorflow/tfjs-node@^3.6.0":
+"@tensorflow/tfjs-node@^3.6.1":
   version "3.6.1"
   resolved "https://registry.npmjs.org/@tensorflow/tfjs-node/-/tfjs-node-3.6.1.tgz#a1452076fe6da48f5648ca33f85d1127e6881244"
   integrity sha512-JA6GE7AYx+zoXiKQmEdMc848HDOurrI3vFyiLk/8bXJDEv7L7oW5y6Q1Ja+Bz5ul7UmOxNG89hyYhfGqJK8qKw==
@@ -328,17 +328,6 @@
     async "^3.2.0"
     treeify "^1.1.0"
 
-"@threeceelabs/mongoose-twitter@^1.1.0":
-  version "1.1.0"
-  resolved "https://registry.npmjs.org/@threeceelabs/mongoose-twitter/-/mongoose-twitter-1.1.0.tgz#0de2fa1449c9417bb4b4a6147888066c5b3f0256"
-  integrity sha512-a8KrZGc/JiPuAFnFqHIUgABHR/ci422/yfkafzfYniKHP+cqhJUOD5zV/mB30TlUmiMrEdvCo+nVCKB1q4GC1g==
-  dependencies:
-    async "^3.2.0"
-    dotenv "^8.2.0"
-    moment "^2.29.1"
-    mongoose "^5.11.18"
-    should "^13.2.3"
-
 "@threeceelabs/mongoose-twitter@^2.0.1":
   version "2.0.1"
   resolved "https://registry.npmjs.org/@threeceelabs/mongoose-twitter/-/mongoose-twitter-2.0.1.tgz#6cdb0b2503b2aebcf27e4a35953bc7453a9145f0"
@@ -350,17 +339,17 @@
     mongoose "^5.12.6"
     should "^13.2.3"
 
-"@threeceelabs/mongoose-utilities@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/@threeceelabs/mongoose-utilities/-/mongoose-utilities-2.1.0.tgz#0fbda1ba3a6da4c8bfc8564c2861d439187862c5"
-  integrity sha512-c3qsZSMthDIkcY9XeLfX9Gns7aEFfq+c78RcqcTjlgxuaD7jC3WJvlC6SYo7NGSwj4dNb6sfSlXGE1TOMOfIKA==
+"@threeceelabs/mongoose-utilities@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.npmjs.org/@threeceelabs/mongoose-utilities/-/mongoose-utilities-3.0.0.tgz#ff2058bda64f2f5abcc71452637ceecd88c87205"
+  integrity sha512-GxhloU+Y5Esny7zkTh57we1JhSoyxkofriq56RvR7af4TbGYR+vue8Kr/yJPtBMbM3OFI369aCzy+VSKNquLNA==
   dependencies:
     "@google-cloud/secret-manager" "^3.6.0"
-    "@threeceelabs/mongoose-twitter" "^1.1.0"
+    "@threeceelabs/mongoose-twitter" "^2.0.1"
     eventemitter3 "^4.0.7"
     treeify "^1.1.0"
 
-"@threeceelabs/threeceeutilities@^5.1.1":
+"@threeceelabs/threeceeutilities@^5.1.5":
   version "5.1.5"
   resolved "https://registry.npmjs.org/@threeceelabs/threeceeutilities/-/threeceeutilities-5.1.5.tgz#bec0c8eb08a976db1b394c53b609b8ffbf6fa3fb"
   integrity sha512-ihkUI7xxMNneZe5bNLUs44QRMvfbnUB03YMO1NTqF82OfN0JXvwYU4QlYyAf8cdY2odeDyW6VQebc/vyY99jFQ==
@@ -1087,9 +1076,9 @@ console-control-strings@^1.0.0, console-control-strings@~1.1.0:
   integrity sha1-PXz0Rk22RG6mRL9LOVB/mFEAjo4=
 
 core-js@3:
-  version "3.13.0"
-  resolved "https://registry.npmjs.org/core-js/-/core-js-3.13.0.tgz#58ca436bf01d6903aee3d364089868d0d89fe58d"
-  integrity sha512-iWDbiyha1M5vFwPFmQnvRv+tJzGbFAm6XimJUT0NgHYW3xZEs1SkCAcasWSVFxpI2Xb/V1DDJckq3v90+bQnog==
+  version "3.13.1"
+  resolved "https://registry.npmjs.org/core-js/-/core-js-3.13.1.tgz#30303fabd53638892062d8b4e802cac7599e9fb7"
+  integrity sha512-JqveUc4igkqwStL2RTRn/EPFGBOfEZHxJl/8ej1mXJR75V3go2mFF4bmUYkEIT1rveHKnkUlcJX/c+f1TyIovQ==
 
 core-util-is@1.0.2, core-util-is@~1.0.0:
   version "1.0.2"
@@ -2701,7 +2690,7 @@ mkdirp@^1.0.3, mkdirp@^1.0.4:
   resolved "https://registry.npmjs.org/mkdirp/-/mkdirp-1.0.4.tgz#3eb5ed62622756d79a5f0e2a221dfebad75c2f7e"
   integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
 
-mocha@^8.3.2:
+mocha@^8.4.0:
   version "8.4.0"
   resolved "https://registry.npmjs.org/mocha/-/mocha-8.4.0.tgz#677be88bf15980a3cae03a73e10a0fc3997f0cff"
   integrity sha512-hJaO0mwDXmZS4ghXsvPVriOhsxQ7ofcpQdm8dE+jISUOKopitvnXFQmpRR7jd2K6VBG6E26gU3IAbXXGIbu4sQ==
@@ -2755,7 +2744,7 @@ mongoose-legacy-pluralize@1.0.2:
   resolved "https://registry.npmjs.org/mongoose-legacy-pluralize/-/mongoose-legacy-pluralize-1.0.2.tgz#3ba9f91fa507b5186d399fb40854bff18fb563e4"
   integrity sha512-Yo/7qQU4/EyIS8YDFSeenIvXxZN+ld7YdV9LqFVQJzTLye8unujAWPZ4NWKfFA+RNjh+wvTWKY9Z3E5XM6ZZiQ==
 
-mongoose@^5.11.18, mongoose@^5.12.6:
+mongoose@^5.12.6:
   version "5.12.12"
   resolved "https://registry.npmjs.org/mongoose/-/mongoose-5.12.12.tgz#7da29c7d7924ad1fb07b5c5fc0acde2f4aaff4f9"
   integrity sha512-n+ZmGApaL5x/r92w6S4pb+c075i+YKzg1F9YWkznSzQMtvetj/2dSjj2cqsITpd6z60k3K7ZaosIl6hzHwUA9g==

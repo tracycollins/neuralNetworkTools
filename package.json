@@ -19,11 +19,11 @@
   "homepage": "https://github.com/tracycollins/neuralNetworkTools#readme",
   "dependencies": {
     "@liquid-carrot/carrot": "^0.3.20",
-    "@mapbox/node-pre-gyp": "^1.0.4",
-    "@tensorflow/tfjs-node": "^3.6.0",
-    "@threeceelabs/mongoose-twitter": "^1.1.0",
-    "@threeceelabs/mongoose-utilities": "^2.1.0",
-    "@threeceelabs/threeceeutilities": "^5.1.1",
+    "@mapbox/node-pre-gyp": "^1.0.5",
+    "@tensorflow/tfjs-node": "^3.6.1",
+    "@threeceelabs/mongoose-twitter": "^2.0.1",
+    "@threeceelabs/mongoose-utilities": "^3.0.0",
+    "@threeceelabs/threeceeutilities": "^5.1.5",
     "async": "^3.2.0",
     "deepcopy": "^2.1.0",
     "fsevents": "^2.3.2",
@@ -39,7 +39,7 @@
     "text-table": "^0.2.0"
   },
   "devDependencies": {
-    "mocha": "^8.3.2",
+    "mocha": "^8.4.0",
     "should": "^13.2.3",
     "yauzl": "^2.10.0"
   }
