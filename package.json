@@ -1,7 +1,7 @@
 {
   "name": "@threeceelabs/neural-network-tools",
   "type": "module",
-  "version": "3.1.4",
+  "version": "3.1.5",
   "description": "various neural net tools & utilities",
   "main": "index.js",
   "scripts": {
@@ -23,7 +23,7 @@
     "@tensorflow/tfjs-node": "^3.7.0",
     "@threeceelabs/mongoose-twitter": "^2.0.1",
     "@threeceelabs/mongoose-utilities": "^3.0.0",
-    "@threeceelabs/threeceeutilities": "^5.2.1",
+    "@threeceelabs/threeceeutilities": "^5.2.8",
     "async": "^3.2.0",
     "deepcopy": "^2.1.0",
     "fsevents": "^2.3.2",
