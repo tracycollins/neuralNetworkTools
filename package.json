@@ -20,10 +20,10 @@
   "dependencies": {
     "@liquid-carrot/carrot": "^0.3.20",
     "@mapbox/node-pre-gyp": "^1.0.5",
-    "@tensorflow/tfjs-node": "^3.7.0",
+    "@tensorflow/tfjs-node": "^3.8.0",
     "@threeceelabs/mongoose-twitter": "^2.0.1",
     "@threeceelabs/mongoose-utilities": "^3.0.0",
-    "@threeceelabs/threeceeutilities": "^5.2.8",
+    "@threeceelabs/threeceeutilities": "^5.2.9",
     "async": "^3.2.0",
     "deepcopy": "^2.1.0",
     "fsevents": "^2.3.2",
@@ -39,7 +39,7 @@
     "text-table": "^0.2.0"
   },
   "devDependencies": {
-    "mocha": "^9.0.2",
+    "mocha": "^9.0.3",
     "should": "^13.2.3",
     "yauzl": "^2.10.0"
   }

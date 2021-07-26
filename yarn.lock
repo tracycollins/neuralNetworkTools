@@ -220,7 +220,7 @@
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-3.8.0.tgz#f8afbc375aacab7457ac5d6a83d5c5b292105681"
   integrity sha512-O7r0zkGFM2DTS2NdWhGUrKNgoY1GR7IX5aGIj50SQ8WnPWwY9gaVI7b+euP2Yg7A6kDiFXJIST+MY9EottyqSA==
 
-"@tensorflow/tfjs-node@^3.7.0":
+"@tensorflow/tfjs-node@^3.8.0":
   version "3.8.0"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-node/-/tfjs-node-3.8.0.tgz#124717d9886df07465e4565d365970126f4356d0"
   integrity sha512-Z5OMbuZ5Fq8fVv68VcrspMpUHzyXDxB6vTeqDo/LQTBkokQsTS6+S7d5Xl1Se1l8O0UEOyS8jq5pDXv2sTnAsw==
@@ -280,7 +280,7 @@
     eventemitter3 "^4.0.7"
     treeify "^1.1.0"
 
-"@threeceelabs/threeceeutilities@^5.2.8":
+"@threeceelabs/threeceeutilities@^5.2.9":
   version "5.2.9"
   resolved "https://registry.yarnpkg.com/@threeceelabs/threeceeutilities/-/threeceeutilities-5.2.9.tgz#1f4ee24cb3d150a162793beb403632fc91bf94a5"
   integrity sha512-YzPV+QxIM/+6Pkw9c5YsZrZ2qCxuNGGN5ZNoZxuQVQxqCCALmVria/zwtMRU+0DFndkRT4EcNxdYWlgNUcRXkg==
@@ -1922,7 +1922,7 @@ mkdirp@^1.0.3:
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-1.0.4.tgz#3eb5ed62622756d79a5f0e2a221dfebad75c2f7e"
   integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
 
-mocha@^9.0.2:
+mocha@^9.0.3:
   version "9.0.3"
   resolved "https://registry.yarnpkg.com/mocha/-/mocha-9.0.3.tgz#128cd6bbd3ee0adcdaef715f357f76ec1e6227c7"
   integrity sha512-hnYFrSefHxYS2XFGtN01x8un0EwNu2bzKvhpRFhgoybIvMaOkkL60IVPmkb5h6XDmUl4IMSB+rT5cIO4/4bJgg==
